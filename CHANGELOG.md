@@ -4,6 +4,25 @@ Alle nennenswerten Änderungen an diesem Projekt werden hier je User Story dokum
 
 ## [Unreleased]
 
+### US-004 — User-Aggregate (Domain Model)
+
+- `User`-Aggregate (`SlobSteak.Domain.Identity`) um DDD-Reichhaltigkeit erweitert: statische
+  Factory-Methode `Create(name, email, plainPassword)` (gehashtes Passwort, `MustChangePassword =
+  true`, `IsSystemAdmin = false`), `ChangePassword(newPlainPassword)`, `VerifyPassword(plainPassword)`.
+- Neue domänenspezifische Exception `PasswordTooShortError` (Mindestlänge 8 Zeichen), Wiederverwendung
+  von `InvalidEmailFormatError` aus US-002 für die E-Mail-Validierung in `Create`.
+- Passwort-Hashing über PBKDF2-HMACSHA256 (.NET-BCL, keine neue NuGet-Abhängigkeit) in der intern
+  gekapselten Hilfsklasse `PasswordHasher` — siehe `docs/adr/0004-passwort-hashing-pbkdf2.md` für die
+  Begründung der Algorithmuswahl.
+- Repository-Interface `IUserRepository` (`FindByIdAsync`, `FindByEmailAsync`, `SaveAsync`,
+  `ExistsByEmailAsync`) in der Domain definiert; EF-Core-Implementierung `UserRepository` in
+  `SlobSteak.Infrastructure/Persistence/Identity/` gegen die `users`-Tabelle, per DI registriert.
+- Unit-Tests (`tests/SlobSteak.Domain.Tests/Identity/UserTests.cs`) sowie dedizierter Story-Test
+  (`tests/SlobSteak.Api.Tests/UserStories/US004_UserAggregateTests.cs`, ein Fact je Akzeptanzkriterium,
+  inkl. Integrationstest des Repositorys gegen eine echte Testcontainers-PostgreSQL-Instanz) ergänzt.
+- Keine Schemaänderung/neue Migration nötig — `users`-Tabelle und `password_hash`-Spalte existieren
+  bereits seit US-003.
+
 ### Chore — CI/CD: GitHub Auto-Merge für Story-PRs (ADR-0003)
 
 - `main` erhält eine Branch-Protection-Regel mit den sechs `pr-checks.yml`-Jobs als Required
