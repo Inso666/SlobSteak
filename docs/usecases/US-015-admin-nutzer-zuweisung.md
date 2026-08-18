@@ -34,3 +34,21 @@ Als **Admin** möchte ich **über einen API-Endpoint einen bestehenden Nutzer ei
 
 - Ein Nutzer hat pro Projekt genau eine Rolle (US-011).
 - Entzug einer Mitgliedschaft löscht keine Assessments (Abschnitt F5.2).
+
+### Anmerkungen des Dev-Agenten
+
+- `role` wird in Request-DTOs als `string` (nicht der Enum-Typ direkt) modelliert, geparst über
+  `Enum.TryParse<ProjectRole>` — analog zum bereits in US-014 etablierten Muster für
+  `ProjectResponse.Status`, damit keine globale JSON-Enum-Serialisierungskonfiguration nötig ist.
+  Ein ungültiger Rollenname liefert `400` mit `{"error":"INVALID_ROLE"}`.
+- `AssignProjectMembershipService.AssignMemberAsync` prüft zusätzlich zur `projectId` auch, ob
+  `userId` real existiert (nicht explizit als Akzeptanzkriterium gefordert, aber ohne diese Prüfung
+  hätte ein Aufruf mit nicht existierendem Nutzer zu einem unbehandelten
+  Fremdschlüssel-Verletzungsfehler (500) statt eines sauberen `404` geführt).
+- `POST`/`PATCH` auf ein nicht existierendes Projekt liefern `404` (nicht explizit gefordert, aber
+  konsistent mit dem übrigen Admin-API-Verhalten).
+
+### Status
+
+Fertig am 19.08.2026. Umsetzung: PR auf `main` (Branch `feature/US-015-admin-nutzer-zuweisung`),
+Auto-Merge gemäß ADR-0003 aktiviert.

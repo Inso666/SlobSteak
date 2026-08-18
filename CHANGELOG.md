@@ -4,6 +4,20 @@ Alle nennenswerten Änderungen an diesem Projekt werden hier je User Story dokum
 
 ## [Unreleased]
 
+### US-015 — Admin-API: Nutzer-Projekt-Zuweisung mit Rolle
+
+- Neue Endpunkte am `AdminProjectMembershipController`
+  (`api/v1/admin/projects/{projectId}/memberships`): `POST` (Zuweisung, `201`, `409` bei
+  Duplikat mit `{"error":"MEMBERSHIP_ALREADY_EXISTS"}`), `PATCH .../{userId}` (Rollenwechsel,
+  `200`), `DELETE .../{userId}` (Entzug, `204`) — alle nur für Systemadmins.
+- Neuer `AssignProjectMembershipService` orchestriert `Project.AssignMember`/`ChangeMemberRole`/
+  `RemoveMember` (US-011).
+- Tests: `AssignProjectMembershipServiceTests` (Application.Tests, gemockt), dedizierter
+  Story-Test `US015_AdminNutzerZuweisungTests` (inkl. Nachweis, dass `stakeholder_assessments`
+  beim Entzug einer Mitgliedschaft unverändert bleiben).
+- Smoke-Test: `docker compose up --build db api` → Projekt + Nutzer anlegen → Zuweisen (`201`) →
+  Rolle ändern (`200`) → Entziehen (`204`).
+
 ### US-014 — Admin-API: Projekt anlegen
 
 - Neuer Endpoint `POST /api/v1/admin/projects` (`AdminProjectController`, nur `SystemAdmin`-Policy):
