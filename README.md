@@ -110,6 +110,29 @@ Beenden mit:
 docker compose down
 ```
 
+## Aktuellen `main`-Stand testen (vorgebaute Images aus GHCR)
+
+`docker-compose.ghcr.yml` startet dieselben drei Container, baut `api` und `frontend` aber
+**nicht** lokal, sondern zieht die zuletzt bei einem gemergten Pull Request auf `main`
+veröffentlichten Images (`:latest`-Tag) aus der GitHub Container Registry. Damit lässt sich der
+aktuelle Stand von `main` jederzeit ohne lokalen Build/Checkout-Zwischenschritt hochziehen:
+
+```bash
+docker compose -f docker-compose.ghcr.yml up --pull always
+docker compose -f docker-compose.ghcr.yml down
+```
+
+Die Container sind unter denselben Adressen wie oben erreichbar. `docker-compose.yml` (Build aus
+lokalem Quellcode, s. o.) bleibt unverändert die Grundlage für die aktive Storyentwicklung gemäß
+`CLAUDE.md` Abschnitt 3.4 — beide Compose-Dateien existieren nebeneinander für unterschiedliche
+Zwecke.
+
+> **Hinweis:** Falls der `pull` mit `unauthorized`/`denied` fehlschlägt, sind die GHCR-Pakete
+> vermutlich noch als `private` markiert (Standard bei automatisch über `GITHUB_TOKEN`
+> veröffentlichten Packages). Entweder Sichtbarkeit unter GitHub → Repo → Packages → jeweiliges
+> Package → Package settings auf `Public` stellen, oder lokal einmalig einloggen:
+> `echo <PAT-mit-read:packages> | docker login ghcr.io -u <github-user> --password-stdin`.
+
 ## CI/CD
 
 `.github/workflows/docker-publish.yml` baut bei jedem auf `main` gemergten Pull Request die
