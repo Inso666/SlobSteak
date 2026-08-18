@@ -31,3 +31,15 @@ Als **Admin** möchte ich **über einen API-Endpoint ein neues Projekt mit Name,
 **Wichtige Invarianten & Validierungsregeln:**
 
 - Projektanlage ist ausschließlich Admins vorbehalten (Berechtigungsmatrix Abschnitt 2.3).
+
+### Anmerkungen des Dev-Agenten
+
+- `CreateProjectRequest.Name` trägt `[Required]`; ein rein aus Leerzeichen bestehender Name wird
+  vom ASP.NET-Core-Modelbinder ebenfalls als ungültig erkannt (nicht nur die leere Zeichenkette),
+  zusätzlich fängt die Domain (`Project.Create`/`ProjectNameRequiredError`) denselben Fall als
+  zweite Verteidigungslinie ab — per Smoke-Test verifiziert.
+
+### Status
+
+Fertig am 19.08.2026. Umsetzung: PR auf `main` (Branch `feature/US-014-admin-projekt-anlegen`),
+Auto-Merge gemäß ADR-0003 aktiviert.

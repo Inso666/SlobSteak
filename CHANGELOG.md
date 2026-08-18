@@ -4,6 +4,17 @@ Alle nennenswerten Änderungen an diesem Projekt werden hier je User Story dokum
 
 ## [Unreleased]
 
+### US-014 — Admin-API: Projekt anlegen
+
+- Neuer Endpoint `POST /api/v1/admin/projects` (`AdminProjectController`, nur `SystemAdmin`-Policy):
+  legt über den neuen `CreateProjectService` ein Projekt mit Status `active` an.
+- `400 Bad Request` bei leerem/nur-Leerzeichen-Namen (DTO-Validierung + Domain-Fallback via
+  `ProjectNameRequiredError`).
+- Tests: `CreateProjectServiceTests` (Application.Tests, gemockt), dedizierter Story-Test
+  `US014_AdminProjektAnlegenTests`.
+- Smoke-Test: `docker compose up --build db api` → Projekt anlegen (`201`, `status: "Active"`) →
+  leerer Name liefert `400`.
+
 ### US-013 — Admin-API: Passwort-Reset für Nutzer
 
 - Neuer Endpoint `POST /api/v1/admin/users/{userId}/reset-password` (`AdminUserController`, nur
