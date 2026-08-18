@@ -14,6 +14,7 @@ public static class ServiceCollectionExtensions
         services.AddScoped<SeedAdminService>();
         services.AddScoped<LoginService>();
         services.AddScoped<ChangePasswordService>();
+        services.AddScoped<CreateUserService>();
 
         return services;
     }

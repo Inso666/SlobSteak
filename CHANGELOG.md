@@ -4,6 +4,20 @@ Alle nennenswerten Änderungen an diesem Projekt werden hier je User Story dokum
 
 ## [Unreleased]
 
+### US-012 — Admin-API: Nutzer anlegen
+
+- Neuer Endpoint `POST /api/v1/admin/users` (`AdminUserController`, nur `SystemAdmin`-Policy):
+  legt über den neuen `CreateUserService` ein Nutzerkonto an (`must_change_password = true`),
+  liefert `201 Created` ohne Passwort-Hash im Response-Body.
+- `409 Conflict` mit `{"error":"EMAIL_ALREADY_IN_USE"}` bei bereits vergebener E-Mail — sowohl
+  proaktiv (`ExistsByEmailAsync`) als auch bei parallelem Zugriff über eine neue
+  Unique-Constraint-Übersetzung in `UserRepository.SaveAsync` (analog zu `ProjectRepository`,
+  ADR-0006).
+- Tests: `CreateUserServiceTests` (Application.Tests, gemockt), `AdminUserControllerTests`
+  (Response-Contract/Validierung) sowie dedizierter Story-Test `US012_AdminNutzerAnlegenTests`.
+- Smoke-Test: `docker compose up --build db api` → Login, Passwort ändern, Nutzer anlegen (`201`),
+  Duplikat-E-Mail (`409`) — alle wie erwartet.
+
 ### US-009 — Login-Screen UI (S1)
 
 - Neuer Login-Screen (`LoginPageComponent`, standalone, reaktives Formular): E-Mail/Passwort,

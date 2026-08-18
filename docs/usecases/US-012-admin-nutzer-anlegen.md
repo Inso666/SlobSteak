@@ -33,3 +33,17 @@ Als **Admin** möchte ich **über einen API-Endpoint ein neues Nutzerkonto mit N
 **Wichtige Invarianten & Validierungsregeln:**
 
 - Keine Selbstregistrierung — Nutzeranlage ist ausschließlich über diesen Admin-Endpoint möglich (Abschnitt 1.4, F5.1).
+
+### Anmerkungen des Dev-Agenten
+
+- Neue Exception `EmailAlreadyInUseError`; `UserRepository.SaveAsync` übersetzt zusätzlich zur
+  proaktiven `ExistsByEmailAsync`-Prüfung eine DB-Unique-Constraint-Verletzung bei parallelem
+  Zugriff (analog zu `ProjectRepository`, ADR-0006) in dieselbe Exception.
+- Response nutzt `201 Created` ohne `CreatedAtAction`-Location-Header, da noch kein
+  `GET /api/v1/admin/users/{id}`-Endpoint existiert, auf den verwiesen werden könnte (nicht Teil
+  dieser Story).
+
+### Status
+
+Fertig am 19.08.2026. Umsetzung: PR auf `main` (Branch `feature/US-012-admin-nutzer-anlegen`),
+Auto-Merge gemäß ADR-0003 aktiviert.

@@ -46,7 +46,7 @@ Jede Story ist so geschnitten, dass sie in einem einzigen fokussierten Entwicklu
 |---|---|---|---|---|---|
 | US-010 | Project-Aggregate (Domain Model) | ProjectManagement | US-002, US-003 | [US-010-project-aggregate.md](US-010-project-aggregate.md) | fertig (19.08.2026) |
 | US-011 | ProjectMembership-Entity mit Rollen-Invariante | ProjectManagement | US-004, US-010 | [US-011-project-membership.md](US-011-project-membership.md) | fertig (19.08.2026) |
-| US-012 | Admin-API: Nutzer anlegen | IdentityAccess | US-004, US-007 | [US-012-admin-nutzer-anlegen.md](US-012-admin-nutzer-anlegen.md) | offen |
+| US-012 | Admin-API: Nutzer anlegen | IdentityAccess | US-004, US-007 | [US-012-admin-nutzer-anlegen.md](US-012-admin-nutzer-anlegen.md) | fertig (19.08.2026) |
 | US-013 | Admin-API: Passwort-Reset für Nutzer | IdentityAccess | US-012 | [US-013-admin-passwort-reset.md](US-013-admin-passwort-reset.md) | offen |
 | US-014 | Admin-API: Projekt anlegen | ProjectManagement | US-010, US-007 | [US-014-admin-projekt-anlegen.md](US-014-admin-projekt-anlegen.md) | offen |
 | US-015 | Admin-API: Nutzer-Projekt-Zuweisung mit Rolle | ProjectManagement | US-011, US-012, US-014 | [US-015-admin-nutzer-zuweisung.md](US-015-admin-nutzer-zuweisung.md) | offen |
