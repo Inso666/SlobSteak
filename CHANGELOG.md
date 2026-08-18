@@ -4,6 +4,21 @@ Alle nennenswerten Änderungen an diesem Projekt werden hier je User Story dokum
 
 ## [Unreleased]
 
+### US-002 — Zentrale Value Objects (Email, Rolle, Score, Enums)
+
+- Value Object `Email` (`SlobSteak.Domain.Shared.ValueObjects`) mit Formatvalidierung; ungültige
+  Werte werfen die neue domänenspezifische Exception `InvalidEmailFormatError`.
+- Value Object `Score` (`readonly record struct`, Bereich 0–100 inklusive); Werte außerhalb des
+  Bereichs werfen die neue domänenspezifische Exception `InvalidScoreRangeError`.
+- Gemeinsame abstrakte Basisklasse `DomainException` für alle fachlichen Domain-Exceptions
+  (`SlobSteak.Domain.Shared.Exceptions`) als Grundlage für eine spätere zentrale
+  Exception-Middleware.
+- Enums `ProjectRole` (PL, Coreteam, Architect, User — bewusst ohne `Admin`), `StakeholderType`,
+  `CommunicationFrequency`, `CommunicationChannel` unter `SlobSteak.Domain.Shared.Enums`.
+- Unit-Tests (`EmailTests`, `ScoreTests`, `EnumsTests`) und dedizierter Story-Test
+  (`tests/SlobSteak.Domain.Tests/UserStories/US002_ValueObjectsTests.cs`, ein Fact/Theory je
+  Akzeptanzkriterium) ergänzt.
+
 ### US-001 — Projekt-Grundgerüst & Architektur-Setup
 
 - .NET-Solution `SlobSteak.sln` mit DDD-Schichtenarchitektur angelegt: `SlobSteak.Domain`,
