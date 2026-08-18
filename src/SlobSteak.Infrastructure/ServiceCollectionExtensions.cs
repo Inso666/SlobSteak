@@ -2,8 +2,10 @@ using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using SlobSteak.Domain.Identity;
+using SlobSteak.Domain.Projects;
 using SlobSteak.Infrastructure.Persistence;
 using SlobSteak.Infrastructure.Persistence.Identity;
+using SlobSteak.Infrastructure.Persistence.Projects;
 
 namespace SlobSteak.Infrastructure;
 
@@ -28,6 +30,7 @@ public static class ServiceCollectionExtensions
             options.UseNpgsql(connectionString).UseSnakeCaseNamingConvention());
 
         services.AddScoped<IUserRepository, UserRepository>();
+        services.AddScoped<IProjectRepository, ProjectRepository>();
 
         return services;
     }

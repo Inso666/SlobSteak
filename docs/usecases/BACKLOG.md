@@ -42,18 +42,18 @@ Jede Story ist so geschnitten, dass sie in einem einzigen fokussierten Entwicklu
 
 ### Phase 2 — Project Management & Admin-Verwaltung
 
-| ID | Titel | Bounded Context | Abhängigkeiten | Datei |
-|---|---|---|---|---|
-| US-010 | Project-Aggregate (Domain Model) | ProjectManagement | US-002, US-003 | [US-010-project-aggregate.md](US-010-project-aggregate.md) |
-| US-011 | ProjectMembership-Entity mit Rollen-Invariante | ProjectManagement | US-004, US-010 | [US-011-project-membership.md](US-011-project-membership.md) |
-| US-012 | Admin-API: Nutzer anlegen | IdentityAccess | US-004, US-007 | [US-012-admin-nutzer-anlegen.md](US-012-admin-nutzer-anlegen.md) |
-| US-013 | Admin-API: Passwort-Reset für Nutzer | IdentityAccess | US-012 | [US-013-admin-passwort-reset.md](US-013-admin-passwort-reset.md) |
-| US-014 | Admin-API: Projekt anlegen | ProjectManagement | US-010, US-007 | [US-014-admin-projekt-anlegen.md](US-014-admin-projekt-anlegen.md) |
-| US-015 | Admin-API: Nutzer-Projekt-Zuweisung mit Rolle | ProjectManagement | US-011, US-012, US-014 | [US-015-admin-nutzer-zuweisung.md](US-015-admin-nutzer-zuweisung.md) |
-| US-016 | Admin-Bereich UI: Nutzerverwaltung | IdentityAccess | US-012, US-013 | [US-016-admin-ui-nutzerverwaltung.md](US-016-admin-ui-nutzerverwaltung.md) |
-| US-017 | Admin-Bereich UI: Projektverwaltung & Mitgliederzuweisung | ProjectManagement | US-014, US-015, US-016 | [US-017-admin-ui-projektverwaltung.md](US-017-admin-ui-projektverwaltung.md) |
-| US-018 | Projektübersicht-Screen (S2) | ProjectManagement | US-010, US-011, US-017 | [US-018-projektuebersicht-ui.md](US-018-projektuebersicht-ui.md) |
-| US-019 | Projekt-Workspace-Shell mit Tab-Navigation (S3) | ProjectManagement | US-018 | [US-019-projekt-workspace-shell.md](US-019-projekt-workspace-shell.md) |
+| ID | Titel | Bounded Context | Abhängigkeiten | Datei | Status |
+|---|---|---|---|---|---|
+| US-010 | Project-Aggregate (Domain Model) | ProjectManagement | US-002, US-003 | [US-010-project-aggregate.md](US-010-project-aggregate.md) | fertig (19.08.2026) |
+| US-011 | ProjectMembership-Entity mit Rollen-Invariante | ProjectManagement | US-004, US-010 | [US-011-project-membership.md](US-011-project-membership.md) | offen |
+| US-012 | Admin-API: Nutzer anlegen | IdentityAccess | US-004, US-007 | [US-012-admin-nutzer-anlegen.md](US-012-admin-nutzer-anlegen.md) | offen |
+| US-013 | Admin-API: Passwort-Reset für Nutzer | IdentityAccess | US-012 | [US-013-admin-passwort-reset.md](US-013-admin-passwort-reset.md) | offen |
+| US-014 | Admin-API: Projekt anlegen | ProjectManagement | US-010, US-007 | [US-014-admin-projekt-anlegen.md](US-014-admin-projekt-anlegen.md) | offen |
+| US-015 | Admin-API: Nutzer-Projekt-Zuweisung mit Rolle | ProjectManagement | US-011, US-012, US-014 | [US-015-admin-nutzer-zuweisung.md](US-015-admin-nutzer-zuweisung.md) | offen |
+| US-016 | Admin-Bereich UI: Nutzerverwaltung | IdentityAccess | US-012, US-013 | [US-016-admin-ui-nutzerverwaltung.md](US-016-admin-ui-nutzerverwaltung.md) | offen |
+| US-017 | Admin-Bereich UI: Projektverwaltung & Mitgliederzuweisung | ProjectManagement | US-014, US-015, US-016 | [US-017-admin-ui-projektverwaltung.md](US-017-admin-ui-projektverwaltung.md) | offen |
+| US-018 | Projektübersicht-Screen (S2) | ProjectManagement | US-010, US-011, US-017 | [US-018-projektuebersicht-ui.md](US-018-projektuebersicht-ui.md) | offen |
+| US-019 | Projekt-Workspace-Shell mit Tab-Navigation (S3) | ProjectManagement | US-018 | [US-019-projekt-workspace-shell.md](US-019-projekt-workspace-shell.md) | offen |
 
 ### Phase 3 — Stakeholder Management (Stammdaten)
 
