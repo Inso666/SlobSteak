@@ -68,6 +68,7 @@ Diese fünf Regeln sind nicht verhandelbar:
 **Definition of Ready** — vor Start:
 - Alle in „Abhängigkeiten“ der Story genannten Vorgänger-Stories sind abgeschlossen (Tests grün, dokumentiert).
 - Die Story-Datei wurde vollständig gelesen; Unklarheiten gegenüber dem PRD sind vorab geklärt (Abschnitt 10).
+- Ein neuer Feature-Branch für **genau diese** Story wird von einem aktuellen `main` erstellt und ausgecheckt (siehe 3.5) — es wird niemals direkt auf `main` oder auf dem Branch einer anderen, noch offenen Story weitergearbeitet.
 
 **Doing** — während der Umsetzung:
 - Es wird ausschließlich an der aktuellen Story gearbeitet; kein Vorgriff auf spätere Stories, kein Vermischen mehrerer Stories in einem Arbeitsschritt.
@@ -82,6 +83,7 @@ Diese fünf Regeln sind nicht verhandelbar:
 - [ ] `dotnet format` (Backend) und `ng lint`/ESLint+Prettier (Frontend) laufen ohne Fehler.
 - [ ] `docs/usecases/BACKLOG.md` ist um den Status der Story ergänzt/aktualisiert (Spalte „Status“: `offen` / `in Arbeit` / `fertig`, plus Datum).
 - [ ] Keine offenen TODOs im produktiven Code ohne verlinktes Follow-up (z. B. neue Story oder Issue).
+- [ ] Alle Commits der Story sind auf den Feature-Branch gepusht und ein Pull Request vom Feature-Branch auf `main` ist eröffnet (siehe 3.5) — die Story gilt erst als abgeschlossen, wenn dieser PR existiert, nicht erst nach dessen Merge.
 
 ### 3.4 Lokale Verifizierbarkeit — Mindestanforderungen
 
@@ -92,10 +94,31 @@ Diese fünf Regeln sind nicht verhandelbar:
 
 ### 3.5 Git & Commit-Konventionen
 
-- Ein Feature-Branch pro Story: `feature/US-[NNN]-kurzbeschreibung`.
+- **Ein Feature-Branch pro Story — verpflichtend, keine Ausnahme.** Bevor auch nur eine Zeile Code für eine Story geändert wird, wird von einem aktuellen `main` ein neuer Branch erstellt und ausgecheckt:
+  ```
+  git checkout main
+  git pull
+  git checkout -b feature/US-[NNN]-kurzbeschreibung
+  ```
+  Der Branchname folgt exakt dem Schema `feature/US-[NNN]-kurzbeschreibung` (z. B. `feature/US-021-stakeholder-anlegen`). Es wird nie direkt auf `main` committet und nie ein bestehender Feature-Branch für eine andere Story weiterverwendet.
 - Commit-Messages folgen Conventional Commits und referenzieren die Story-ID, z. B. `feat(US-021): Stakeholder anlegen — API + Formular`.
 - Kein Commit fasst mehrere User Stories zusammen.
 - EF-Core-Migrations-Commits (`dotnet ef migrations add ...`) sind von Feature-Commits getrennt und eindeutig als solche erkennbar, z. B. `chore(US-020): EF-Core-Migration für Stakeholder-Tabelle`.
+- **Pull Request nach Abschluss der Story — verpflichtend.** Sobald alle Punkte der Definition of Done (Abschnitt 3.3) erfüllt sind, werden alle Commits des Feature-Branches gepusht und ein Pull Request vom Feature-Branch auf `main` eröffnet, z. B.:
+  ```
+  git push -u origin feature/US-[NNN]-kurzbeschreibung
+  gh pr create --base main --head feature/US-[NNN]-kurzbeschreibung \
+    --title "feat(US-[NNN]): <Story-Titel>" \
+    --body "<siehe unten>"
+  ```
+  Der PR-Titel referenziert die Story-ID. Der PR-Beschreibungstext enthält mindestens:
+  - Kurzzusammenfassung der Story und der Umsetzung,
+  - Checkliste der erfüllten Akzeptanzkriterien,
+  - Nachweis der lokalen Verifizierbarkeit (Testergebnisse `dotnet test` / `ng test`, Smoke-Check),
+  - ggf. Abweichungen/Anmerkungen des Dev-Agenten gemäß Abschnitt 4,
+  - ggf. Hinweise auf enthaltene EF-Core-Migrationen.
+  - Ein Merge des PR erfolgt nicht automatisch durch den Agenten, es sei denn, der Projektverantwortliche hat dies für das jeweilige Repository ausdrücklich freigegeben; standardmäßig bleibt der PR zur Review offen.
+  - Pro Story wird genau ein PR eröffnet; mehrere Stories werden nie in einem gemeinsamen PR zusammengefasst.
 
 ### 3.6 Dokumentationspflichten je Story
 

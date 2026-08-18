@@ -22,6 +22,7 @@ Als **Entwickler-Agent** möchte ich **ein lauffähiges Grundgerüst für Backen
 - [ ] Ein eigenständiges Angular-Workspace `frontend/` (erzeugt via Angular CLI, `ng new --standalone`) startet lokal über `ng serve` und rendert eine leere Platzhalterseite ohne Konsolenfehler.
 - [ ] Ein `docker-compose.yml` startet drei Container — `api` (ASP.NET Core, Multi-Stage-`Dockerfile` mit `mcr.microsoft.com/dotnet/sdk` zum Bauen und `mcr.microsoft.com/dotnet/aspnet` zur Laufzeit), `frontend` (Node-Build, ausgeliefert über `nginx`) und `db` (offizielles `postgres`-Image) — ohne Abhängigkeit zu externen Cloud-Diensten (erfüllt Abschnitt 1.5).
 - [ ] xUnit ist in `tests/SlobSteak.Domain.Tests` konfiguriert; ein Beispieltest läuft erfolgreich über `dotnet test`. Für Angular ist das Standard-Test-Setup (Jasmine/Karma über Angular CLI) konfiguriert; ein Beispieltest läuft über `ng test`.
+- [ ] Eine GitHub-Actions-Workflow-Datei `.github/workflows/docker-publish.yml` baut bei jedem gemergten Pull Request auf `main` sowohl `src/SlobSteak.Api/Dockerfile` als auch `frontend/Dockerfile` und veröffentlicht beide Images in der GitHub Container Registry (`ghcr.io/<owner>/<repo>-api` und `ghcr.io/<owner>/<repo>-frontend`), jeweils getaggt mit `latest` sowie dem Short-SHA des Merge-Commits.
 
 ### 4. Technische Hinweise für den Dev-Agenten
 
@@ -36,8 +37,12 @@ Als **Entwickler-Agent** möchte ich **ein lauffähiges Grundgerüst für Backen
 - `frontend/` (Angular-CLI-Workspace, `angular.json`, `frontend/src/app/`)
 - `docker-compose.yml`, `src/SlobSteak.Api/Dockerfile`, `frontend/Dockerfile`
 - `README.md` mit Setup-/Start-Anleitung
+- `.github/workflows/docker-publish.yml`
 
 **Wichtige Invarianten & Validierungsregeln:**
 
 - Die Domain-Schicht (`SlobSteak.Domain`) darf keine NuGet-Paketreferenz und keine Projektreferenz zu Infrastructure oder Api besitzen (Dependency Rule von innen nach außen).
 - Keine Cloud-Pflichtabhängigkeit — `api`, `frontend` und `db` müssen vollständig per `docker-compose up` lokal betreibbar sein.
+- Der Publish-Workflow löst ausschließlich auf einem tatsächlich gemergten Pull Request auf `main` aus (`pull_request` mit `types: [closed]` und Job-Bedingung `github.event.pull_request.merged == true`), nicht bei geschlossenen, aber nicht gemergten PRs und nicht bei direkten Pushes.
+- Authentifizierung gegen `ghcr.io` erfolgt über das automatisch bereitgestellte `GITHUB_TOKEN` (Berechtigung `packages: write`); es werden keine zusätzlichen Secrets für die Registry benötigt.
+- Beide Images (`api`, `frontend`) werden im selben Workflow-Lauf, aber unabhängig voneinander gebaut (Matrix- oder Parallel-Jobs), sodass ein Fehler in einem Image-Build den anderen nicht blockiert.
