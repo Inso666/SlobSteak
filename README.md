@@ -176,9 +176,12 @@ eigenständigen Jobs:
 | `Frontend: Lint (ng lint)`              | `ng lint` (ESLint/angular-eslint)                                |
 | `Frontend: Tests (ng test)`             | `ng test --watch=false --browsers=ChromeHeadlessCI` (Karma/Jasmine), Coverage-Artefakt |
 
-Diese sechs Job-Namen sollten unter **Settings → Branches → Branch protection rules** für `main`
-als „Required status checks“ hinterlegt werden, damit ein PR erst mergebar ist, wenn alle sechs
-grün sind.
+Diese sechs Job-Namen sind unter **Settings → Branches → Branch protection rules** für `main`
+als „Required status checks“ hinterlegt (strict, d. h. der Branch muss aktuell sein), sodass ein
+PR erst mergebar ist, wenn alle sechs grün sind — siehe ADR-0003. Story-PRs werden gemäß
+CLAUDE.md Abschnitt 3.5 mit aktiviertem GitHub-Auto-Merge (Squash) eröffnet und mergen
+automatisch, sobald diese sechs Checks bestehen; es findet kein zusätzliches manuelles Review als
+Merge-Voraussetzung mehr statt.
 
 **Erweiterungspflicht:** Führt eine User Story neue Komponenten ein (weitere Test-Projekte,
 End-to-End-Tests, Datenbank-Migrationen o. Ä.), muss `pr-checks.yml` im selben Pull Request

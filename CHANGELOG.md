@@ -4,6 +4,21 @@ Alle nennenswerten Änderungen an diesem Projekt werden hier je User Story dokum
 
 ## [Unreleased]
 
+### Chore — CI/CD: GitHub Auto-Merge für Story-PRs (ADR-0003)
+
+- `main` erhält eine Branch-Protection-Regel mit den sechs `pr-checks.yml`-Jobs als Required
+  Status Checks (strict) sowie `enforce_admins`, `allow_force_pushes: false`,
+  `allow_deletions: false` — Voraussetzung dafür, dass Auto-Merge tatsächlich auf grüne CI wartet.
+- CLAUDE.md Abschnitt 3.5 ergänzt eine verbindliche Auto-Merge-Regel: Story-PRs werden mit
+  aktiviertem GitHub-Auto-Merge (Squash) erstellt und mergen automatisch, sobald alle sechs
+  Required Status Checks grün sind — die bisherige „Merge erfolgt nicht automatisch“-Klausel
+  entfällt; die DoD-Checkliste (Abschnitt 3.3) markiert die Story bereits mit PR-Eröffnung als
+  abgeschlossen.
+- README.md „PR-Checks / Required Status Checks“ aktualisiert: Branch-Protection ist jetzt
+  tatsächlich konfiguriert, nicht mehr nur empfohlen.
+- Siehe `docs/adr/0003-github-auto-merge-fuer-story-prs.md` für Kontext, Entscheidung und
+  bewusst in Kauf genommenen Trade-off (kein menschliches Review mehr als Merge-Voraussetzung).
+
 ### Chore — CI: automatische Pull-Request-Prüfpipeline
 
 - Neuer GitHub-Actions-Workflow `.github/workflows/pr-checks.yml`: läuft bei jedem Pull Request
