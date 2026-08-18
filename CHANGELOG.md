@@ -4,6 +4,20 @@ Alle nennenswerten Änderungen an diesem Projekt werden hier je User Story dokum
 
 ## [Unreleased]
 
+### US-013 — Admin-API: Passwort-Reset für Nutzer
+
+- Neuer Endpoint `POST /api/v1/admin/users/{userId}/reset-password` (`AdminUserController`, nur
+  `SystemAdmin`-Policy): setzt über den neuen `ResetPasswordService` ein temporäres Passwort und
+  `must_change_password = true`. `404` bei unbekannter `userId`.
+- Neue Domain-Methode `User.ResetPassword(...)` — im Unterschied zu `ChangePassword` (US-004)
+  erzwingt sie einen Passwortwechsel beim nächsten Login, statt ihn aufzuheben.
+- Tests: `UserResetPasswordTests` (Domain.Tests), `ResetPasswordServiceTests` (Application.Tests,
+  gemockt), dedizierter Story-Test `US013_AdminPasswortResetTests` (inkl. Nachweis, dass der
+  betroffene Nutzer beim nächsten Login `mustChangePassword: true` erhält).
+- Smoke-Test: `docker compose up --build db api` → Nutzer anlegen → Passwort zurücksetzen (`200`)
+  → Login mit temporärem Passwort liefert `mustChangePassword: true` → Reset für unbekannte
+  `userId` liefert `404`.
+
 ### US-012 — Admin-API: Nutzer anlegen
 
 - Neuer Endpoint `POST /api/v1/admin/users` (`AdminUserController`, nur `SystemAdmin`-Policy):

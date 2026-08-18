@@ -124,4 +124,23 @@ public sealed class User
     /// <summary>Prüft <paramref name="plainPassword"/> gegen den gespeicherten Hash, ohne diesen
     /// offenzulegen.</summary>
     public bool VerifyPassword(string plainPassword) => PasswordHasher.Verify(plainPassword, PasswordHash);
+
+    /// <summary>
+    /// Setzt ein neues, temporäres Passwort (Admin-Reset, US-013) und erzwingt — im Unterschied zu
+    /// <see cref="ChangePassword"/> — einen Passwortwechsel beim nächsten Login
+    /// (<see cref="MustChangePassword"/> wird auf <c>true</c> gesetzt, nicht zurückgesetzt): Der
+    /// Nutzer selbst hat das neue Passwort nicht gewählt, es ist nur ein temporärer Platzhalter.
+    /// </summary>
+    /// <exception cref="PasswordTooShortError"><paramref name="temporaryPassword"/> hat weniger
+    /// als <see cref="PasswordTooShortError.MinimumLength"/> Zeichen.</exception>
+    public void ResetPassword(string temporaryPassword)
+    {
+        if (temporaryPassword is null || temporaryPassword.Length < PasswordTooShortError.MinimumLength)
+        {
+            throw new PasswordTooShortError();
+        }
+
+        PasswordHash = PasswordHasher.Hash(temporaryPassword);
+        MustChangePassword = true;
+    }
 }

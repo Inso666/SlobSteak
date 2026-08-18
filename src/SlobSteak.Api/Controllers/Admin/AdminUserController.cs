@@ -23,6 +23,14 @@ public sealed class CreateUserRequest
     public string InitialPassword { get; init; } = string.Empty;
 }
 
+/// <summary>Request-DTO für <see cref="AdminUserController.ResetPassword"/> (US-013).</summary>
+public sealed class ResetPasswordRequest
+{
+    [Required]
+    [MinLength(8)]
+    public string TemporaryPassword { get; init; } = string.Empty;
+}
+
 /// <summary>Response-DTO für einen angelegten Nutzer. Enthält bewusst keinen Passwort-Hash
 /// (US-012 Akzeptanzkriterium 1). Wire-Contract camelCase gemäß CLAUDE.md Abschnitt 3.1.</summary>
 public sealed record UserResponse(Guid Id, string Name, string Email, bool IsSystemAdmin, bool MustChangePassword, DateTimeOffset CreatedAt)
@@ -31,18 +39,20 @@ public sealed record UserResponse(Guid Id, string Name, string Email, bool IsSys
         new(user.Id, user.Name, user.Email.Value, user.IsSystemAdmin, user.MustChangePassword, user.CreatedAt);
 }
 
-/// <summary>Admin-API für Nutzerverwaltung (US-012). Ausschließlich für Systemadmins erreichbar —
-/// keine Selbstregistrierung (PRD Abschnitt 1.4).</summary>
+/// <summary>Admin-API für Nutzerverwaltung (US-012/US-013). Ausschließlich für Systemadmins
+/// erreichbar — keine Selbstregistrierung, kein Self-Service-Passwort-Reset (PRD Abschnitt 1.4).</summary>
 [ApiController]
 [Route("api/v1/admin/users")]
 [Authorize(Policy = AuthorizationPolicies.SystemAdmin)]
 public sealed class AdminUserController : ControllerBase
 {
     private readonly CreateUserService _createUserService;
+    private readonly ResetPasswordService _resetPasswordService;
 
-    public AdminUserController(CreateUserService createUserService)
+    public AdminUserController(CreateUserService createUserService, ResetPasswordService resetPasswordService)
     {
         _createUserService = createUserService;
+        _resetPasswordService = resetPasswordService;
     }
 
     /// <summary>Legt ein neues Nutzerkonto an (<c>must_change_password = true</c>).</summary>
@@ -62,5 +72,23 @@ public sealed class AdminUserController : ControllerBase
         {
             return Conflict(new { error = "EMAIL_ALREADY_IN_USE" });
         }
+    }
+
+    /// <summary>Setzt ein temporäres Passwort für einen bestehenden Nutzer und erzwingt einen
+    /// Passwortwechsel beim nächsten Login (US-013).</summary>
+    [HttpPost("{userId:guid}/reset-password")]
+    [ProducesResponseType(StatusCodes.Status200OK)]
+    [ProducesResponseType(StatusCodes.Status400BadRequest)]
+    [ProducesResponseType(StatusCodes.Status403Forbidden)]
+    [ProducesResponseType(StatusCodes.Status404NotFound)]
+    public async Task<IActionResult> ResetPassword(Guid userId, [FromBody] ResetPasswordRequest request, CancellationToken cancellationToken)
+    {
+        var success = await _resetPasswordService.ResetPasswordAsync(userId, request.TemporaryPassword, cancellationToken);
+        if (!success)
+        {
+            return NotFound();
+        }
+
+        return Ok();
     }
 }
