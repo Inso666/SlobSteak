@@ -1,0 +1,203 @@
+name: PR Checks
+
+# Vollautomatische Prüfpipeline für Pull Requests auf main/master.
+# Jeder Job entspricht einem eigenständigen "Required Status Check" in den
+# Branch Protection Rules (siehe README.md, Abschnitt "CI / Required Status Checks").
+#
+# Erweiterungsregel (CLAUDE.md, Abschnitt 3.3 "Definition of Done"): Führt eine User Story
+# neue Komponenten ein (weitere Test-Projekte, E2E-Tests/Playwright/Selenium, neue
+# EF-Core-Migrationen o. Ä.), MUSS diese Datei im selben Pull Request so erweitert werden,
+# dass die neuen Test-Suites/Validierungsschritte hier mitgeprüft werden.
+
+on:
+  pull_request:
+    branches: [main, master]
+
+concurrency:
+  group: pr-checks-${{ github.workflow }}-${{ github.event.pull_request.number }}
+  cancel-in-progress: true
+
+env:
+  DOTNET_VERSION: "8.0.x"
+  DOTNET_NOLOGO: true
+  DOTNET_CLI_TELEMETRY_OPTOUT: true
+  NODE_VERSION: "22"
+
+permissions:
+  contents: read
+  checks: write
+
+jobs:
+  # ---------------------------------------------------------------------------
+  # Backend (.NET 8 / ASP.NET Core / EF Core, Solution: SlobSteak.sln)
+  # ---------------------------------------------------------------------------
+
+  backend-build:
+    name: "Backend: Build (Release)"
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: .NET SDK einrichten
+        uses: actions/setup-dotnet@v4
+        with:
+          dotnet-version: ${{ env.DOTNET_VERSION }}
+          cache: true
+          cache-dependency-path: "**/*.csproj"
+
+      - name: NuGet-Pakete wiederherstellen
+        run: dotnet restore SlobSteak.sln
+
+      - name: Release-Build (Syntax-/Typfehler-Check)
+        run: dotnet build SlobSteak.sln --configuration Release --no-restore
+
+  backend-test:
+    name: "Backend: Tests (dotnet test)"
+    runs-on: ubuntu-latest
+    needs: backend-build
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: .NET SDK einrichten
+        uses: actions/setup-dotnet@v4
+        with:
+          dotnet-version: ${{ env.DOTNET_VERSION }}
+          cache: true
+          cache-dependency-path: "**/*.csproj"
+
+      - name: NuGet-Pakete wiederherstellen
+        run: dotnet restore SlobSteak.sln
+
+      # SlobSteak.Api.Tests nutzt Testcontainers.PostgreSql für echte Integrationstests
+      # (CLAUDE.md Abschnitt 3.2) - der Docker-Daemon der GitHub-hosted ubuntu-Runner
+      # steht dafür ohne weitere Konfiguration zur Verfügung.
+      - name: Alle Unit- und Integrationstests ausführen
+        run: >
+          dotnet test SlobSteak.sln
+          --configuration Release
+          --no-restore
+          --logger "trx;LogFileName=test-results.trx"
+          --logger "console;verbosity=normal"
+          --results-directory ./TestResults
+
+      - name: Testergebnisse als Job-Zusammenfassung veröffentlichen
+        uses: dorny/test-reporter@v1
+        if: always()
+        with:
+          name: "Backend-Testergebnisse (xUnit)"
+          path: "TestResults/*.trx"
+          reporter: dotnet-trx
+          fail-on-error: false
+
+      - name: Testergebnisse als Artefakt hochladen
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: backend-test-results
+          path: TestResults/*.trx
+          retention-days: 14
+
+  backend-format:
+    name: "Backend: Code-Format (dotnet format)"
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: .NET SDK einrichten
+        uses: actions/setup-dotnet@v4
+        with:
+          dotnet-version: ${{ env.DOTNET_VERSION }}
+          cache: true
+          cache-dependency-path: "**/*.csproj"
+
+      - name: NuGet-Pakete wiederherstellen
+        run: dotnet restore SlobSteak.sln
+
+      - name: Formatierung verifizieren (keine Änderungen erlaubt)
+        run: dotnet format SlobSteak.sln --verify-no-changes --no-restore
+
+  # ---------------------------------------------------------------------------
+  # Frontend (Angular 22, Standalone Components, ESLint, Karma/Jasmine)
+  # ---------------------------------------------------------------------------
+
+  frontend-build:
+    name: "Frontend: Build"
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: frontend
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Node.js einrichten
+        uses: actions/setup-node@v4
+        with:
+          node-version: ${{ env.NODE_VERSION }}
+          cache: "npm"
+          cache-dependency-path: frontend/package-lock.json
+
+      - name: Abhängigkeiten installieren
+        run: npm ci
+
+      - name: Production-Build (Syntax-/Typfehler-Check)
+        run: npm run build
+
+  frontend-lint:
+    name: "Frontend: Lint (ng lint)"
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: frontend
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Node.js einrichten
+        uses: actions/setup-node@v4
+        with:
+          node-version: ${{ env.NODE_VERSION }}
+          cache: "npm"
+          cache-dependency-path: frontend/package-lock.json
+
+      - name: Abhängigkeiten installieren
+        run: npm ci
+
+      - name: ESLint (angular-eslint) ausführen
+        run: npm run lint
+
+  frontend-test:
+    name: "Frontend: Tests (ng test)"
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: frontend
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Node.js einrichten
+        uses: actions/setup-node@v4
+        with:
+          node-version: ${{ env.NODE_VERSION }}
+          cache: "npm"
+          cache-dependency-path: frontend/package-lock.json
+
+      - name: Abhängigkeiten installieren
+        run: npm ci
+
+      # karma.conf.js definiert bereits den Launcher "ChromeHeadlessCI" (--no-sandbox,
+      # singleRun: true); GitHub-hosted ubuntu-Runner bringen Chrome bereits mit.
+      - name: Karma/Jasmine-Tests headless ausführen
+        run: npx ng test --watch=false --browsers=ChromeHeadlessCI
+
+      - name: Coverage-Report als Artefakt hochladen
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: frontend-coverage
+          path: frontend/coverage/frontend
+          retention-days: 14

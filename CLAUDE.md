@@ -84,6 +84,29 @@ Diese fünf Regeln sind nicht verhandelbar:
 - [ ] `docs/usecases/BACKLOG.md` ist um den Status der Story ergänzt/aktualisiert (Spalte „Status“: `offen` / `in Arbeit` / `fertig`, plus Datum).
 - [ ] Keine offenen TODOs im produktiven Code ohne verlinktes Follow-up (z. B. neue Story oder Issue).
 - [ ] Alle Commits der Story sind auf den Feature-Branch gepusht und ein Pull Request vom Feature-Branch auf `main` ist eröffnet (siehe 3.5) — die Story gilt erst als abgeschlossen, wenn dieser PR existiert, nicht erst nach dessen Merge.
+- [ ] Führt die Story neue Komponenten ein (siehe unten), ist `.github/workflows/pr-checks.yml` im selben PR entsprechend erweitert und der PR selbst zeigt alle daraus resultierenden Checks grün.
+
+**Anforderung für neue Features (CI-Erweiterungspflicht):** Wenn eine User Story neue
+Komponenten einführt (z. B. neue Test-Projekte, End-to-End-Tests, Datenbank-Migrationen oder
+Playwright/Selenium-Tests), MUSS der Agent die `.github/workflows/pr-checks.yml` im selben Pull
+Request so anpassen, dass diese neuen Test-Suites oder Validierungsschritte im CI-Workflow
+mitgeprüft werden. Konkret bedeutet das u. a.:
+- Ein neues xUnit-Test-Projekt (`tests/SlobSteak.*.Tests`) wird automatisch über
+  `dotnet test SlobSteak.sln` mitausgeführt, sobald es der Solution-Datei hinzugefügt ist —
+  zusätzlicher Workflow-Aufwand entsteht hier nur, wenn das Projekt eigene Infrastruktur
+  benötigt (z. B. einen weiteren Service-Container).
+- Neue E2E-Tests (Playwright/Selenium) erhalten einen eigenen, klar benannten Job
+  (z. B. `"E2E: Playwright"`), inklusive Setup der benötigten Browser/Runtime und Upload der
+  Testartefakte (Screenshots/Traces) bei Fehlschlägen.
+- Neue EF-Core-Migrationen werden nicht separat in der Pipeline validiert, aber jede Story mit
+  Schemaänderungen stellt sicher, dass `backend-test` (Testcontainers-PostgreSQL) weiterhin grün
+  bleibt.
+- Neue Linting-/Formatierungsregeln (z. B. ein zusätzliches Analyzer-Paket) werden in den
+  bestehenden `backend-format`/`frontend-lint`-Jobs mitgeprüft statt in einem separaten Job
+  dupliziert.
+- Der PR-Text nennt explizit, welcher/welche Job(s) in `pr-checks.yml` neu hinzugekommen sind
+  oder angepasst wurden, damit die Branch-Protection-Required-Status-Checks entsprechend
+  nachgezogen werden können.
 
 ### 3.4 Lokale Verifizierbarkeit — Mindestanforderungen
 
