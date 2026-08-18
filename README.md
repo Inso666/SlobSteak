@@ -50,7 +50,7 @@ dotnet test
 ```
 
 Führt alle Tests der Solution aus (`SlobSteak.Domain.Tests`, `SlobSteak.Application.Tests`,
-`SlobSteak.Api.Tests`). Für eine einzelne Story-Testklasse (ab US-004 vorhanden):
+`SlobSteak.Api.Tests`). Für eine einzelne Story-Testklasse (ab US-002 vorhanden):
 
 ```bash
 dotnet test --filter "FullyQualifiedName~US0NN"
