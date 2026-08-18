@@ -1,3 +1,5 @@
+using SlobSteak.Domain.Shared.Exceptions;
+
 namespace SlobSteak.Domain.Projects;
 
 /// <summary>
@@ -5,12 +7,10 @@ namespace SlobSteak.Domain.Projects;
 /// Abschnitt 4.1 (Entität <c>projects</c>).
 /// </summary>
 /// <remarks>
-/// Bewusst minimales Skeleton im Rahmen von US-003 (Datenbankschema): Dieser Konstruktor prüft
-/// nur strukturelle Grundbedingungen. Die <c>Create</c>-Factory-Methode mit
-/// <c>ProjectNameRequiredError</c>, <c>Archive</c>/<c>Reactivate</c> sowie das
-/// Repository-Interface <c>IProjectRepository</c> werden erst in US-010 (Project-Aggregate)
-/// ergänzt; die Mitgliederverwaltung (<c>AssignMember</c>/<c>ChangeMemberRole</c>/<c>RemoveMember</c>)
-/// erst in US-011 — siehe <c>docs/adr/0001-domain-entity-skeletons-vor-aggregate-stories.md</c>.
+/// US-010 (Project-Aggregate): <see cref="Create"/> ist der vorgesehene Weg, ein neues Projekt
+/// fachlich korrekt anzulegen. Die Mitgliederverwaltung
+/// (<c>AssignMember</c>/<c>ChangeMemberRole</c>/<c>RemoveMember</c>) folgt erst in US-011 — siehe
+/// <c>docs/adr/0001-domain-entity-skeletons-vor-aggregate-stories.md</c>.
 /// </remarks>
 public sealed class Project
 {
@@ -37,4 +37,23 @@ public sealed class Project
     public ProjectStatus Status { get; private set; }
 
     public DateTimeOffset CreatedAt { get; private set; }
+
+    /// <summary>Erzeugt ein neues Projekt mit <see cref="ProjectStatus.Active"/>.</summary>
+    /// <exception cref="ProjectNameRequiredError"><paramref name="name"/> ist leer oder besteht
+    /// nur aus Leerzeichen.</exception>
+    public static Project Create(string name, string? description)
+    {
+        if (string.IsNullOrWhiteSpace(name))
+        {
+            throw new ProjectNameRequiredError();
+        }
+
+        return new Project(Guid.NewGuid(), name, description, ProjectStatus.Active, DateTimeOffset.UtcNow);
+    }
+
+    /// <summary>Setzt den Status auf <see cref="ProjectStatus.Archived"/>.</summary>
+    public void Archive() => Status = ProjectStatus.Archived;
+
+    /// <summary>Setzt den Status zurück auf <see cref="ProjectStatus.Active"/>.</summary>
+    public void Reactivate() => Status = ProjectStatus.Active;
 }

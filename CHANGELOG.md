@@ -4,6 +4,21 @@ Alle nennenswerten Änderungen an diesem Projekt werden hier je User Story dokum
 
 ## [Unreleased]
 
+### US-010 — Project-Aggregate (Domain Model)
+
+- `Project`-Aggregate (`SlobSteak.Domain.Projects`) um DDD-Reichhaltigkeit erweitert:
+  `Create(name, description)` (Status `Active`), `Archive()`, `Reactivate()`.
+- Neue domänenspezifische Exception `ProjectNameRequiredError`.
+- Repository-Interface `IProjectRepository` (`FindByIdAsync`, `SaveAsync`, `FindAllAsync`,
+  `FindByMemberUserIdAsync`) in der Domain definiert; EF-Core-Implementierung `ProjectRepository`
+  in `SlobSteak.Infrastructure/Persistence/Projects/`, per DI registriert.
+- Tests: `ProjectTests` (Domain.Tests) sowie dedizierter Story-Test
+  `US010_ProjectAggregateTests` (Api.Tests, inkl. Integrationstest gegen echte
+  Testcontainers-PostgreSQL-Instanz für das Repository).
+- Reihenfolge-Anmerkung: vorgezogen gegenüber der Phase-1-Story US-007, die transitiv von
+  US-010/US-011 abhängt — Details in der Story-Datei unter „Anmerkungen des Dev-Agenten“.
+- Keine Schemaänderung/neue Migration nötig — `projects`-Tabelle existiert bereits seit US-003.
+
 ### US-006 — Login-API mit Session/Token-Ausstellung
 
 - Neuer Endpoint `POST /api/v1/auth/login` (`AuthController`): prüft E-Mail/Passwort über den
