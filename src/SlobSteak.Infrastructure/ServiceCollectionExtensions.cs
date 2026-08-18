@@ -1,13 +1,16 @@
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
+using SlobSteak.Domain.Identity;
 using SlobSteak.Infrastructure.Persistence;
+using SlobSteak.Infrastructure.Persistence.Identity;
 
 namespace SlobSteak.Infrastructure;
 
 /// <summary>
-/// Registriert die Infrastructure-Schicht (aktuell: <see cref="SlobSteakDbContext"/> gegen
-/// PostgreSQL) in der Composition Root (<c>SlobSteak.Api/Program.cs</c>).
+/// Registriert die Infrastructure-Schicht (<see cref="SlobSteakDbContext"/> gegen PostgreSQL
+/// sowie die Repository-Implementierungen für die von der Domain definierten
+/// Repository-Interfaces) in der Composition Root (<c>SlobSteak.Api/Program.cs</c>).
 /// </summary>
 public static class ServiceCollectionExtensions
 {
@@ -23,6 +26,8 @@ public static class ServiceCollectionExtensions
 
         services.AddDbContext<SlobSteakDbContext>(options =>
             options.UseNpgsql(connectionString).UseSnakeCaseNamingConvention());
+
+        services.AddScoped<IUserRepository, UserRepository>();
 
         return services;
     }

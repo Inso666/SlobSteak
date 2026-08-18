@@ -36,3 +36,21 @@ Als **Entwickler-Agent** möchte ich **das `User`-Aggregate mit Passwort-Hashing
 
 - E-Mail-Adressen sind instanzweit eindeutig (DB Unique Constraint aus US-003 + Domain-Check via `ExistsByEmail`).
 - Passwörter werden ausschließlich gehasht persistiert (z. B. bcrypt/argon2), niemals im Klartext.
+
+### Anmerkungen des Dev-Agenten
+
+- Passwort-Hashing wurde mit PBKDF2-HMACSHA256 (`Rfc2898DeriveBytes.Pbkdf2` aus der .NET-BCL, 100.000
+  Iterationen, zufälliges 16-Byte-Salt, konstantzeitiger Vergleich) statt eines externen
+  bcrypt-/argon2-NuGet-Pakets umgesetzt — beide vom PRD nur beispielhaft genannt, nicht verbindlich
+  vorgegeben. Begründung, Trade-offs und Migrationsfähigkeit siehe
+  `docs/adr/0004-passwort-hashing-pbkdf2.md`.
+- `User.Create` setzt `IsSystemAdmin = false` und `MustChangePassword = true` als Default (nicht
+  explizit als Akzeptanzkriterium gefordert, aber notwendig für einen sinnvollen Aggregate-Zustand
+  und konsistent mit dem für US-005/US-008 vorgesehenen Erst-Login-Flow). Der bestehende öffentliche
+  Konstruktor bleibt für Rematerialisierung durch EF Core sowie für Seed-/Bootstrap-Code (US-005),
+  der `IsSystemAdmin = true` explizit setzen muss, erhalten.
+
+### Status
+
+Fertig am 19.08.2026. Umsetzung: PR auf `main` (Branch `feature/US-004-user-aggregate`), Auto-Merge
+gemäß ADR-0003 aktiviert.

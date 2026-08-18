@@ -1,3 +1,4 @@
+using SlobSteak.Domain.Shared.Exceptions;
 using SlobSteak.Domain.Shared.ValueObjects;
 
 namespace SlobSteak.Domain.Identity;
@@ -7,13 +8,12 @@ namespace SlobSteak.Domain.Identity;
 /// Abschnitt 4.1 (Entität <c>users</c>).
 /// </summary>
 /// <remarks>
-/// Bewusst minimales Skeleton im Rahmen von US-003 (Datenbankschema): Dieser Konstruktor prüft
-/// nur strukturelle Grundbedingungen (keine leeren Pflichtfelder), aber keine fachlichen
-/// Invarianten. Passwort-Hashing, <c>Create</c>-Factory-Methode mit
-/// <c>PasswordTooShortError</c>/<c>InvalidEmailFormatError</c>, <c>ChangePassword</c>,
-/// <c>VerifyPassword</c> sowie das Repository-Interface <c>IUserRepository</c> werden erst in
-/// US-004 (User-Aggregate) ergänzt — siehe
-/// <c>docs/adr/0001-domain-entity-skeletons-vor-aggregate-stories.md</c>.
+/// US-004 (User-Aggregate): <see cref="Create"/> ist der einzige vorgesehene Weg, ein neues
+/// Nutzerkonto fachlich korrekt anzulegen (gehashtes Passwort, Invarianten geprüft). Der
+/// öffentliche Konstruktor bleibt zusätzlich bestehen — er wird von EF Core zur Rematerialisierung
+/// aus der Datenbank verwendet (Parameterbindung nach Property-Namen) sowie von
+/// Seed-/Bootstrap-Code (z. B. US-005), der explizit einen bereits gehashten Passwort-Wert bzw.
+/// <c>IsSystemAdmin = true</c> setzen muss, was <see cref="Create"/> bewusst nicht anbietet.
 /// </remarks>
 public sealed class User
 {
@@ -60,4 +60,52 @@ public sealed class User
     public bool MustChangePassword { get; private set; }
 
     public DateTimeOffset CreatedAt { get; private set; }
+
+    /// <summary>
+    /// Erzeugt ein neues Nutzerkonto mit gehashtem Passwort. Das Klartext-Passwort
+    /// (<paramref name="plainPassword"/>) wird nirgends im Aggregate-Zustand gespeichert.
+    /// </summary>
+    /// <exception cref="InvalidEmailFormatError"><paramref name="email"/> bildet kein gültiges
+    /// <see cref="Email"/>-Value-Object (Wiederverwendung von US-002).</exception>
+    /// <exception cref="PasswordTooShortError"><paramref name="plainPassword"/> hat weniger als
+    /// <see cref="PasswordTooShortError.MinimumLength"/> Zeichen.</exception>
+    public static User Create(string name, string email, string plainPassword)
+    {
+        var emailValueObject = new Email(email);
+
+        if (plainPassword is null || plainPassword.Length < PasswordTooShortError.MinimumLength)
+        {
+            throw new PasswordTooShortError();
+        }
+
+        return new User(
+            Guid.NewGuid(),
+            name,
+            emailValueObject,
+            PasswordHasher.Hash(plainPassword),
+            isSystemAdmin: false,
+            mustChangePassword: true,
+            DateTimeOffset.UtcNow);
+    }
+
+    /// <summary>
+    /// Setzt ein neues Passwort (gehasht) und markiert den erzwungenen Passwortwechsel
+    /// (<see cref="MustChangePassword"/>) als erledigt.
+    /// </summary>
+    /// <exception cref="PasswordTooShortError"><paramref name="newPlainPassword"/> hat weniger als
+    /// <see cref="PasswordTooShortError.MinimumLength"/> Zeichen.</exception>
+    public void ChangePassword(string newPlainPassword)
+    {
+        if (newPlainPassword is null || newPlainPassword.Length < PasswordTooShortError.MinimumLength)
+        {
+            throw new PasswordTooShortError();
+        }
+
+        PasswordHash = PasswordHasher.Hash(newPlainPassword);
+        MustChangePassword = false;
+    }
+
+    /// <summary>Prüft <paramref name="plainPassword"/> gegen den gespeicherten Hash, ohne diesen
+    /// offenzulegen.</summary>
+    public bool VerifyPassword(string plainPassword) => PasswordHasher.Verify(plainPassword, PasswordHash);
 }
