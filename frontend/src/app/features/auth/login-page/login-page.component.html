@@ -1,0 +1,21 @@
+@if (!mustChangePassword) {
+  <main class="login">
+    <h1>Anmelden</h1>
+
+    <form [formGroup]="form" (ngSubmit)="onSubmit()">
+      <label for="email">E-Mail</label>
+      <input id="email" type="email" formControlName="email" autocomplete="username" />
+
+      <label for="password">Passwort</label>
+      <input id="password" type="password" formControlName="password" autocomplete="current-password" />
+
+      @if (errorMessage) {
+        <p class="form-error">{{ errorMessage }}</p>
+      }
+
+      <button type="submit" [disabled]="form.invalid || isSubmitting">Anmelden</button>
+    </form>
+  </main>
+} @else {
+  <app-password-change-modal (passwordChanged)="onPasswordChanged()" />
+}

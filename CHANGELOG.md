@@ -4,6 +4,25 @@ Alle nennenswerten Änderungen an diesem Projekt werden hier je User Story dokum
 
 ## [Unreleased]
 
+### US-009 — Login-Screen UI (S1)
+
+- Neuer Login-Screen (`LoginPageComponent`, standalone, reaktives Formular): E-Mail/Passwort,
+  Submit deaktiviert solange eines der Felder leer ist, nicht-blockierende Fehlermeldung „E-Mail
+  oder Passwort ist falsch.“ bei `401` (Passwortfeld wird geleert).
+- Bei erfolgreichem Login mit `mustChangePassword` navigiert die Seite zunächst zum in US-008
+  gebauten `PasswordChangeModalComponent`; danach bzw. sonst direkt zu `/projects` (Zielscreen
+  folgt mit US-018).
+- Neue Infrastruktur: `app.routes.ts` + `provideRouter`, `TokenStorageService` (Session-Token in
+  `localStorage`), `authInterceptor` (hängt das Token an jeden Request an). `AuthService.login(...)`
+  ergänzt.
+- `frontend/nginx.conf`: Reverse-Proxy `/api/` → `api`-Container ergänzt, damit die relativen
+  `/api/v1/...`-Aufrufe des Frontends in docker-compose tatsächlich das Backend erreichen (nicht
+  von der SPA-Fallback-Route verschluckt werden).
+- Tests: `login-page.component.spec.ts` (6 Fälle inkl. Erfolg, Fehlerfall, Modal-Übergabe),
+  `app.spec.ts` angepasst (Router-Provider für `<router-outlet>`).
+- Smoke-Test: `docker compose up --build db api frontend` → Login über
+  `http://localhost:4200/api/v1/auth/login` liefert `200` (Proxy funktioniert).
+
 ### US-008 — Erzwungene Passwortänderung nach Erst-Login
 
 - Neuer Endpoint `PATCH /api/v1/auth/password` (`AuthController`, authentifiziert): ändert das
