@@ -1,6 +1,8 @@
 using System.Text.Json;
 using Microsoft.AspNetCore.Diagnostics.HealthChecks;
 using Microsoft.EntityFrameworkCore;
+using SlobSteak.Api.Bootstrap;
+using SlobSteak.Application;
 using SlobSteak.Infrastructure;
 using SlobSteak.Infrastructure.Persistence;
 
@@ -16,6 +18,20 @@ builder.Services.AddSwaggerGen();
 builder.Services.AddHealthChecks();
 
 builder.Services.AddInfrastructure(builder.Configuration);
+builder.Services.AddApplication();
+
+// Seed-Admin-Bootstrap (US-005) läuft beim echten Hoststart (Development/Production), aber
+// bewusst nicht im Hosting-Environment "Testing": WebApplicationFactory-basierte Tests bauen den
+// Host teils ohne echte Datenbank auf (z. B. der DB-lose Health-Check-Test aus US-001) und/oder
+// steuern die Seed-Vorbedingungen (leere/nicht-leere users-Tabelle, SEED_ADMIN_*-Konfiguration)
+// gezielt selbst, um deterministisch zu bleiben — siehe
+// tests/SlobSteak.Api.Tests/UserStories/US005_SeedAdminTests.cs, das den zugrunde liegenden
+// SeedAdminService direkt aufruft statt sich auf den automatischen Hosted-Service-Start zu
+// verlassen.
+if (!builder.Environment.IsEnvironment("Testing"))
+{
+    builder.Services.AddHostedService<SeedAdminHostedService>();
+}
 
 var app = builder.Build();
 

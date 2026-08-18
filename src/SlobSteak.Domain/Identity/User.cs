@@ -69,7 +69,23 @@ public sealed class User
     /// <see cref="Email"/>-Value-Object (Wiederverwendung von US-002).</exception>
     /// <exception cref="PasswordTooShortError"><paramref name="plainPassword"/> hat weniger als
     /// <see cref="PasswordTooShortError.MinimumLength"/> Zeichen.</exception>
-    public static User Create(string name, string email, string plainPassword)
+    public static User Create(string name, string email, string plainPassword) =>
+        CreateInternal(name, email, plainPassword, isSystemAdmin: false);
+
+    /// <summary>
+    /// Erzeugt ein initiales System-Administrator-Konto — ausschließlich für Bootstrap-/Seed-Zwecke
+    /// gedacht (US-005 <c>SeedAdminService</c>), nicht für regulär durch einen Admin angelegte
+    /// Nutzerkonten (dafür bleibt <see cref="Create"/> maßgeblich). Setzt zusätzlich zu den
+    /// Prüfungen aus <see cref="Create"/> <see cref="IsSystemAdmin"/> auf <c>true</c>.
+    /// </summary>
+    /// <exception cref="InvalidEmailFormatError"><paramref name="email"/> bildet kein gültiges
+    /// <see cref="Email"/>-Value-Object.</exception>
+    /// <exception cref="PasswordTooShortError"><paramref name="plainPassword"/> hat weniger als
+    /// <see cref="PasswordTooShortError.MinimumLength"/> Zeichen.</exception>
+    public static User CreateSystemAdmin(string name, string email, string plainPassword) =>
+        CreateInternal(name, email, plainPassword, isSystemAdmin: true);
+
+    private static User CreateInternal(string name, string email, string plainPassword, bool isSystemAdmin)
     {
         var emailValueObject = new Email(email);
 
@@ -83,7 +99,7 @@ public sealed class User
             name,
             emailValueObject,
             PasswordHasher.Hash(plainPassword),
-            isSystemAdmin: false,
+            isSystemAdmin,
             mustChangePassword: true,
             DateTimeOffset.UtcNow);
     }

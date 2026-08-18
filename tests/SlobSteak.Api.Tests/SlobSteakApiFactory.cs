@@ -1,5 +1,6 @@
 using Microsoft.AspNetCore.Hosting;
 using Microsoft.AspNetCore.Mvc.Testing;
+using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.DependencyInjection.Extensions;
 using Microsoft.EntityFrameworkCore;
@@ -21,6 +22,7 @@ namespace SlobSteak.Api.Tests;
 public class SlobSteakApiFactory : WebApplicationFactory<Program>
 {
     private readonly string? _connectionStringOverride;
+    private readonly IReadOnlyDictionary<string, string?>? _additionalConfiguration;
 
     /// <summary>Parameterloser Konstruktor, benötigt für die Aktivierung über xUnits
     /// <see cref="IClassFixture{TFixture}"/> (keine Datenbank-Interaktion). xUnit lässt pro
@@ -30,18 +32,31 @@ public class SlobSteakApiFactory : WebApplicationFactory<Program>
     {
     }
 
-    private SlobSteakApiFactory(string connectionStringOverride)
+    private SlobSteakApiFactory(string connectionStringOverride, IReadOnlyDictionary<string, string?>? additionalConfiguration)
     {
         _connectionStringOverride = connectionStringOverride;
+        _additionalConfiguration = additionalConfiguration;
     }
 
     /// <summary>Erstellt eine Factory, deren <see cref="SlobSteakDbContext"/>-Registrierung durch
-    /// <paramref name="connectionString"/> ersetzt ist (z. B. eine Testcontainers-PostgreSQL-Instanz).</summary>
-    public static SlobSteakApiFactory WithConnectionString(string connectionString) => new(connectionString);
+    /// <paramref name="connectionString"/> ersetzt ist (z. B. eine Testcontainers-PostgreSQL-Instanz).
+    /// <paramref name="additionalConfiguration"/> überschreibt/ergänzt optional einzelne
+    /// Konfigurationswerte (z. B. <c>SEED_ADMIN_EMAIL</c>/<c>SEED_ADMIN_PASSWORD</c> für US-005),
+    /// ohne echte Prozess-Umgebungsvariablen zu setzen.</summary>
+    public static SlobSteakApiFactory WithConnectionString(
+        string connectionString,
+        IReadOnlyDictionary<string, string?>? additionalConfiguration = null) =>
+        new(connectionString, additionalConfiguration);
 
     protected override void ConfigureWebHost(IWebHostBuilder builder)
     {
         builder.UseEnvironment("Testing");
+
+        if (_additionalConfiguration is not null)
+        {
+            builder.ConfigureAppConfiguration((_, configurationBuilder) =>
+                configurationBuilder.AddInMemoryCollection(_additionalConfiguration!));
+        }
 
         if (_connectionStringOverride is not null)
         {
