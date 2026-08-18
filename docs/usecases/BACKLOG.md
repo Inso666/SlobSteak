@@ -38,7 +38,7 @@ Jede Story ist so geschnitten, dass sie in einem einzigen fokussierten Entwicklu
 | US-006 | Login-API mit Session/Token-Ausstellung | IdentityAccess | US-004 | [US-006-login-api.md](US-006-login-api.md) | fertig (19.08.2026) |
 | US-007 | Rollenbasierte Authorization-Middleware | IdentityAccess | US-006, US-011 | [US-007-authorization-middleware.md](US-007-authorization-middleware.md) | fertig (19.08.2026) |
 | US-008 | Erzwungene Passwortänderung nach Erst-Login | IdentityAccess | US-006 | [US-008-passwort-aenderung-erzwingen.md](US-008-passwort-aenderung-erzwingen.md) | fertig (19.08.2026) |
-| US-009 | Login-Screen UI (S1) | IdentityAccess | US-006, US-008 | [US-009-login-ui.md](US-009-login-ui.md) | offen |
+| US-009 | Login-Screen UI (S1) | IdentityAccess | US-006, US-008 | [US-009-login-ui.md](US-009-login-ui.md) | fertig (19.08.2026) |
 
 ### Phase 2 — Project Management & Admin-Verwaltung
 

@@ -1,0 +1,10 @@
+.login {
+  max-width: 24rem;
+  margin: 4rem auto;
+  padding: 1.5rem;
+}
+
+.form-error {
+  color: #b00020;
+  font-size: 0.875rem;
+}
