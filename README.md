@@ -29,9 +29,19 @@ frontend/                     Angular-Workspace (Standalone Components)
 
 ## Backend lokal starten
 
+Die API benötigt seit US-003 eine erreichbare PostgreSQL-Instanz (ausstehende EF-Core-Migrationen
+werden im Development-Environment beim Start automatisch angewendet). Am einfachsten zuerst nur
+die Datenbank per Docker Compose hochfahren:
+
 ```bash
+docker compose up -d db
 dotnet run --project src/SlobSteak.Api
 ```
+
+Der lokale Connection-String (`Host=localhost;Port=5432;...`) liegt in
+`src/SlobSteak.Api/appsettings.Development.json` (nicht versioniert, siehe `.gitignore`) und passt
+zu den Default-Zugangsdaten aus `docker-compose.yml`. Alternativ per Umgebungsvariable setzen:
+`ConnectionStrings__Default="Host=localhost;Port=5432;Database=slobsteak;Username=slobsteak;Password=slobsteak"`.
 
 Die API ist danach unter `http://localhost:5042` erreichbar (Port siehe Konsolenausgabe bzw.
 `src/SlobSteak.Api/Properties/launchSettings.json`). Health-Check:
@@ -42,6 +52,17 @@ curl http://localhost:5042/api/v1/health
 ```
 
 Swagger-UI (nur im Development-Environment) ist unter `/swagger` verfügbar.
+
+## EF-Core-Migrationen
+
+```bash
+dotnet tool install --global dotnet-ef   # einmalig, falls noch nicht installiert
+dotnet ef migrations add <Name> --project src/SlobSteak.Infrastructure --startup-project src/SlobSteak.Api --output-dir Persistence/Migrations
+dotnet ef database update --project src/SlobSteak.Infrastructure --startup-project src/SlobSteak.Api
+```
+
+Migrationen werden nie nachträglich editiert (CLAUDE.md Abschnitt 3.1) — Schemaänderungen erhalten
+stets eine neue Migration.
 
 ## Backend-Tests ausführen
 

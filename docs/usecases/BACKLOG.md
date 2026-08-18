@@ -27,7 +27,7 @@ Jede Story ist so geschnitten, dass sie in einem einzigen fokussierten Entwicklu
 |---|---|---|---|---|---|
 | US-001 | Projekt-Grundgerüst & Architektur-Setup | Shared Kernel / Infrastructure | Keine | [US-001-projekt-setup.md](US-001-projekt-setup.md) | fertig (18.08.2026) |
 | US-002 | Zentrale Value Objects (Email, Rolle, Score, Enums) | Shared Kernel | US-001 | [US-002-value-objects.md](US-002-value-objects.md) | fertig (18.08.2026) |
-| US-003 | Datenbankschema & Migrationen für alle Aggregate | Shared Kernel / Infrastructure | US-001, US-002 | [US-003-datenbankschema.md](US-003-datenbankschema.md) | offen |
+| US-003 | Datenbankschema & Migrationen für alle Aggregate | Shared Kernel / Infrastructure | US-001, US-002 | [US-003-datenbankschema.md](US-003-datenbankschema.md) | fertig (18.08.2026) |
 
 ### Phase 1 — Identity & Access (Auth)
 

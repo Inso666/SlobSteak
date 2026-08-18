@@ -4,6 +4,36 @@ Alle nennenswerten Änderungen an diesem Projekt werden hier je User Story dokum
 
 ## [Unreleased]
 
+### US-003 — Datenbankschema & Migrationen für alle Aggregate
+
+- Minimale Domain-Entity-Skeletons für alle sieben Aggregate/Entities angelegt (`User`, `Project`
+  + `ProjectStatus`, `ProjectMembership`, `Stakeholder`, `StakeholderCommunicationAssignment`,
+  `StakeholderAssessment`, `CommunicationType`), an den Pfaden, die die späteren Aggregate-Stories
+  (US-004/010/011/020/027/037/039) erweitern werden — Details siehe `docs/adr/0001-*.md`.
+- `SlobSteakDbContext` (EF Core, PostgreSQL via Npgsql) mit `DbSet`s für alle sieben Aggregate
+  sowie sieben `IEntityTypeConfiguration<T>`-Klassen (Fluent API, keine Data Annotations) unter
+  `src/SlobSteak.Infrastructure/Persistence/Configurations/`.
+- Snake-case-Tabellen-/Spaltennamen über `EFCore.NamingConventions`
+  (`UseSnakeCaseNamingConvention()`), Wiederverwendung der Value Objects `Email`/`Score` aus
+  US-002 via `HasConversion`.
+- Drei zentrale Unique-Indizes gemäß PRD Abschnitt 4.3: `project_memberships`
+  (`project_id`,`user_id`), `stakeholder_assessments` (`stakeholder_id`,`role`),
+  `stakeholder_communication_assignments` (`stakeholder_id`,`communication_type_id`) — plus
+  `users.email` und `communication_types.name`.
+- `StakeholderAssessment.Version` als explizites Optimistic-Concurrency-Feld (siehe
+  `docs/adr/0002-*.md`), als EF-Concurrency-Token konfiguriert.
+- Initiale Migration `InitialCreate` erzeugt; manuell gegen echte PostgreSQL verifiziert
+  (`dotnet ef database update` und vollständiger Rollback `dotnet ef database update 0`).
+- `Program.cs` wendet ausstehende Migrationen im Development-Environment beim Start automatisch an
+  (`dbContext.Database.Migrate()`); per `docker compose up --build db api` + Health-Check-Smoke-Test
+  verifiziert.
+- Integrationstests gegen eine echte Testcontainers-PostgreSQL-Instanz: `SchemaConstraintsTests`
+  (3 Unique-Constraint-Verletzungen → `DbUpdateException`) und dedizierter Story-Test
+  `tests/SlobSteak.Api.Tests/UserStories/US003_DatenbankschemaTests.cs` (ein Fact je
+  Akzeptanzkriterium). Gemeinsame Test-Factory `SlobSteakApiFactory` (Hosting-Umgebung
+  `"Testing"`) eingeführt, um den neuen automatischen Migrations-Aufruf nicht ungewollt in
+  DB-losen Tests (z. B. dem bestehenden Health-Check-Test aus US-001) auszulösen.
+
 ### Chore — Docker-Compose-Variante für GHCR-Images
 
 - Neue `docker-compose.ghcr.yml` ergänzt: startet `api`/`frontend` aus den zuletzt bei einem

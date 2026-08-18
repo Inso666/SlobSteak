@@ -1,5 +1,8 @@
 using System.Text.Json;
 using Microsoft.AspNetCore.Diagnostics.HealthChecks;
+using Microsoft.EntityFrameworkCore;
+using SlobSteak.Infrastructure;
+using SlobSteak.Infrastructure.Persistence;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -12,6 +15,8 @@ builder.Services.AddSwaggerGen();
 
 builder.Services.AddHealthChecks();
 
+builder.Services.AddInfrastructure(builder.Configuration);
+
 var app = builder.Build();
 
 // Configure the HTTP request pipeline.
@@ -19,6 +24,14 @@ if (app.Environment.IsDevelopment())
 {
     app.UseSwagger();
     app.UseSwaggerUI();
+
+    // Wendet ausstehende EF-Core-Migrationen beim Start automatisch an — ausschließlich für die
+    // lokale/Dev-Umgebung (docker-compose, `dotnet run`), kein impliziter Produktionsmechanismus
+    // (CLAUDE.md Abschnitt 3.4). In Produktion erfolgt das Ausrollen von Migrationen kontrolliert
+    // außerhalb des Anwendungsstarts.
+    using var migrationScope = app.Services.CreateScope();
+    var dbContext = migrationScope.ServiceProvider.GetRequiredService<SlobSteakDbContext>();
+    dbContext.Database.Migrate();
 }
 
 app.UseHttpsRedirection();
