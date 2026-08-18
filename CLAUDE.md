@@ -83,7 +83,7 @@ Diese fünf Regeln sind nicht verhandelbar:
 - [ ] `dotnet format` (Backend) und `ng lint`/ESLint+Prettier (Frontend) laufen ohne Fehler.
 - [ ] `docs/usecases/BACKLOG.md` ist um den Status der Story ergänzt/aktualisiert (Spalte „Status“: `offen` / `in Arbeit` / `fertig`, plus Datum).
 - [ ] Keine offenen TODOs im produktiven Code ohne verlinktes Follow-up (z. B. neue Story oder Issue).
-- [ ] Alle Commits der Story sind auf den Feature-Branch gepusht und ein Pull Request vom Feature-Branch auf `main` ist eröffnet (siehe 3.5) — die Story gilt erst als abgeschlossen, wenn dieser PR existiert, nicht erst nach dessen Merge.
+- [ ] Alle Commits der Story sind auf den Feature-Branch gepusht und ein Pull Request vom Feature-Branch auf `main` ist mit aktiviertem Auto-Merge eröffnet (siehe 3.5) — die Aufgabe des Agenten gilt bereits mit Eröffnung dieses PR als abgeschlossen; auf den tatsächlichen Merge durch GitHub wird nicht mehr gewartet (siehe „Auto-Merge“ in 3.5).
 - [ ] Führt die Story neue Komponenten ein (siehe unten), ist `.github/workflows/pr-checks.yml` im selben PR entsprechend erweitert und der PR selbst zeigt alle daraus resultierenden Checks grün.
 
 **Anforderung für neue Features (CI-Erweiterungspflicht):** Wenn eine User Story neue
@@ -140,8 +140,12 @@ mitgeprüft werden. Konkret bedeutet das u. a.:
   - Nachweis der lokalen Verifizierbarkeit (Testergebnisse `dotnet test` / `ng test`, Smoke-Check),
   - ggf. Abweichungen/Anmerkungen des Dev-Agenten gemäß Abschnitt 4,
   - ggf. Hinweise auf enthaltene EF-Core-Migrationen.
-  - Ein Merge des PR erfolgt nicht automatisch durch den Agenten, es sei denn, der Projektverantwortliche hat dies für das jeweilige Repository ausdrücklich freigegeben; standardmäßig bleibt der PR zur Review offen.
   - Pro Story wird genau ein PR eröffnet; mehrere Stories werden nie in einem gemeinsamen PR zusammengefasst.
+- **Auto-Merge — verbindlich für jeden Story-PR (seit ADR-0003).** Der PR wird nicht nur eröffnet, sondern zwingend mit aktiviertem GitHub-Auto-Merge und Squash-Merge-Strategie erstellt, sodass er automatisch nach `main` gemerged wird, sobald alle sechs in `.github/workflows/pr-checks.yml` definierten Required Status Checks (Branch-Protection-Regel auf `main`, siehe README.md „PR-Checks / Required Status Checks“) grün sind. Ab dem Zeitpunkt der PR-Erstellung findet **kein manuelles Review mehr statt, bevor gemerged wird** — die sechs CI-Jobs sind das alleinige Merge-Gate; es ersetzt, nicht ergänzt, die vorherige „PR bleibt standardmäßig zur Review offen“-Regel.
+  - Mit der GitHub CLI: `gh pr create --base main --head feature/US-[NNN]-kurzbeschreibung --title "feat(US-[NNN]): <Story-Titel>" --body "<siehe oben>" --auto --squash` (fällt die installierte `gh`-Version zurück, weil sie `--auto`/`--squash` nicht an `pr create` kennt, ersatzweise unmittelbar danach `gh pr merge --auto --squash` auf denselben PR anwenden).
+  - Mit GitHub-MCP-Tools: das Auto-Merge-Flag direkt bei der PR-Erstellung setzen oder unmittelbar danach das entsprechende Auto-Merge-Tool auf den erzeugten PR anwenden.
+  - **Zwingende Voraussetzung:** `main` muss eine Branch-Protection-Regel besitzen, die genau die sechs Job-Namen aus `pr-checks.yml` (`Backend: Build (Release)`, `Backend: Tests (dotnet test)`, `Backend: Code-Format (dotnet format)`, `Frontend: Build`, `Frontend: Lint (ng lint)`, `Frontend: Tests (ng test)`) als Required Status Checks listet. Ohne diese Regel merged GitHub sofort und unabhängig vom CI-Ergebnis — Auto-Merge darf daher **niemals** aktiviert werden, ohne vorher per `gh api repos/{owner}/{repo}/branches/main/protection` zu verifizieren, dass diese Regel aktiv ist. Führt eine Story neue Prüf-Jobs in `pr-checks.yml` ein (siehe 3.3), wird die Branch-Protection-Regel im selben Arbeitsschritt um diese Jobs ergänzt.
+  - **Wartebedingung & Handoff:** Sobald der PR mit aktiviertem Auto-Merge erstellt wurde, gilt die Aufgabe des Agenten bezüglich Code-Erstellung als abgeschlossen; es wird nicht manuell im Terminal auf das Ende der Actions gewartet — GitHub übernimmt das Mergen automatisch, sobald alle Required Status Checks bestanden wurden. Schlägt ein Required Check fehl, bleibt der PR offen (Auto-Merge wird von GitHub verworfen); die Behebung erfolgt in einem neuen Commit auf demselben Feature-Branch, nicht in einem neuen PR.
 
 ### 3.6 Dokumentationspflichten je Story
 
