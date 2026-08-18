@@ -1,5 +1,6 @@
 using Microsoft.Extensions.DependencyInjection;
 using SlobSteak.Application.Identity;
+using SlobSteak.Application.Projects;
 
 namespace SlobSteak.Application;
 
@@ -16,6 +17,7 @@ public static class ServiceCollectionExtensions
         services.AddScoped<ChangePasswordService>();
         services.AddScoped<CreateUserService>();
         services.AddScoped<ResetPasswordService>();
+        services.AddScoped<CreateProjectService>();
 
         return services;
     }
