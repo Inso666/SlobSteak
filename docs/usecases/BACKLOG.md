@@ -49,7 +49,7 @@ Jede Story ist so geschnitten, dass sie in einem einzigen fokussierten Entwicklu
 | US-012 | Admin-API: Nutzer anlegen | IdentityAccess | US-004, US-007 | [US-012-admin-nutzer-anlegen.md](US-012-admin-nutzer-anlegen.md) | fertig (19.08.2026) |
 | US-013 | Admin-API: Passwort-Reset für Nutzer | IdentityAccess | US-012 | [US-013-admin-passwort-reset.md](US-013-admin-passwort-reset.md) | fertig (19.08.2026) |
 | US-014 | Admin-API: Projekt anlegen | ProjectManagement | US-010, US-007 | [US-014-admin-projekt-anlegen.md](US-014-admin-projekt-anlegen.md) | fertig (19.08.2026) |
-| US-015 | Admin-API: Nutzer-Projekt-Zuweisung mit Rolle | ProjectManagement | US-011, US-012, US-014 | [US-015-admin-nutzer-zuweisung.md](US-015-admin-nutzer-zuweisung.md) | offen |
+| US-015 | Admin-API: Nutzer-Projekt-Zuweisung mit Rolle | ProjectManagement | US-011, US-012, US-014 | [US-015-admin-nutzer-zuweisung.md](US-015-admin-nutzer-zuweisung.md) | fertig (19.08.2026) |
 | US-016 | Admin-Bereich UI: Nutzerverwaltung | IdentityAccess | US-012, US-013 | [US-016-admin-ui-nutzerverwaltung.md](US-016-admin-ui-nutzerverwaltung.md) | offen |
 | US-017 | Admin-Bereich UI: Projektverwaltung & Mitgliederzuweisung | ProjectManagement | US-014, US-015, US-016 | [US-017-admin-ui-projektverwaltung.md](US-017-admin-ui-projektverwaltung.md) | offen |
 | US-018 | Projektübersicht-Screen (S2) | ProjectManagement | US-010, US-011, US-017 | [US-018-projektuebersicht-ui.md](US-018-projektuebersicht-ui.md) | offen |

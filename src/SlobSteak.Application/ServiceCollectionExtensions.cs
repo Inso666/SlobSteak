@@ -18,6 +18,7 @@ public static class ServiceCollectionExtensions
         services.AddScoped<CreateUserService>();
         services.AddScoped<ResetPasswordService>();
         services.AddScoped<CreateProjectService>();
+        services.AddScoped<AssignProjectMembershipService>();
 
         return services;
     }
