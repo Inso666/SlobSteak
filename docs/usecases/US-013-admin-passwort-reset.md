@@ -31,3 +31,15 @@ Als **Admin** möchte ich **das Passwort eines bestehenden Nutzers zurücksetzen
 **Wichtige Invarianten & Validierungsregeln:**
 
 - Kein Self-Service-Passwort-Reset im MVP — ausschließlich Admin-getriggert (Abschnitt 1.4, F6.2).
+
+### Anmerkungen des Dev-Agenten
+
+- Neue Domain-Methode `User.ResetPassword(temporaryPassword)` ergänzt: Im Unterschied zu
+  `User.ChangePassword` (US-004, setzt `MustChangePassword` auf `false`) setzt ein Admin-Reset
+  `MustChangePassword` bewusst auf `true` — der Nutzer hat das neue Passwort nicht selbst gewählt.
+  `ChangePassword` konnte dafür nicht wiederverwendet werden, da es semantisch das Gegenteil markiert.
+
+### Status
+
+Fertig am 19.08.2026. Umsetzung: PR auf `main` (Branch `feature/US-013-admin-passwort-reset`),
+Auto-Merge gemäß ADR-0003 aktiviert.
