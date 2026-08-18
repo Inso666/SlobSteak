@@ -1,7 +1,13 @@
+using System.Text;
 using System.Text.Json;
+using Microsoft.AspNetCore.Authentication.JwtBearer;
+using Microsoft.AspNetCore.Authorization;
+using Microsoft.AspNetCore.Authorization.Policy;
 using Microsoft.AspNetCore.Diagnostics.HealthChecks;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.IdentityModel.Tokens;
 using SlobSteak.Api.Auth;
+using SlobSteak.Api.Authorization;
 using SlobSteak.Api.Bootstrap;
 using SlobSteak.Application;
 using SlobSteak.Application.Identity;
@@ -28,6 +34,49 @@ builder.Services.AddApplication();
 // konkrete JWT-Bibliothek einbinden; Infrastructure referenziert ebenfalls nur Domain, nicht
 // Application, kann das Interface also nicht implementieren.
 builder.Services.AddSingleton<IJwtTokenGenerator, JwtTokenGenerator>();
+
+// Rollenbasierte Authorization-Middleware (US-007): JWT-Bearer-Authentication (liefert 401 bei
+// fehlendem/ungültigem Token, bevor die Authorization-Handler unten greifen, Akzeptanzkriterium 4)
+// plus zwei Policies (SystemAdmin, ProjectRole) mit zugehörigen Handlern.
+builder.Services.AddHttpContextAccessor();
+
+builder.Services
+    .AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
+    .AddJwtBearer(options =>
+    {
+        // Verhindert, dass ASP.NET Core kurze JWT-Claim-Namen (z. B. "sub") automatisch auf lange
+        // XML-Namespace-Uris (ClaimTypes.NameIdentifier) umschreibt — die Authorization-Handler
+        // lesen dieselben Claim-Namen, die JwtTokenGenerator (US-006) ausstellt.
+        options.MapInboundClaims = false;
+
+        // Fällt auf einen Platzhalter zurück, falls JWT_SIGNING_KEY nicht gesetzt ist (z. B. in
+        // Tests ohne Auth-Bezug, etwa dem DB-losen Health-Check-Test aus US-001) — Token-Ausgabe
+        // (JwtTokenGenerator) und -Validierung verwenden in der Produktion denselben Wert, daher
+        // ist ein fehlender Schlüssel dort gleichbedeutend mit "kein gültiges Token kann je
+        // validiert werden", nicht mit einem stillen Sicherheitsloch.
+        var signingKeyValue = builder.Configuration[JwtSettings.SigningKeyConfigurationKey]
+            ?? "unconfigured-jwt-signing-key-placeholder-only-32-chars";
+
+        options.TokenValidationParameters = new TokenValidationParameters
+        {
+            ValidateIssuer = true,
+            ValidIssuer = JwtSettings.Issuer,
+            ValidateAudience = true,
+            ValidAudience = JwtSettings.Audience,
+            ValidateLifetime = true,
+            ValidateIssuerSigningKey = true,
+            IssuerSigningKey = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(signingKeyValue)),
+        };
+    });
+
+builder.Services.AddAuthorization(options =>
+{
+    options.AddPolicy(AuthorizationPolicies.SystemAdmin, policy => policy.Requirements.Add(new SystemAdminRequirement()));
+});
+builder.Services.AddSingleton<IAuthorizationHandler, SystemAdminAuthorizationHandler>();
+// Scoped statt Singleton: hängt von IProjectRepository (scoped, EF-DbContext-basiert) ab.
+builder.Services.AddScoped<IAuthorizationHandler, ProjectRoleAuthorizationHandler>();
+builder.Services.AddSingleton<IAuthorizationMiddlewareResultHandler, JsonAuthorizationMiddlewareResultHandler>();
 
 // Seed-Admin-Bootstrap (US-005) läuft beim echten Hoststart (Development/Production), aber
 // bewusst nicht im Hosting-Environment "Testing": WebApplicationFactory-basierte Tests bauen den
@@ -61,6 +110,7 @@ if (app.Environment.IsDevelopment())
 
 app.UseHttpsRedirection();
 
+app.UseAuthentication();
 app.UseAuthorization();
 
 app.MapControllers();

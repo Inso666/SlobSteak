@@ -4,6 +4,26 @@ Alle nennenswerten Änderungen an diesem Projekt werden hier je User Story dokum
 
 ## [Unreleased]
 
+### US-007 — Rollenbasierte Authorization-Middleware
+
+- JWT-Bearer-Authentication registriert (`AddAuthentication().AddJwtBearer(...)`, `MapInboundClaims
+  = false`); Requests ohne gültiges Token liefern jetzt `401 Unauthorized`, bevor Authorization
+  greift.
+- Zwei Policies: `AuthorizationPolicies.SystemAdmin` (`SystemAdminRequirement`/
+  `SystemAdminAuthorizationHandler`, prüft Claim `isSystemAdmin`) und die pro Action
+  parametrisierte `ProjectRole`-Policy (`ProjectRoleRequirement`/`ProjectRoleAuthorizationHandler`,
+  prüft `ProjectMembership.Role` — frisch aus der DB geladen, nicht aus dem Token, daher wirkt ein
+  Rollenwechsel ohne Re-Login sofort). Deklaratives Binden über das neue
+  `[RequireProjectRole(params ProjectRole[])]`-Attribut (`IAuthorizationRequirementData`, .NET 8).
+- Neue framework-freie Regel-Engine `ProjectRolePolicy` (Application-Schicht).
+- `JsonAuthorizationMiddlewareResultHandler`: formt 403-Antworten auf `{"error":"FORBIDDEN"}` um.
+- Tests: `ProjectRolePolicyTests` (Application.Tests), `ProjectRoleAuthorizationHandlerTests`,
+  `SystemAdminAuthorizationHandlerTests`, `RequireProjectRoleAttributeTests` (Api.Tests/
+  Authorization) sowie dedizierter Story-Test `US007_AuthorizationMiddlewareTests` (eigenständiger
+  `TestServer` mit zwei Test-Endpunkten, verifiziert 401/403 inkl. Body end-to-end über HTTP).
+- `JwtSettings` (Api/Auth) fasst Issuer/Audience/Claim-Namen/Signierschlüssel-Konfigurationsschlüssel
+  zusammen — von Token-Ausstellung (US-006) und -Validierung gemeinsam genutzt.
+
 ### US-011 — ProjectMembership-Entity mit Rollen-Invariante
 
 - `Project` um Mitgliederverwaltung erweitert: `AssignMember(userId, role)`,
