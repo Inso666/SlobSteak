@@ -4,6 +4,23 @@ Alle nennenswerten Änderungen an diesem Projekt werden hier je User Story dokum
 
 ## [Unreleased]
 
+### Chore — CI: automatische Pull-Request-Prüfpipeline
+
+- Neuer GitHub-Actions-Workflow `.github/workflows/pr-checks.yml`: läuft bei jedem Pull Request
+  auf `main`/`master` und bildet den aktuellen Technologiestack als sechs eigenständige,
+  klar benannte Jobs ab — `Backend: Build (Release)`, `Backend: Tests (dotnet test)`,
+  `Backend: Code-Format (dotnet format)`, `Frontend: Build`, `Frontend: Lint (ng lint)`,
+  `Frontend: Tests (ng test)` — geeignet als „Required Status Checks“ in den Branch-Protection-
+  Regeln.
+- Backend-Jobs: .NET 8 SDK, `dotnet restore`/`build --configuration Release`, `dotnet test`
+  gegen die gesamte Solution (inkl. Testcontainers-PostgreSQL-Integrationstests) mit
+  TRX-Testreport (`dorny/test-reporter`) und Artefakt-Upload, `dotnet format --verify-no-changes`.
+- Frontend-Jobs: Node 22, `npm ci`, `ng build`, `ng lint` (ESLint/angular-eslint),
+  `ng test --watch=false --browsers=ChromeHeadlessCI` (Karma/Jasmine) mit Coverage-Artefakt.
+- Erweiterungsregel in `CLAUDE.md` (Abschnitt 3.3, Definition of Done) verankert: Neue
+  Testarten/Komponenten (weitere Testprojekte, E2E/Playwright/Selenium, Migrationen) müssen im
+  selben PR, der sie einführt, in `pr-checks.yml` mitberücksichtigt werden.
+
 ### US-003 — Datenbankschema & Migrationen für alle Aggregate
 
 - Minimale Domain-Entity-Skeletons für alle sieben Aggregate/Entities angelegt (`User`, `Project`

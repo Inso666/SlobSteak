@@ -160,3 +160,26 @@ Zwecke.
 Docker-Images für `api` und `frontend` und veröffentlicht sie nach GitHub Container Registry
 (`ghcr.io/<owner>/<repo>-api`, `ghcr.io/<owner>/<repo>-frontend`), jeweils getaggt mit `latest`
 und dem Short-SHA des Merge-Commits.
+
+### PR-Checks / Required Status Checks
+
+`.github/workflows/pr-checks.yml` läuft bei jedem **offenen** Pull Request auf `main`/`master`
+(nicht erst beim Merge) und prüft den aktuellen Technologiestack vollautomatisch in sechs
+eigenständigen Jobs:
+
+| Job                                    | Prüft                                                          |
+|-----------------------------------------|-----------------------------------------------------------------|
+| `Backend: Build (Release)`              | `dotnet restore` + `dotnet build -c Release` der gesamten Solution |
+| `Backend: Tests (dotnet test)`          | `dotnet test` (xUnit, inkl. Testcontainers-PostgreSQL-Integrationstests), Testreport + Artefakt |
+| `Backend: Code-Format (dotnet format)`  | `dotnet format --verify-no-changes`                              |
+| `Frontend: Build`                       | `npm ci` + `ng build`                                            |
+| `Frontend: Lint (ng lint)`              | `ng lint` (ESLint/angular-eslint)                                |
+| `Frontend: Tests (ng test)`             | `ng test --watch=false --browsers=ChromeHeadlessCI` (Karma/Jasmine), Coverage-Artefakt |
+
+Diese sechs Job-Namen sollten unter **Settings → Branches → Branch protection rules** für `main`
+als „Required status checks“ hinterlegt werden, damit ein PR erst mergebar ist, wenn alle sechs
+grün sind.
+
+**Erweiterungspflicht:** Führt eine User Story neue Komponenten ein (weitere Test-Projekte,
+End-to-End-Tests, Datenbank-Migrationen o. Ä.), muss `pr-checks.yml` im selben Pull Request
+entsprechend erweitert werden — siehe `CLAUDE.md`, Abschnitt 3.3 (Definition of Done).
