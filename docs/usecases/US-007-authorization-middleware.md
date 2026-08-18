@@ -38,3 +38,30 @@ Als **Entwickler-Agent** möchte ich **eine zentrale, richtlinienbasierte Autori
 
 - Berechtigungsprüfung erfolgt ausschließlich serverseitig über ASP.NET Core Authorization Policies; UI-seitiges Verstecken von Elementen ersetzt diese Prüfung nicht (Abschnitt 4.3 Punkt 4).
 - Rolle `Admin` ist keine Zeile in `ProjectMemberships` — Prüfung auf `IsSystemAdmin` und `ProjectMemberships.Role` erfolgt über getrennte Requirements/Handler.
+
+### Anmerkungen des Dev-Agenten
+
+- Reihenfolge-Hinweis: Diese Story wurde nach US-010/US-011 statt direkt nach US-006 umgesetzt, da
+  sie transitiv von beiden abhängt — siehe die entsprechende Anmerkung in
+  `docs/usecases/US-010-project-aggregate.md`. Mit Abschluss dieser Story ist der Vorgriff beendet;
+  US-008/US-009 folgen wieder in regulärer Phase-1-Reihenfolge.
+- `ProjectRoleRequirement(params ProjectRole[] allowedRoles)` variiert die erlaubten Rollen pro
+  Controller-Action — ein einzelner, global registrierter Policy-Name allein kann das nicht
+  abbilden. Statt `[Authorize(Policy = AuthorizationPolicies.ProjectRole)]` wörtlich zu verwenden,
+  bindet ein neues `[RequireProjectRole(params ProjectRole[])]`-Attribut (nutzt das seit .NET 8
+  verfügbare `IAuthorizationRequirementData`) die Requirement-Instanz mit den für die jeweilige
+  Action konkreten Rollen — funktional identisch zum in der Story beschriebenen Verhalten, aber
+  technisch die vom Framework für genau diesen Fall vorgesehene Lösung.
+  `AuthorizationPolicies.ProjectRole` bleibt als dokumentierte Konstante bestehen.
+- `IAuthorizationMiddlewareResultHandler` (`JsonAuthorizationMiddlewareResultHandler`) neu
+  eingeführt, um die von der eingebauten Authorization-Middleware erzeugten 403-Antworten auf den
+  Fehler-Contract `{"error":"FORBIDDEN"}` umzuformen (Standardverhalten liefert 403 ohne Body).
+- Da diese Story ausschließlich Cross-Cutting-Infrastruktur liefert und noch keine fachlichen
+  Endpunkte im Backlog existieren, an die die Policies gebunden werden könnten, verifiziert der
+  Story-Test das tatsächliche HTTP-Verhalten (401/403 inkl. Body) über einen eigenständigen,
+  minimalen `TestServer` mit zwei Test-Endpunkten, statt `Program.cs` für Tests zu verändern.
+
+### Status
+
+Fertig am 19.08.2026. Umsetzung: PR auf `main` (Branch `feature/US-007-authorization-middleware`),
+Auto-Merge gemäß ADR-0003 aktiviert.

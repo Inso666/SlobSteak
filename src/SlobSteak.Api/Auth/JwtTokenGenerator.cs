@@ -14,15 +14,6 @@ namespace SlobSteak.Api.Auth;
 /// </summary>
 public sealed class JwtTokenGenerator : IJwtTokenGenerator
 {
-    /// <summary>Name der Umgebungsvariable/Konfiguration für den symmetrischen Signierschlüssel
-    /// (mindestens 32 Zeichen für HMAC-SHA256) — bewusst nicht im Code oder in
-    /// <c>appsettings.json</c> hinterlegt (CLAUDE.md Abschnitt 3.7).</summary>
-    public const string SigningKeyConfigurationKey = "JWT_SIGNING_KEY";
-
-    private const string Issuer = "SlobSteak";
-    private const string Audience = "SlobSteak.Api";
-    private static readonly TimeSpan TokenLifetime = TimeSpan.FromHours(8);
-
     private readonly IConfiguration _configuration;
 
     public JwtTokenGenerator(IConfiguration configuration)
@@ -32,11 +23,11 @@ public sealed class JwtTokenGenerator : IJwtTokenGenerator
 
     public string GenerateToken(Guid userId, bool isSystemAdmin)
     {
-        var signingKeyValue = _configuration[SigningKeyConfigurationKey];
+        var signingKeyValue = _configuration[JwtSettings.SigningKeyConfigurationKey];
         if (string.IsNullOrWhiteSpace(signingKeyValue))
         {
             throw new InvalidOperationException(
-                $"'{SigningKeyConfigurationKey}' ist nicht konfiguriert — Token-Ausstellung nicht möglich.");
+                $"'{JwtSettings.SigningKeyConfigurationKey}' ist nicht konfiguriert — Token-Ausstellung nicht möglich.");
         }
 
         var signingCredentials = new SigningCredentials(
@@ -46,14 +37,14 @@ public sealed class JwtTokenGenerator : IJwtTokenGenerator
         var claims = new[]
         {
             new Claim(JwtRegisteredClaimNames.Sub, userId.ToString()),
-            new Claim("isSystemAdmin", isSystemAdmin ? "true" : "false"),
+            new Claim(JwtSettings.IsSystemAdminClaimType, isSystemAdmin ? "true" : "false"),
         };
 
         var token = new JwtSecurityToken(
-            Issuer,
-            Audience,
+            JwtSettings.Issuer,
+            JwtSettings.Audience,
             claims,
-            expires: DateTime.UtcNow.Add(TokenLifetime),
+            expires: DateTime.UtcNow.Add(JwtSettings.TokenLifetime),
             signingCredentials: signingCredentials);
 
         return new JwtSecurityTokenHandler().WriteToken(token);
