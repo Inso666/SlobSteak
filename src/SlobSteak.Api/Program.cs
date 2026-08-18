@@ -1,8 +1,10 @@
 using System.Text.Json;
 using Microsoft.AspNetCore.Diagnostics.HealthChecks;
 using Microsoft.EntityFrameworkCore;
+using SlobSteak.Api.Auth;
 using SlobSteak.Api.Bootstrap;
 using SlobSteak.Application;
+using SlobSteak.Application.Identity;
 using SlobSteak.Infrastructure;
 using SlobSteak.Infrastructure.Persistence;
 
@@ -19,6 +21,13 @@ builder.Services.AddHealthChecks();
 
 builder.Services.AddInfrastructure(builder.Configuration);
 builder.Services.AddApplication();
+
+// Implementierung des in SlobSteak.Application definierten Ports IJwtTokenGenerator (US-006) —
+// bewusst hier in der Composition Root registriert, nicht in AddApplication()/AddInfrastructure():
+// Application referenziert laut CLAUDE.md Abschnitt 3.1 ausschließlich Domain und darf daher keine
+// konkrete JWT-Bibliothek einbinden; Infrastructure referenziert ebenfalls nur Domain, nicht
+// Application, kann das Interface also nicht implementieren.
+builder.Services.AddSingleton<IJwtTokenGenerator, JwtTokenGenerator>();
 
 // Seed-Admin-Bootstrap (US-005) läuft beim echten Hoststart (Development/Production), aber
 // bewusst nicht im Hosting-Environment "Testing": WebApplicationFactory-basierte Tests bauen den

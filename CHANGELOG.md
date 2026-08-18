@@ -4,6 +4,25 @@ Alle nennenswerten Änderungen an diesem Projekt werden hier je User Story dokum
 
 ## [Unreleased]
 
+### US-006 — Login-API mit Session/Token-Ausstellung
+
+- Neuer Endpoint `POST /api/v1/auth/login` (`AuthController`): prüft E-Mail/Passwort über den
+  neuen Application Service `LoginService` und stellt bei Erfolg ein JWT (HMAC-SHA256, Claims
+  `sub`/`isSystemAdmin`, 8 Stunden gültig) aus. Wire-Contract camelCase: `{"token": "...",
+  "mustChangePassword": true}`.
+- Falsches Passwort oder unbekannte E-Mail liefern identisch `401 Unauthorized` mit
+  `{"error":"INVALID_CREDENTIALS"}` (kein Hinweis, ob die E-Mail existiert); fehlende Pflichtfelder
+  liefern `400 Bad Request` (Validierung über `LoginRequest`-DTO mit Data Annotations).
+- Neuer Port `IJwtTokenGenerator` (`SlobSteak.Application.Identity`), Implementierung
+  `JwtTokenGenerator` in der Composition Root `SlobSteak.Api` (`System.IdentityModel.Tokens.Jwt`) —
+  Begründung für JWT statt serverseitiger Session in `docs/adr/0005-*.md`.
+- `docker-compose.yml`: `JWT_SIGNING_KEY` mit Dev-Default ergänzt; Login-Endpoint per manuellem
+  Smoke-Test verifiziert (`curl` gegen `docker compose up --build db api`).
+- Tests: `LoginServiceTests` (Application.Tests, gemockt), `AuthControllerTests` (Api.Tests,
+  Token-Claims/JSON-Casing) sowie dedizierter Story-Test `US006_LoginApiTests`.
+- `src/SlobSteak.Api/SlobSteak.Api.http` von der `dotnet new webapi`-Platzhalterdatei auf reale
+  Health-Check-/Login-Beispiele aktualisiert.
+
 ### US-005 — Seed-Admin-Bootstrap beim Erststart
 
 - Neuer Application Service `SeedAdminService` (`SlobSteak.Application.Identity`): legt beim

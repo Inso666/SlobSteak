@@ -12,6 +12,7 @@ public static class ServiceCollectionExtensions
     public static IServiceCollection AddApplication(this IServiceCollection services)
     {
         services.AddScoped<SeedAdminService>();
+        services.AddScoped<LoginService>();
 
         return services;
     }

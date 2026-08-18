@@ -34,3 +34,23 @@ Als **Nutzer** möchte ich **mich über einen API-Endpoint mit E-Mail und Passwo
 
 - Keine Selbstregistrierung — es existiert kein `POST /api/v1/auth/register`-Endpoint.
 - Fehlermeldungen bei Login-Fehlschlag verraten nicht, ob die E-Mail existiert (Schutz vor User-Enumeration).
+
+### Anmerkungen des Dev-Agenten
+
+- Entscheidung JWT (statt serverseitiger Session) inkl. Begründung/Trade-offs in
+  `docs/adr/0005-jwt-bearer-statt-server-session.md` dokumentiert — durch die in US-007 bereits
+  vorgesehenen JWT-Claims im Backlog weitgehend vorgezeichnet.
+- Wire-Contract der Response ist camelCase (`token`, `mustChangePassword`) gemäß CLAUDE.md Abschnitt
+  3.1, nicht das in der Story-Prosa verwendete `must_change_password` (das bezieht sich auf die
+  DB-Spalte, nicht den JSON-Contract).
+- `IJwtTokenGenerator` als Port in `SlobSteak.Application.Identity` definiert, Implementierung
+  (`JwtTokenGenerator`) bewusst in `SlobSteak.Api` (Composition Root) statt in
+  `SlobSteak.Infrastructure`, da Infrastructure laut CLAUDE.md Abschnitt 3.1 nicht auf Application
+  referenzieren darf.
+- Authentication-Middleware zur Validierung eingehender Tokens (`401` bei fehlendem/ungültigem JWT)
+  ist bewusst nicht Teil dieser Story — das ist explizit Akzeptanzkriterium 4 von US-007.
+
+### Status
+
+Fertig am 19.08.2026. Umsetzung: PR auf `main` (Branch `feature/US-006-login-api`), Auto-Merge
+gemäß ADR-0003 aktiviert.
