@@ -1,0 +1,6 @@
+@SlobSteak.Api_HostAddress = http://localhost:5042
+
+GET {{SlobSteak.Api_HostAddress}}/weatherforecast/
+Accept: application/json
+
+###
