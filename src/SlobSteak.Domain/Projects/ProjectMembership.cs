@@ -8,12 +8,11 @@ namespace SlobSteak.Domain.Projects;
 /// Abschnitt 4.1 (Entität <c>project_memberships</c>).
 /// </summary>
 /// <remarks>
-/// Bewusst minimales Skeleton im Rahmen von US-003 (Datenbankschema): Die Invariante "höchstens
-/// eine Mitgliedschaft je (ProjectId, UserId)" wird hier nur als DB-Unique-Index durchgesetzt
-/// (<c>ProjectMembershipConfiguration</c>). Die fachliche Übersetzung einer
-/// Unique-Constraint-Verletzung in <c>MembershipAlreadyExistsError</c> sowie die Methoden
-/// <c>Project.AssignMember</c>/<c>ChangeMemberRole</c>/<c>RemoveMember</c> werden erst in US-011
-/// ergänzt — siehe <c>docs/adr/0001-domain-entity-skeletons-vor-aggregate-stories.md</c>.
+/// US-011: Erzeugung/Löschung dieser Entity erfolgt ausschließlich über die Methoden des
+/// Aggregate Root <see cref="Project"/> (<c>AssignMember</c>/<c>ChangeMemberRole</c>/
+/// <c>RemoveMember</c>) — die Invariante "höchstens eine Mitgliedschaft je (ProjectId, UserId)"
+/// wird dort in-memory geprüft und zusätzlich über den DB-Unique-Index
+/// (<c>ProjectMembershipConfiguration</c>) als zweite Verteidigungslinie erzwungen.
 /// </remarks>
 public sealed class ProjectMembership
 {
@@ -32,4 +31,8 @@ public sealed class ProjectMembership
     public Guid UserId { get; private set; }
 
     public ProjectRole Role { get; private set; }
+
+    /// <summary>Nur vom Aggregate Root <see cref="Project"/> (<see cref="Project.ChangeMemberRole"/>)
+    /// aufzurufen — daher <c>internal</c> statt eines öffentlichen Setters.</summary>
+    internal void UpdateRole(ProjectRole newRole) => Role = newRole;
 }

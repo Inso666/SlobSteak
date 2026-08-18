@@ -35,3 +35,23 @@ Als **Entwickler-Agent** möchte ich **die Entity `ProjectMembership` implementi
 
 - Höchstens ein `ProjectMembership`-Datensatz je (`project_id`, `user_id`) (Abschnitt 4.3 Punkt 2).
 - Ein Nutzer kann in unterschiedlichen Projekten unterschiedliche Rollen haben.
+
+### Anmerkungen des Dev-Agenten
+
+- `Project` erhält abweichend von ADR-0001s allgemeiner "keine EF-Navigationsproperties"-Regel eine
+  echte EF-Core-Navigation `Memberships` — ADR-0001 schließt das explizit nur für
+  Cross-Aggregate-/Cross-Bounded-Context-Referenzen aus; `ProjectMembership` ist laut Story-Text
+  selbst "Teil des Aggregates Project", eine Intra-Aggregate-Navigation ist hier DDD-konform.
+- Bei der Integration gegen echtes PostgreSQL zeigte sich ein nicht-triviales EF-Core-Verhalten bei
+  client-generierten Guid-Schlüsseln in Kind-Kollektionen (fälschliches UPDATE statt INSERT für neu
+  hinzugefügte Mitgliedschaften, Fehler beim Entfernen aus einer Pflicht-Navigation) — Ursache,
+  Fix und Implikationen für künftige Aggregate mit Kind-Kollektionen sind in
+  `docs/adr/0006-ef-core-aggregate-kindkollektion-reconciliation.md` dokumentiert.
+- `MembershipNotFoundError` (nicht explizit als Akzeptanzkriterium gefordert) ergänzt, damit
+  `ChangeMemberRole` bei einer nicht existierenden Mitgliedschaft ein definiertes, fachliches
+  Fehlverhalten statt eines `NullReferenceException`-artigen Zustands zeigt.
+
+### Status
+
+Fertig am 19.08.2026. Umsetzung: PR auf `main` (Branch `feature/US-011-project-membership`),
+Auto-Merge gemäß ADR-0003 aktiviert.
