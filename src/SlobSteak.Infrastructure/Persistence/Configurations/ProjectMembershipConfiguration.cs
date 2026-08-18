@@ -25,14 +25,22 @@ public sealed class ProjectMembershipConfiguration : IEntityTypeConfiguration<Pr
         builder.HasIndex(pm => new { pm.ProjectId, pm.UserId })
             .IsUnique();
 
-        // Reine ID-Fremdschlüssel ohne EF-Navigationsproperties auf den Domain-Klassen: Project
-        // und ProjectMembership bilden zwar gemeinsam ein Aggregate, User gehört aber zu einem
-        // anderen Bounded Context (IdentityAccess) — CLAUDE.md Abschnitt 3.1 untersagt direkte
-        // EF-Navigation über Aggregate-/Kontextgrenzen hinweg.
+        // Project und ProjectMembership bilden gemeinsam ein Aggregate (US-011) — dafür eine echte
+        // EF-Navigation (Project.Memberships), damit der Aggregate Root seine Kind-Entities beim
+        // Laden/Speichern konsistent verwaltet. User gehört dagegen zu einem anderen Bounded
+        // Context (IdentityAccess) und bleibt daher eine reine ID-Fremdschlüssel-Referenz ohne
+        // Navigation — CLAUDE.md Abschnitt 3.1 untersagt EF-Navigation nur über
+        // Aggregate-/Kontextgrenzen hinweg, nicht innerhalb eines Aggregates (siehe ADR-0001).
+        // ClientCascade (statt Restrict) für die Project-Beziehung: Entfernt Project.RemoveMember
+        // (US-011) ein Element aus der geladenen Memberships-Navigation, muss EF Core dies als
+        // Löschung behandeln, nicht als (bei einem Pflicht-Fremdschlüssel unmöglichen) Aushängen
+        // der Beziehung — die eigentliche DB-Spalte bleibt weiterhin ON DELETE RESTRICT
+        // (ClientCascade wirkt nur im Change Tracker, nicht auf Schema-Ebene, daher keine neue
+        // Migration nötig).
         builder.HasOne<Project>()
-            .WithMany()
+            .WithMany(p => p.Memberships)
             .HasForeignKey(pm => pm.ProjectId)
-            .OnDelete(DeleteBehavior.Restrict);
+            .OnDelete(DeleteBehavior.ClientCascade);
 
         builder.HasOne<User>()
             .WithMany()

@@ -4,6 +4,25 @@ Alle nennenswerten Änderungen an diesem Projekt werden hier je User Story dokum
 
 ## [Unreleased]
 
+### US-011 — ProjectMembership-Entity mit Rollen-Invariante
+
+- `Project` um Mitgliederverwaltung erweitert: `AssignMember(userId, role)`,
+  `ChangeMemberRole(userId, newRole)`, `RemoveMember(userId)` sowie die neue Navigation
+  `Project.Memberships` (Intra-Aggregate-EF-Navigation, siehe Anmerkungen in der Story-Datei).
+- Neue domänenspezifische Exceptions `MembershipAlreadyExistsError`, `MembershipNotFoundError`.
+- `ProjectMembershipConfiguration`: `OnDelete(DeleteBehavior.ClientCascade)` für die
+  Project-Beziehung (statt `Restrict`) — Details und Begründung in `docs/adr/0006-*.md`.
+- `ProjectRepository`: `FindByIdAsync` lädt jetzt inkl. `Memberships`; `SaveAsync` reconciled neue/
+  entfernte Mitgliedschaften explizit (EF-Core-Workaround für client-generierte Guid-Schlüssel,
+  siehe ADR-0006) und übersetzt eine Unique-Constraint-Verletzung bei parallelem Zugriff in
+  `MembershipAlreadyExistsError`.
+- Tests: `ProjectMembershipTests` (Domain.Tests) sowie dedizierter Story-Test
+  `US011_ProjectMembershipTests` (Api.Tests, inkl. Integrationstests für Rollenwechsel,
+  Unberührtheit von `stakeholder_assessments` bei Removal, und Unique-Constraint-Konflikt bei
+  parallelem Insert über zwei unabhängige `DbContext`-Instanzen).
+- Keine neue Migration nötig — die Navigation ist eine reine EF-seitige Mapping-Änderung, das
+  Datenbankschema (inkl. `ON DELETE`-Klausel) bleibt unverändert.
+
 ### US-010 — Project-Aggregate (Domain Model)
 
 - `Project`-Aggregate (`SlobSteak.Domain.Projects`) um DDD-Reichhaltigkeit erweitert:
