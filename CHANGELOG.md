@@ -4,6 +4,24 @@ Alle nennenswerten Änderungen an diesem Projekt werden hier je User Story dokum
 
 ## [Unreleased]
 
+### US-005 — Seed-Admin-Bootstrap beim Erststart
+
+- Neuer Application Service `SeedAdminService` (`SlobSteak.Application.Identity`): legt beim
+  Hoststart ein initiales System-Administrator-Konto aus `SEED_ADMIN_EMAIL`/`SEED_ADMIN_PASSWORD`
+  an, sofern die `users`-Tabelle noch leer ist; überspringt den Vorgang fehlerfrei, sobald
+  mindestens ein Nutzer existiert; bricht mit `SeedAdminConfigurationMissingException` (klar
+  geloggt) ab, wenn beide Variablen bei leerer Tabelle fehlen.
+- Startup-Hook `SeedAdminHostedService` (`SlobSteak.Api.Bootstrap`, `IHostedService`) ruft den
+  Service beim echten Hoststart auf — registriert für Development/Production, bewusst nicht in der
+  Testing-Hosting-Umgebung (siehe Anmerkungen in der Story-Datei).
+- `User`-Aggregate um `CreateSystemAdmin(...)` erweitert (setzt `IsSystemAdmin = true`, analog zu
+  `Create`); `IUserRepository` um `AnyAsync()` erweitert.
+- `docker-compose.yml`: `SEED_ADMIN_EMAIL`/`SEED_ADMIN_PASSWORD` mit Dev-Defaults ergänzt; per
+  manuellem Smoke-Test verifiziert (Erststart erzeugt Admin, Neustart überspringt fehlerfrei).
+- Tests: `SeedAdminServiceTests` (Application.Tests, gemocktes Repository) sowie dedizierter
+  Story-Test `US005_SeedAdminTests` (Api.Tests, je Akzeptanzkriterium eine eigene, isolierte
+  Testcontainers-PostgreSQL-Instanz).
+
 ### US-004 — User-Aggregate (Domain Model)
 
 - `User`-Aggregate (`SlobSteak.Domain.Identity`) um DDD-Reichhaltigkeit erweitert: statische
