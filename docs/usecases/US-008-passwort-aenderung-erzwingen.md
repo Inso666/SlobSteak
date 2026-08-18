@@ -33,3 +33,30 @@ Als **Nutzer mit `must_change_password = true`** möchte ich **nach dem ersten L
 **Wichtige Invarianten & Validierungsregeln:**
 
 - Solange `must_change_password = true`, sind ausschließlich Auth-Endpunkte erreichbar.
+
+### Anmerkungen des Dev-Agenten
+
+- AC 2/AC 4 referenzieren in der Prosa `GET /api/v1/projects` — dieser Endpoint existiert im
+  Backlog erst ab Phase 2 und ist zu diesem Zeitpunkt nicht implementiert. Als PRD-konformste
+  Interpretation wird stattdessen der bereits real existierende `GET /api/v1/health`-Endpoint
+  (außerhalb `/api/v1/auth`) als Zielendpunkt in den Story-Tests verwendet — fachlich äquivalent
+  für den Nachweis, dass die Middleware pauschal jeden Endpoint außerhalb `/api/v1/auth/*`
+  blockiert.
+- Der technische Hinweis nennt `ProjectRoleAuthorizationHandler` als zu erweiternde Datei; da die
+  Sperre laut Akzeptanzkriterium 2 aber für **jeden** authentifizierten Request gelten muss —
+  unabhängig davon, welche (falls überhaupt eine) Authorization-Policy der jeweilige Endpoint
+  verlangt — wurde stattdessen eine eigenständige, globale `PasswordChangeRequiredMiddleware`
+  eingeführt (läuft nach `UseAuthentication()`, vor `UseAuthorization()`). Eine Erweiterung nur des
+  `ProjectRoleAuthorizationHandler` hätte z. B. `SystemAdmin`-geschützte oder policyfreie Endpunkte
+  nicht erfasst.
+- Frontend (AC 3): `PasswordChangeModalComponent` + `AuthService` als eigenständige, getestete
+  Bausteine umgesetzt. Die vollständige Einbettung (automatisches Anzeigen nach Login, Blockieren
+  der restlichen Anwendung per Route Guard, Token-Verwaltung/HTTP-Interceptor) hängt an der in
+  US-009 gelieferten Login-Screen-/Session-Infrastruktur, die zu diesem Zeitpunkt noch nicht
+  existiert — sie folgt mit US-009, um keinen Vorgriff auf deren Scope zu nehmen.
+
+### Status
+
+Fertig am 19.08.2026 (Backend vollständig inkl. Middleware; Frontend-Komponente als eigenständiger,
+getesteter Baustein — vollständige Einbettung folgt mit US-009). Umsetzung: PR auf `main` (Branch
+`feature/US-008-passwort-aenderung-erzwingen`), Auto-Merge gemäß ADR-0003 aktiviert.

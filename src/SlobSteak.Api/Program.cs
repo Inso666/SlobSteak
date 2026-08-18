@@ -111,6 +111,13 @@ if (app.Environment.IsDevelopment())
 app.UseHttpsRedirection();
 
 app.UseAuthentication();
+
+// Erzwungene Passwortänderung (US-008): muss nach der Authentifizierung (context.User ist gesetzt)
+// aber vor der Policy-basierten Autorisierung (US-007) laufen — solange ein Nutzer sein Passwort
+// ändern muss, blockiert dies pauschal jeden Endpoint außerhalb /api/v1/auth/*, unabhängig davon,
+// welche ProjectRole-/SystemAdmin-Policy der jeweilige Endpoint sonst verlangen würde.
+app.UseMiddleware<PasswordChangeRequiredMiddleware>();
+
 app.UseAuthorization();
 
 app.MapControllers();

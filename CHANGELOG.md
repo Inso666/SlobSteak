@@ -4,6 +4,26 @@ Alle nennenswerten Änderungen an diesem Projekt werden hier je User Story dokum
 
 ## [Unreleased]
 
+### US-008 — Erzwungene Passwortänderung nach Erst-Login
+
+- Neuer Endpoint `PATCH /api/v1/auth/password` (`AuthController`, authentifiziert): ändert das
+  Passwort über den neuen Application Service `ChangePasswordService` und setzt
+  `must_change_password` auf `false`.
+- Neue globale `PasswordChangeRequiredMiddleware`: liefert `403` mit
+  `{"error":"PASSWORD_CHANGE_REQUIRED"}` für jeden authentifizierten Request außerhalb
+  `/api/v1/auth/*`, solange `must_change_password = true` — läuft nach Authentication, vor
+  Authorization, unabhängig von der jeweiligen Endpoint-Policy.
+- Frontend: `AuthService.changePassword(...)` und standalone `PasswordChangeModalComponent`
+  (`frontend/src/app/features/auth/`), reaktives Formular mit Mindestlänge 8; `provideHttpClient()`
+  in `app.config.ts` ergänzt. Vollständige Einbettung folgt mit US-009 (siehe Anmerkungen in der
+  Story-Datei).
+- Tests: `ChangePasswordServiceTests` (Application.Tests, gemockt), dedizierter Story-Test
+  `US008_PasswortAenderungErzwingenTests` (Api.Tests, gegen echte Testcontainers-PostgreSQL-
+  Instanz) sowie `password-change-modal.component.spec.ts` (Karma/Jasmine).
+- Smoke-Test: `docker compose up --build db api` → Login (`mustChangePassword:true`) → `GET
+  /api/v1/health` mit Token liefert `403 PASSWORD_CHANGE_REQUIRED` → `PATCH .../password` liefert
+  `200` → derselbe Health-Request liefert danach wieder `200`.
+
 ### US-007 — Rollenbasierte Authorization-Middleware
 
 - JWT-Bearer-Authentication registriert (`AddAuthentication().AddJwtBearer(...)`, `MapInboundClaims
