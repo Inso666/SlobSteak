@@ -1,0 +1,29 @@
+# --- JetBrains Rider / IntelliJ ---
+.idea/
+
+# --- .NET / Backend ---
+bin/
+obj/
+*.user
+*.suo
+.vs/
+appsettings.Development.json
+appsettings.*.local.json
+
+# --- Angular / Frontend ---
+node_modules/
+frontend/dist/
+frontend/.angular/
+npm-debug.log*
+
+# --- Docker / lokale Umgebung ---
+.env
+.env.local
+
+# --- Testergebnisse / Coverage ---
+TestResults/
+coverage/
+
+# --- Betriebssystem ---
+.DS_Store
+Thumbs.db
