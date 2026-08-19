@@ -1,5 +1,5 @@
 import { Injectable, inject } from '@angular/core';
-import { HttpClient } from '@angular/common/http';
+import { HttpClient, HttpParams } from '@angular/common/http';
 import { Observable } from 'rxjs';
 
 export interface SimilarStakeholderWarning {
@@ -41,14 +41,36 @@ export interface StakeholderDeletionImpact {
   communicationAssignmentCount: number;
 }
 
+/** US-025 Akzeptanzkriterium 1/2: optionale Filter für die Stakeholderliste. */
+export interface StakeholderListFilters {
+  search?: string;
+  type?: string;
+  communicationTypeId?: string;
+}
+
 /**
  * Injizierbarer Service für Stakeholder-Stammdaten (US-021 Anlegen, US-022 Bearbeiten, US-023
- * Soft-Delete). Alle HTTP-Zugriffe laufen ausschließlich über diese Klasse, nie direkt aus einer
- * Komponente (CLAUDE.md Abschnitt 3.1).
+ * Soft-Delete, US-025 Liste mit Suche/Filter). Alle HTTP-Zugriffe laufen ausschließlich über
+ * diese Klasse, nie direkt aus einer Komponente (CLAUDE.md Abschnitt 3.1).
  */
 @Injectable({ providedIn: 'root' })
 export class StakeholdersService {
   private readonly http = inject(HttpClient);
+
+  listStakeholders(projectId: string, filters: StakeholderListFilters = {}): Observable<Stakeholder[]> {
+    let params = new HttpParams();
+    if (filters.search) {
+      params = params.set('search', filters.search);
+    }
+    if (filters.type) {
+      params = params.set('type', filters.type);
+    }
+    if (filters.communicationTypeId) {
+      params = params.set('communicationTypeId', filters.communicationTypeId);
+    }
+
+    return this.http.get<Stakeholder[]>(`/api/v1/projects/${projectId}/stakeholders`, { params });
+  }
 
   createStakeholder(projectId: string, payload: StakeholderDetailsPayload): Observable<Stakeholder> {
     return this.http.post<Stakeholder>(`/api/v1/projects/${projectId}/stakeholders`, payload);

@@ -1,0 +1,63 @@
+<section class="stakeholder-list">
+  <h1>Stakeholder</h1>
+
+  <form [formGroup]="filterForm" class="filters">
+    <label for="search">Suche</label>
+    <input id="search" formControlName="search" placeholder="Name oder Organisation" />
+
+    <label for="type">Typ</label>
+    <select id="type" formControlName="type">
+      <option value="">Alle</option>
+      <option value="Person">Person</option>
+      <option value="Organization">Organisation</option>
+    </select>
+  </form>
+
+  <table>
+    <thead>
+      <tr>
+        <th>Name</th>
+        <th>Typ</th>
+        <th>Organisation</th>
+        <th>Position</th>
+        <th>Kontakt</th>
+        <th></th>
+      </tr>
+    </thead>
+    <tbody>
+      @for (stakeholder of stakeholders; track stakeholder.id) {
+        <tr>
+          <td>{{ stakeholder.name }}</td>
+          <td>{{ stakeholder.type }}</td>
+          <td>{{ stakeholder.organization }}</td>
+          <td>{{ stakeholder.position }}</td>
+          <td>{{ stakeholder.email }} {{ stakeholder.phone }}</td>
+          <td>
+            <button type="button" (click)="onEdit(stakeholder)">Bearbeiten</button>
+            <button type="button" (click)="onDeleteClick(stakeholder)">Löschen</button>
+          </td>
+        </tr>
+        @if (editingStakeholder?.id === stakeholder.id) {
+          <tr>
+            <td colspan="6">
+              <app-edit-stakeholder-form [stakeholder]="stakeholder" (updated)="onEditUpdated()" (cancelled)="onEditCancelled()" />
+            </td>
+          </tr>
+        }
+        @if (deletingStakeholder?.id === stakeholder.id) {
+          <tr>
+            <td colspan="6">
+              <app-delete-stakeholder-dialog [stakeholder]="stakeholder" (deleted)="onDeleted()" (cancelled)="onDeleteCancelled()" />
+            </td>
+          </tr>
+        }
+      } @empty {
+        <tr>
+          <td colspan="6">Keine Stakeholder gefunden.</td>
+        </tr>
+      }
+    </tbody>
+  </table>
+
+  <app-create-stakeholder-form [projectId]="projectId" (created)="onCreated()" />
+</section>

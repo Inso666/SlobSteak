@@ -4,6 +4,32 @@ Alle nennenswerten Änderungen an diesem Projekt werden hier je User Story dokum
 
 ## [Unreleased]
 
+### US-025 — Stakeholder-Liste mit Suche/Filter: API + UI inkl. Rollen-Sichtbarkeitsregel
+
+- `GET /api/v1/projects/{projectId}/stakeholders` (bereits seit US-023 vorhanden) um
+  `search`/`type`/`communicationTypeId`-Query-Parameter erweitert. `search` filtert
+  case-insensitiv über Name und Organisation; `type` schränkt auf `Person`/`Organization` ein
+  (ungültiger Wert wird ignoriert statt `400`); `communicationTypeId` joint gegen
+  `stakeholder_communication_assignments` (Backend bereits vollständig, UI-Optionsliste folgt
+  erst mit US-037, siehe Anmerkungen).
+- Neues Read-Modell `IStakeholderListQuery` (`SlobSteak.Domain.Stakeholders`, EF-Core-
+  Implementierung in `SlobSteak.Infrastructure`).
+- Response-Contract der Liste vereinheitlicht: liefert jetzt denselben `StakeholderResponse` wie
+  Anlegen/Bearbeiten (inkl. aufgelöstem `updatedByName`) statt eines eigenen schlankeren DTOs.
+- **Frontend-Refactor**: `CreateStakeholderFormComponent` (US-021) ist jetzt ein reines
+  Anlage-Formular (`@Output() created`, kein eigener session-lokaler Listenzustand mehr). Neue
+  `StakeholderListComponent` — Standard-Landingtab-Inhalt der Workspace-Shell (US-019, löst
+  `CreateStakeholderFormComponent` als direkten Tab-Inhalt ab) — lädt die Liste serverseitig mit
+  Such-/Typ-Filter, bettet das Anlage-Formular sowie `EditStakeholderFormComponent`/
+  `DeleteStakeholderDialogComponent` (US-022/US-023) ein und lädt nach jeder Änderung neu.
+- Tests: dedizierter Story-Test `US025_StakeholderListeTests` (4 Facts über echte
+  Testcontainers-PostgreSQL), erweiterte `ListStakeholdersServiceTests` (3 Fälle),
+  `stakeholder-list.component.spec.ts` (8 Fälle), `create-stakeholder-form.component.spec.ts`
+  neu geschrieben für das vereinfachte Formular (9 Fälle).
+- Smoke-Test: isolierter `docker compose up --build` — Stakeholder anlegen, Suche nach
+  Teilstring, Typ-Filter, leeres Suchergebnis — alle end-to-end verifiziert; `/projects/:id/
+  stakeholders` liefert die neue Listenansicht über den nginx-Proxy.
+
 ### US-023 — Stakeholder Soft-Delete: API + UI
 
 - Neue Endpunkte `DELETE /api/v1/stakeholders/{id}` (nur Rolle `PL`, idempotent — erneutes

@@ -35,6 +35,7 @@ public static class ServiceCollectionExtensions
         services.AddScoped<IProjectRepository, ProjectRepository>();
         services.AddScoped<IProjectOverviewQuery, ProjectOverviewQuery>();
         services.AddScoped<IStakeholderRepository, StakeholderRepository>();
+        services.AddScoped<IStakeholderListQuery, StakeholderListQuery>();
 
         return services;
     }
