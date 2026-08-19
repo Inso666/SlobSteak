@@ -4,6 +4,16 @@ Alle nennenswerten Änderungen an diesem Projekt werden hier je User Story dokum
 
 ## [Unreleased]
 
+### Chore — Fix: `docker-compose.ghcr.yml` fehlten SEED_ADMIN_*/JWT_SIGNING_KEY
+
+- `docker-compose.ghcr.yml` (GHCR-Image-Variante, siehe US-003-Changelog-Eintrag) erhielt nie die
+  in US-005 (`SEED_ADMIN_EMAIL`/`SEED_ADMIN_PASSWORD`) und US-006 (`JWT_SIGNING_KEY`) zu
+  `docker-compose.yml` hinzugefügten Umgebungsvariablen — dadurch stürzte der `api`-Container beim
+  allerersten Start (leere `users`-Tabelle) mit einer unbehandelten
+  `SeedAdminConfigurationMissingException` ab. Beide Compose-Dateien sind jetzt wieder identisch
+  konfiguriert (gleiche Dev-Defaults).
+- Gefunden durch manuellen Nutzertest von US-016 gegen `docker-compose.ghcr.yml`.
+
 ### US-016 — Admin-Bereich UI: Nutzerverwaltung
 
 - Neuer Endpoint `GET /api/v1/admin/users` (nur `SystemAdmin`-Policy) — Voraussetzung für die
