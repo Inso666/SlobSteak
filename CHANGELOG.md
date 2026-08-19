@@ -4,6 +4,26 @@ Alle nennenswerten Änderungen an diesem Projekt werden hier je User Story dokum
 
 ## [Unreleased]
 
+### US-018 — Projektübersicht-Screen (S2)
+
+- Neuer Endpoint `GET /api/v1/projects` (jeder angemeldete Nutzer, nicht nur Systemadmins)
+  liefert ausschließlich Projekte mit eigener `ProjectMembership`, jeweils mit `role` und
+  `stakeholderCount`. Implementiert als reines Read-Modell (`IProjectOverviewQuery` in
+  `SlobSteak.Domain.Projects`, EF-Core-Query-Implementierung in `SlobSteak.Infrastructure`) statt
+  über `IProjectRepository` — die Stakeholder-Zählung liest direkt (und ohne eigenes Repository)
+  aus dem seit US-003 migrierten `Stakeholders`-DbSet (`DeletedAt == null`).
+- Neue Angular-Seite `ProjectOverviewComponent` (`/projects`, geschützt durch neuen `authGuard`
+  statt `adminGuard` — jede gültige Session reicht): Kartenübersicht der eigenen Projekte mit
+  Rolle und Stakeholder-Anzahl; für Systemadmins zusätzlich Tab „Alle Projekte“ (fragt das
+  bestehende `GET /api/v1/admin/projects` aus US-017 ab) und CTA „Neues Projekt“ (navigiert zur
+  bestehenden Projektanlage `/admin/projects`); Leerzustand-Meldung ohne Projektzuweisung.
+- Tests: dedizierter Story-Test `US018_ProjektuebersichtUiTests` (3 Fälle, echte
+  Testcontainers-PostgreSQL), `auth.guard.spec.ts` (2 Fälle),
+  `project-overview.component.spec.ts` (6 Fälle).
+- Smoke-Test: isolierter `docker compose up --build` auf alternativen Ports — Login,
+  Passwortänderung, Projekt anlegen, sich selbst zuweisen, `GET /api/v1/projects` liefert Name,
+  Rolle und Stakeholder-Anzahl; `/projects` wird korrekt von der SPA ausgeliefert.
+
 ### US-017 — Admin-Bereich UI: Projektverwaltung & Mitgliederzuweisung
 
 - Neuer Endpoint `GET /api/v1/admin/projects` (nur `SystemAdmin`-Policy) liefert Name, Status und

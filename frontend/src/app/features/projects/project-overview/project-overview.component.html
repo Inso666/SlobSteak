@@ -1,0 +1,48 @@
+<section class="project-overview">
+  <h1>Projektübersicht</h1>
+
+  @if (isSystemAdmin) {
+    <div class="tabs">
+      <button type="button" [class.active]="activeTab === 'mine'" (click)="onSelectTab('mine')">
+        Meine Projekte
+      </button>
+      <button type="button" [class.active]="activeTab === 'all'" (click)="onSelectTab('all')">Alle Projekte</button>
+    </div>
+  }
+
+  @if (isSystemAdmin) {
+    <button type="button" class="create-project-cta" (click)="onCreateProject()">Neues Projekt</button>
+  }
+
+  @if (activeTab === 'mine' || !isSystemAdmin) {
+    @if (myProjects.length === 0) {
+      <p class="empty-state">Du bist noch keinem Projekt zugewiesen.</p>
+    } @else {
+      <div class="project-cards">
+        @for (project of myProjects; track project.id) {
+          <button type="button" class="project-card" (click)="onOpenProject(project.id)">
+            <h2>{{ project.name }}</h2>
+            <p>Rolle: {{ project.role }}</p>
+            <p>Stakeholder: {{ project.stakeholderCount }}</p>
+          </button>
+        }
+      </div>
+    }
+  }
+
+  @if (isSystemAdmin && activeTab === 'all') {
+    @if (allProjects.length === 0) {
+      <p class="empty-state">Es existieren noch keine Projekte.</p>
+    } @else {
+      <div class="project-cards">
+        @for (project of allProjects; track project.id) {
+          <button type="button" class="project-card" (click)="onOpenProject(project.id)">
+            <h2>{{ project.name }}</h2>
+            <p>Status: {{ project.status }}</p>
+            <p>Mitglieder: {{ project.memberCount }}</p>
+          </button>
+        }
+      </div>
+    }
+  }
+</section>
