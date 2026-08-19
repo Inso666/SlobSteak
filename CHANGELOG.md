@@ -4,6 +4,28 @@ Alle nennenswerten Änderungen an diesem Projekt werden hier je User Story dokum
 
 ## [Unreleased]
 
+### US-028 — Assessment erstellen/aktualisieren API inkl. Optimistic-Locking-Konfliktregel
+
+- `PUT /api/v1/stakeholders/{id}/assessments/{role}` (neu): legt ein Assessment an oder
+  aktualisiert es; `201 Created` bzw. `200 OK` mit `influence`/`interest`/`notes`/
+  `updatedByName`/`updatedAt`/`version`. Ausschließlich für den Nutzer mit exakt dieser Rolle im
+  Projekt erreichbar (`403 FORBIDDEN` bei fremder Rolle) — die Prüfung erfolgt manuell über die
+  bestehende `ProjectRolePolicy`, da das deklarative `RequireProjectRole`-Attribut eine vom
+  URL-Segment abhängige Rolle nicht ausdrücken kann.
+- Optionales `expectedVersion` im Request: weicht es von der aktuellen Version ab, liefert die API
+  `409 Conflict` mit `{"error":"ASSESSMENT_MODIFIED","modifiedBy":"...","modifiedAt":"..."}` statt
+  zu überschreiben; fehlt `expectedVersion`, wird ohne Konfliktprüfung gespeichert (Last-Write-Wins).
+- `GET /api/v1/stakeholders/{id}/assessments` (neu): liefert je perspektiv-tragender Rolle
+  (`PL`/`Coreteam`/`Architect`) einen Eintrag — `status: "ASSESSED"` inkl. Werten, `"NOT_ASSESSED"`
+  bei zugewiesener aber noch nicht bewertender Rolle, `"NO_ROLE_ASSIGNED"` bei aktuell keinem
+  zugewiesenen Nutzer dieser Rolle im Projekt. Rolle `User` erhält (noch) keine eingeschränkte
+  Sicht — das folgt erst mit US-030.
+- Neue Application Services `UpsertStakeholderAssessmentService`, `GetStakeholderAssessmentsQuery`.
+- Tests: dedizierter Story-Test `US028_AssessmentApiTests` (7 Facts, Testcontainers-PostgreSQL),
+  `UpsertStakeholderAssessmentServiceTests`/`GetStakeholderAssessmentsQueryTests` (Application).
+- Smoke-Test: isolierter `docker compose up --build` — Erstanlage, fremde Rolle (`403`), veraltete
+  Version (`409`), `GET` mit `NO_ROLE_ASSIGNED` — End-to-End über die REST-API verifiziert.
+
 ### US-027 — StakeholderAssessment-Aggregate (Domain Model, Invarianten)
 
 - `StakeholderAssessment.Create(stakeholderId, role, influence, interest, notes, updatedBy)` neu:
