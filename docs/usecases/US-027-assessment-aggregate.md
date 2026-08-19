@@ -36,3 +36,30 @@ Als **Entwickler-Agent** möchte ich **das `StakeholderAssessment`-Aggregate mit
 - Höchstens ein Assessment je (`stakeholder_id`, `role`) (Abschnitt 4.3 Punkt 1).
 - `role` ist stets eine perspektiv-tragende Rolle — niemals `User` (Abschnitt 2.1).
 - Ein Assessment gehört fachlich der Rolle im Projekt, nicht einem einzelnen Nutzer (F2 Grundprinzip).
+
+### Anmerkungen des Dev-Agenten
+
+- `IStakeholderAssessmentRepository`-Methoden tragen konsequent das `Async`-Suffix (z. B.
+  `FindByStakeholderAndRoleAsync` statt `FindByStakeholderAndRole`), abweichend von der in
+  Akzeptanzkriterium 5 genannten Kurzform — konsistent mit jedem anderen Repository-Interface im
+  Projekt (z. B. `IStakeholderRepository`).
+- Die Invariante „höchstens ein Assessment je Stakeholder+Rolle“ wird bewusst nicht innerhalb von
+  `StakeholderAssessment.Create` geprüft (ein Aggregate kennt seine Geschwister nicht), sondern
+  über den seit US-003 bestehenden Unique-Index auf DB-Ebene durchgesetzt — die
+  Application-Schicht (US-028) prüft zusätzlich vorab, analog zum bestehenden
+  Namensduplikat-Hinweis bei `Stakeholder.Create` (US-021).
+- `Version` ist bereits seit US-003/ADR-0002 als EF-Core-`IsConcurrencyToken()` konfiguriert. Das
+  bleibt unverändert bestehen und wirkt als zusätzliche DB-seitige Absicherung für den seltenen
+  Fall zweier nahezu gleichzeitiger `SaveChanges`-Aufrufe innerhalb desselben Requests — die hier
+  neu hinzugekommene `expectedVersion`-Prüfung in `Update` ist die primäre, fachlich sichtbare
+  Optimistic-Concurrency-Regel (Grundlage der Konfliktwarnung in US-028) und greift bereits, bevor
+  überhaupt gespeichert wird, da der Aufrufer stets eine frisch aus der Datenbank geladene Instanz
+  aktualisiert.
+- Reine Domain-Story ohne API-/UI-Anteil (wie US-020) — kein Exception-Mapping in
+  `SlobSteak.Api` für `InvalidAssessmentRoleError`/`StaleAssessmentError` in dieser Story; das
+  folgt mit dem eigentlichen Endpoint in US-028.
+
+### Status
+
+Fertig am 19.08.2026. Umsetzung: PR auf `main` (Branch `feature/US-027-assessment-aggregate`),
+Auto-Merge gemäß ADR-0003 aktiviert.
