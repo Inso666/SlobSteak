@@ -1,0 +1,45 @@
+<section class="admin-users">
+  <h1>Nutzerverwaltung</h1>
+
+  <table>
+    <thead>
+      <tr>
+        <th>Name</th>
+        <th>E-Mail</th>
+        <th></th>
+      </tr>
+    </thead>
+    <tbody>
+      @for (user of users; track user.id) {
+        <tr>
+          <td>{{ user.name }}</td>
+          <td>{{ user.email }}</td>
+          <td>
+            <button type="button" (click)="onResetPassword(user)">Passwort zurücksetzen</button>
+          </td>
+        </tr>
+      }
+    </tbody>
+  </table>
+
+  @if (resetPasswordMessage) {
+    <p class="info-message">{{ resetPasswordMessage }}</p>
+  }
+
+  <h2>Nutzer anlegen</h2>
+  <form [formGroup]="createForm" (ngSubmit)="onCreateUser()">
+    <label for="name">Name</label>
+    <input id="name" formControlName="name" />
+
+    <label for="email">E-Mail</label>
+    <input id="email" type="email" formControlName="email" />
+    @if (createErrorMessage) {
+      <p class="field-error">{{ createErrorMessage }}</p>
+    }
+
+    <label for="initialPassword">Initiales Passwort</label>
+    <input id="initialPassword" type="password" formControlName="initialPassword" />
+
+    <button type="submit" [disabled]="createForm.invalid">Nutzer anlegen</button>
+  </form>
+</section>

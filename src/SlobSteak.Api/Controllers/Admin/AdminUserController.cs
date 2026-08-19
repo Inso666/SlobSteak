@@ -48,11 +48,23 @@ public sealed class AdminUserController : ControllerBase
 {
     private readonly CreateUserService _createUserService;
     private readonly ResetPasswordService _resetPasswordService;
+    private readonly ListUsersService _listUsersService;
 
-    public AdminUserController(CreateUserService createUserService, ResetPasswordService resetPasswordService)
+    public AdminUserController(CreateUserService createUserService, ResetPasswordService resetPasswordService, ListUsersService listUsersService)
     {
         _createUserService = createUserService;
         _resetPasswordService = resetPasswordService;
+        _listUsersService = listUsersService;
+    }
+
+    /// <summary>Listet alle Nutzerkonten (US-016: Nutzerliste im Admin-Bereich).</summary>
+    [HttpGet]
+    [ProducesResponseType(typeof(IReadOnlyList<UserResponse>), StatusCodes.Status200OK)]
+    [ProducesResponseType(StatusCodes.Status403Forbidden)]
+    public async Task<IActionResult> ListUsers(CancellationToken cancellationToken)
+    {
+        var users = await _listUsersService.ListUsersAsync(cancellationToken);
+        return Ok(users.Select(UserResponse.FromDomain));
     }
 
     /// <summary>Legt ein neues Nutzerkonto an (<c>must_change_password = true</c>).</summary>

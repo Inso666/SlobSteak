@@ -29,4 +29,7 @@ public interface IUserRepository
     /// Seed-Admin-Bootstrap-Entscheidung (US-005: Seed läuft ausschließlich, wenn die
     /// <c>users</c>-Tabelle leer ist).</summary>
     Task<bool> AnyAsync(CancellationToken cancellationToken = default);
+
+    /// <summary>Lädt alle Nutzerkonten (US-016: Nutzerliste im Admin-Bereich).</summary>
+    Task<IReadOnlyList<User>> FindAllAsync(CancellationToken cancellationToken = default);
 }
