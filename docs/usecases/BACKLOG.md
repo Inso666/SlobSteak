@@ -53,7 +53,7 @@ Jede Story ist so geschnitten, dass sie in einem einzigen fokussierten Entwicklu
 | US-016 | Admin-Bereich UI: Nutzerverwaltung | IdentityAccess | US-012, US-013 | [US-016-admin-ui-nutzerverwaltung.md](US-016-admin-ui-nutzerverwaltung.md) | fertig (19.08.2026) |
 | US-017 | Admin-Bereich UI: Projektverwaltung & Mitgliederzuweisung | ProjectManagement | US-014, US-015, US-016 | [US-017-admin-ui-projektverwaltung.md](US-017-admin-ui-projektverwaltung.md) | fertig (19.08.2026) |
 | US-018 | Projektübersicht-Screen (S2) | ProjectManagement | US-010, US-011, US-017 | [US-018-projektuebersicht-ui.md](US-018-projektuebersicht-ui.md) | fertig (19.08.2026) |
-| US-019 | Projekt-Workspace-Shell mit Tab-Navigation (S3) | ProjectManagement | US-018 | [US-019-projekt-workspace-shell.md](US-019-projekt-workspace-shell.md) | offen |
+| US-019 | Projekt-Workspace-Shell mit Tab-Navigation (S3) | ProjectManagement | US-018 | [US-019-projekt-workspace-shell.md](US-019-projekt-workspace-shell.md) | fertig (19.08.2026) |
 
 ### Phase 3 — Stakeholder Management (Stammdaten)
 

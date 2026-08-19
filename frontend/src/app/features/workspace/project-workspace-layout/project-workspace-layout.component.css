@@ -1,0 +1,42 @@
+.workspace {
+  max-width: 60rem;
+  margin: 2rem auto;
+  padding: 1.5rem;
+}
+
+.workspace-header {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  margin-bottom: 1rem;
+}
+
+.workspace-header h1 {
+  margin: 0;
+}
+
+.role-badge {
+  padding: 0.15rem 0.6rem;
+  border-radius: 1rem;
+  background: #eee;
+  font-size: 0.8rem;
+  font-weight: bold;
+}
+
+.workspace-tabs {
+  display: flex;
+  gap: 1rem;
+  border-bottom: 1px solid #ddd;
+  margin-bottom: 1rem;
+}
+
+.workspace-tabs a {
+  padding: 0.5rem 0;
+  text-decoration: none;
+  color: inherit;
+}
+
+.workspace-tabs a.active {
+  font-weight: bold;
+  border-bottom: 2px solid #333;
+}

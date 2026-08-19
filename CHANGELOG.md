@@ -4,6 +4,26 @@ Alle nennenswerten Änderungen an diesem Projekt werden hier je User Story dokum
 
 ## [Unreleased]
 
+### US-019 — Projekt-Workspace-Shell mit Tab-Navigation (S3)
+
+- Neuer Endpoint `GET /api/v1/projects/{projectId}` (im bestehenden `ProjectController` aus
+  US-018) liefert Projektname und eigene Rolle für Header/Rollen-Badge; `404` ohne eigene
+  Mitgliedschaft (auch für Systemadmins ohne eigene Zuweisung, PRD Abschnitt 2.3).
+- Neue Angular-Seite `ProjectWorkspaceLayoutComponent` (`/projects/:id`): Header mit Projektname
+  und Rollen-Badge, Tab-Navigation Stakeholder-Liste (Standard-Landingtab, alle Rollen) / Map
+  (ausgeblendet für `User`) / Verteiler (nur `PL`/`Coreteam`) — mit Platzhalter-Inhalten, bis die
+  jeweiligen Feature-Stories (US-025/US-032/US-042) landen.
+- Neue Guard-Fabrik `roleGuard(allowedRoles)` (`frontend/src/app/core/guards/role.guard.ts`):
+  sperrt sowohl die Mitgliedschaftsprüfung auf `/projects/:id` selbst als auch die engeren
+  Tab-Routen; leitet bei fehlender Berechtigung oder fehlender Mitgliedschaft auf eine neue
+  „Kein Zugriff“-Ansicht um (`AccessDeniedComponent`).
+- Tests: dedizierter Story-Test `US019_ProjektWorkspaceShellTests` (2 Fälle, echte
+  Testcontainers-PostgreSQL, deckt das neue Backend-Fundament ab), `role.guard.spec.ts`
+  (5 Fälle), `project-workspace-layout.component.spec.ts` (6 Fälle).
+- Smoke-Test: isolierter `docker compose up --build` auf alternativen Ports — Projekt anlegen,
+  sich selbst mit Rolle `User` zuweisen, `GET /api/v1/projects/{id}` liefert Name/Rolle korrekt;
+  `/projects/:id` wird von der SPA ausgeliefert.
+
 ### US-018 — Projektübersicht-Screen (S2)
 
 - Neuer Endpoint `GET /api/v1/projects` (jeder angemeldete Nutzer, nicht nur Systemadmins)

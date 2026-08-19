@@ -1,0 +1,20 @@
+<div class="workspace">
+  @if (project) {
+    <header class="workspace-header">
+      <h1>{{ project.name }}</h1>
+      <span class="role-badge">{{ project.role }}</span>
+    </header>
+
+    <nav class="workspace-tabs">
+      <a routerLink="stakeholders" routerLinkActive="active">Stakeholder-Liste</a>
+      @if (showMapTab) {
+        <a routerLink="map" routerLinkActive="active">Map</a>
+      }
+      @if (showDistributionTab) {
+        <a routerLink="distribution" routerLinkActive="active">Verteiler</a>
+      }
+    </nav>
+
+    <router-outlet />
+  }
+</div>
