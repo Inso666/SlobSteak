@@ -62,4 +62,7 @@ public sealed class UserRepository : IUserRepository
 
     public Task<bool> AnyAsync(CancellationToken cancellationToken = default) =>
         _dbContext.Users.AnyAsync(cancellationToken);
+
+    public async Task<IReadOnlyList<User>> FindAllAsync(CancellationToken cancellationToken = default) =>
+        await _dbContext.Users.ToListAsync(cancellationToken);
 }

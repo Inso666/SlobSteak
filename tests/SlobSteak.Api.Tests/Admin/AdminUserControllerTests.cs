@@ -99,6 +99,36 @@ public sealed class AdminUserControllerTests : IAsyncLifetime
         response.StatusCode.Should().Be(HttpStatusCode.Unauthorized);
     }
 
+    // GET /api/v1/admin/users (US-016): Nutzerliste für den Admin-Bereich.
+    [Fact]
+    public async Task ListUsers_ReturnsAllCreatedUsers()
+    {
+        using var client = AdminClient();
+        var email = $"user-{Guid.NewGuid():N}@example.com";
+        await client.PostAsJsonAsync("/api/v1/admin/users", new { name = "Listen-Nutzer", email, initialPassword = "initial-pass" });
+
+        var response = await client.GetAsync("/api/v1/admin/users");
+
+        response.StatusCode.Should().Be(HttpStatusCode.OK);
+        var body = await response.Content.ReadFromJsonAsync<JsonElement>();
+        body.EnumerateArray().Should().Contain(u => u.GetProperty("email").GetString() == email);
+    }
+
+    [Fact]
+    public async Task ListUsers_AsNonAdmin_Returns403()
+    {
+        var configuration = new ConfigurationBuilder()
+            .AddInMemoryCollection(new Dictionary<string, string?> { [JwtSettings.SigningKeyConfigurationKey] = SigningKey })
+            .Build();
+        var token = new JwtTokenGenerator(configuration).GenerateToken(Guid.NewGuid(), isSystemAdmin: false);
+        using var client = _factory.CreateClient();
+        client.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", token);
+
+        var response = await client.GetAsync("/api/v1/admin/users");
+
+        response.StatusCode.Should().Be(HttpStatusCode.Forbidden);
+    }
+
     private HttpClient AdminClient()
     {
         var configuration = new ConfigurationBuilder()

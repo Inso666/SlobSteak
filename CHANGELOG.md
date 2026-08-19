@@ -4,6 +4,21 @@ Alle nennenswerten Änderungen an diesem Projekt werden hier je User Story dokum
 
 ## [Unreleased]
 
+### US-016 — Admin-Bereich UI: Nutzerverwaltung
+
+- Neuer Endpoint `GET /api/v1/admin/users` (nur `SystemAdmin`-Policy) — Voraussetzung für die
+  Nutzerliste, ergänzt `IUserRepository.FindAllAsync` und `ListUsersService`.
+- Neue Angular-Seite `UsersAdminComponent` (`/admin/users`, geschützt durch neuen `adminGuard`):
+  Nutzerliste, Formular „Nutzer anlegen“ (Inline-Fehler bei `409 EMAIL_ALREADY_IN_USE`),
+  „Passwort zurücksetzen“-Aktion je Zeile mit Erfolgsbestätigung.
+- `TokenStorageService.getClaims()` liest `isSystemAdmin` aus dem gespeicherten JWT für die
+  clientseitige Sichtbarkeitssteuerung (rein UX, serverseitige `SystemAdmin`-Policy bleibt
+  maßgeblich).
+- Tests: `users-admin.component.spec.ts` (5 Fälle), `admin.guard.spec.ts` (3 Fälle), Backend-Tests
+  für den neuen `GET`-Endpoint.
+- Smoke-Test: `docker compose up --build db api frontend` → Login über den nginx-Proxy →
+  `GET /api/v1/admin/users` liefert die Nutzerliste; `/admin/users` wird von der SPA ausgeliefert.
+
 ### US-015 — Admin-API: Nutzer-Projekt-Zuweisung mit Rolle
 
 - Neue Endpunkte am `AdminProjectMembershipController`
