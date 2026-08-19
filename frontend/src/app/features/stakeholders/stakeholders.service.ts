@@ -22,6 +22,9 @@ export interface Stakeholder {
   updatedByName: string;
   updatedAt: string;
   similarStakeholderWarning: SimilarStakeholderWarning | null;
+  /** Nur in der Papierkorb-Ansicht gesetzt (US-024 Akzeptanzkriterium 1), sonst `null`. */
+  deletedAt: string | null;
+  deletedByName: string | null;
 }
 
 export interface StakeholderDetailsPayload {
@@ -41,17 +44,21 @@ export interface StakeholderDeletionImpact {
   communicationAssignmentCount: number;
 }
 
-/** US-025 Akzeptanzkriterium 1/2: optionale Filter für die Stakeholderliste. */
+/** US-025 Akzeptanzkriterium 1/2 (erweitert um US-024 Akzeptanzkriterium 1): optionale Filter für
+ * die Stakeholderliste. */
 export interface StakeholderListFilters {
   search?: string;
   type?: string;
   communicationTypeId?: string;
+  /** US-024: liefert statt der aktiven ausschließlich soft-gelöschte Stakeholder (Papierkorb). */
+  deleted?: boolean;
 }
 
 /**
  * Injizierbarer Service für Stakeholder-Stammdaten (US-021 Anlegen, US-022 Bearbeiten, US-023
- * Soft-Delete, US-025 Liste mit Suche/Filter). Alle HTTP-Zugriffe laufen ausschließlich über
- * diese Klasse, nie direkt aus einer Komponente (CLAUDE.md Abschnitt 3.1).
+ * Soft-Delete, US-024 Wiederherstellen/Papierkorb, US-025 Liste mit Suche/Filter). Alle
+ * HTTP-Zugriffe laufen ausschließlich über diese Klasse, nie direkt aus einer Komponente
+ * (CLAUDE.md Abschnitt 3.1).
  */
 @Injectable({ providedIn: 'root' })
 export class StakeholdersService {
@@ -67,6 +74,9 @@ export class StakeholdersService {
     }
     if (filters.communicationTypeId) {
       params = params.set('communicationTypeId', filters.communicationTypeId);
+    }
+    if (filters.deleted) {
+      params = params.set('deleted', 'true');
     }
 
     return this.http.get<Stakeholder[]>(`/api/v1/projects/${projectId}/stakeholders`, { params });
@@ -86,5 +96,10 @@ export class StakeholdersService {
 
   deleteStakeholder(id: string): Observable<void> {
     return this.http.delete<void>(`/api/v1/stakeholders/${id}`);
+  }
+
+  /** US-024 Akzeptanzkriterium 2: macht ein Soft-Delete rückgängig. */
+  restoreStakeholder(id: string): Observable<void> {
+    return this.http.post<void>(`/api/v1/stakeholders/${id}/restore`, null);
   }
 }

@@ -1,17 +1,26 @@
 <section class="stakeholder-list">
   <h1>Stakeholder</h1>
 
-  <form [formGroup]="filterForm" class="filters">
-    <label for="search">Suche</label>
-    <input id="search" formControlName="search" placeholder="Name oder Organisation" />
+  @if (!showDeleted) {
+    <form [formGroup]="filterForm" class="filters">
+      <label for="search">Suche</label>
+      <input id="search" formControlName="search" placeholder="Name oder Organisation" />
 
-    <label for="type">Typ</label>
-    <select id="type" formControlName="type">
-      <option value="">Alle</option>
-      <option value="Person">Person</option>
-      <option value="Organization">Organisation</option>
-    </select>
-  </form>
+      <label for="type">Typ</label>
+      <select id="type" formControlName="type">
+        <option value="">Alle</option>
+        <option value="Person">Person</option>
+        <option value="Organization">Organisation</option>
+      </select>
+    </form>
+  }
+
+  @if (showDeletedToggle) {
+    <label class="deleted-toggle">
+      <input type="checkbox" [checked]="showDeleted" (change)="onToggleDeleted($any($event.target).checked)" />
+      Gelöschte anzeigen
+    </label>
+  }
 
   <table>
     <thead>
@@ -26,25 +35,30 @@
     </thead>
     <tbody>
       @for (stakeholder of stakeholders; track stakeholder.id) {
-        <tr>
+        <tr [class.deleted]="showDeleted">
           <td>{{ stakeholder.name }}</td>
           <td>{{ stakeholder.type }}</td>
           <td>{{ stakeholder.organization }}</td>
           <td>{{ stakeholder.position }}</td>
           <td>{{ stakeholder.email }} {{ stakeholder.phone }}</td>
           <td>
-            <button type="button" (click)="onEdit(stakeholder)">Bearbeiten</button>
-            <button type="button" (click)="onDeleteClick(stakeholder)">Löschen</button>
+            @if (showDeleted) {
+              <span class="deleted-badge">Gelöscht am {{ stakeholder.deletedAt | date: 'medium' }} von {{ stakeholder.deletedByName }}</span>
+              <button type="button" (click)="onRestore(stakeholder)">Wiederherstellen</button>
+            } @else {
+              <button type="button" (click)="onEdit(stakeholder)">Bearbeiten</button>
+              <button type="button" (click)="onDeleteClick(stakeholder)">Löschen</button>
+            }
           </td>
         </tr>
-        @if (editingStakeholder?.id === stakeholder.id) {
+        @if (!showDeleted && editingStakeholder?.id === stakeholder.id) {
           <tr>
             <td colspan="6">
               <app-edit-stakeholder-form [stakeholder]="stakeholder" (updated)="onEditUpdated()" (cancelled)="onEditCancelled()" />
             </td>
           </tr>
         }
-        @if (deletingStakeholder?.id === stakeholder.id) {
+        @if (!showDeleted && deletingStakeholder?.id === stakeholder.id) {
           <tr>
             <td colspan="6">
               <app-delete-stakeholder-dialog [stakeholder]="stakeholder" (deleted)="onDeleted()" (cancelled)="onDeleteCancelled()" />
@@ -53,11 +67,13 @@
         }
       } @empty {
         <tr>
-          <td colspan="6">Keine Stakeholder gefunden.</td>
+          <td colspan="6">{{ showDeleted ? 'Keine gelöschten Stakeholder gefunden.' : 'Keine Stakeholder gefunden.' }}</td>
         </tr>
       }
     </tbody>
   </table>
 
-  <app-create-stakeholder-form [projectId]="projectId" (created)="onCreated()" />
+  @if (!showDeleted) {
+    <app-create-stakeholder-form [projectId]="projectId" (created)="onCreated()" />
+  }
 </section>

@@ -4,6 +4,39 @@ Alle nennenswerten Änderungen an diesem Projekt werden hier je User Story dokum
 
 ## [Unreleased]
 
+### US-024 — Stakeholder Wiederherstellen & Papierkorb-Ansicht: API + UI (S3.x)
+
+- `GET /api/v1/projects/{projectId}/stakeholders?deleted=true` liefert ausschließlich
+  soft-gelöschte Stakeholder inkl. `deletedAt`/`deletedByName` — derselbe Endpoint wie die
+  Standardliste (US-025), zusätzlich ausschließlich für Rolle `PL` erreichbar (sonst `403`); eine
+  query-parameterabhängige Rolleneinschränkung kann das deklarative `RequireProjectRole`-Attribut
+  nicht ausdrücken, daher eine zusätzliche manuelle Prüfung über die framework-freie
+  `ProjectRolePolicy` direkt im Controller.
+- `POST /api/v1/stakeholders/{id}/restore` (nur Rolle `PL`, idempotent) setzt `deleted_at`/
+  `deleted_by` zurück auf `null` — nutzt die bereits seit US-020 vorhandene
+  `Stakeholder.Restore()`-Domainmethode.
+- Neue Application Services `RestoreStakeholderService` und `DeletedStakeholdersQuery` (letzterer
+  nutzt bewusst direkt `IStakeholderRepository.FindDeletedByProjectAsync` statt eines eigenen
+  Domain-/Infrastructure-Read-Modell-Ports — die Abfrage ist ein einfacher Filter, den das
+  bestehende Repository-Interface bereits abdeckt).
+- `StakeholderResponse` um `deletedAt`/`deletedByName` erweitert (bei aktiven Stakeholdern stets
+  `null`) — derselbe einheitliche Response-Contract wie Anlegen/Bearbeiten/Liste (US-025).
+- **Frontend**: `StakeholderListComponent` erhält einen Umschalter „Gelöschte anzeigen“
+  (ausschließlich für Rolle `PL` sichtbar), der bei Aktivierung die Papierkorb-Ansicht lädt —
+  Zeilen ausgegraut mit Badge „Gelöscht am [Datum] von [Name]“ und „Wiederherstellen“-Button statt
+  Bearbeiten/Löschen; Anlage-Formular ist in diesem Modus ausgeblendet. Restore aktualisiert die
+  Liste ohne vollständigen Reload.
+- Tests: dedizierter Story-Test `US024_StakeholderWiederherstellenTests` (Testcontainers-
+  PostgreSQL), `RestoreStakeholderServiceTests`/`DeletedStakeholdersQueryTests` (Application),
+  erweiterte `stakeholder-list.component.spec.ts` (Toggle-Sichtbarkeit, Restore-Aufruf).
+- **Anmerkung**: Akzeptanzkriterium 5 (Wiederauftauchen in einer gespeicherten
+  Verteilerlisten-Filterkombination) referenziert US-041, das noch nicht existiert (weit spätere
+  Phase) — analog zur bereits in US-023 dokumentierten Abweichung nur die Standardliste geprüft;
+  der US-041-Teil wird erneut verifiziert, sobald diese Story entsteht.
+- Smoke-Test: isolierter `docker compose up --build` — Stakeholder anlegen, löschen, Papierkorb-
+  Ansicht (nur PL, `403` für Rolle `User`), Wiederherstellen, erneutes Erscheinen in der
+  Standardliste — alle end-to-end über die REST-API verifiziert.
+
 ### US-025 — Stakeholder-Liste mit Suche/Filter: API + UI inkl. Rollen-Sichtbarkeitsregel
 
 - `GET /api/v1/projects/{projectId}/stakeholders` (bereits seit US-023 vorhanden) um

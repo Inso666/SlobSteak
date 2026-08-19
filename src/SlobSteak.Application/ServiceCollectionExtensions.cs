@@ -27,6 +27,8 @@ public static class ServiceCollectionExtensions
         services.AddScoped<UpdateStakeholderDetailsService>();
         services.AddScoped<SoftDeleteStakeholderService>();
         services.AddScoped<ListStakeholdersService>();
+        services.AddScoped<RestoreStakeholderService>();
+        services.AddScoped<DeletedStakeholdersQuery>();
 
         return services;
     }

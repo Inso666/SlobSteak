@@ -22,6 +22,8 @@ describe('CreateStakeholderFormComponent', () => {
     updatedByName: 'Anna Admin',
     updatedAt: '2026-08-19T10:00:00Z',
     similarStakeholderWarning: null,
+    deletedAt: null,
+    deletedByName: null,
   };
 
   beforeEach(async () => {
