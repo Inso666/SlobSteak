@@ -39,3 +39,27 @@ Als **Entwickler-Agent** möchte ich **das `Stakeholder`-Aggregate mit allen Sta
 - Ein Stakeholder gehört zu genau einem Projekt (`project_id` unveränderlich nach Erstellung).
 - `name` ist Pflichtfeld; `type` ist Pflichtfeld mit Werten `Person`/`Organization`.
 - Soft-Delete ist idempotent: mehrfacher Aufruf ändert `deleted_at` nicht erneut (Abschnitt F1.3 Edge Case).
+
+### Anmerkungen des Dev-Agenten
+
+- `Stakeholder.Create`/`UpdateDetails` nehmen `email` als rohen, optionalen `string?` entgegen
+  (nicht direkt das `Email`-Value-Object) und konstruieren `Email` intern nur bei nicht-leerem
+  Wert — analog zu `User.Create` aus US-004. Das erfüllt Akzeptanzkriterium 2 wörtlich
+  ("leeres email-Feld ist zulässig").
+- `ExistsSimilarNameInProjectAsync` implementiert „ähnlich“ als case-insensitiven Exakt-Vergleich
+  (nicht Fuzzy-/Levenshtein-Matching) — die PRD-Textstelle (Abschnitt 4.3) beschreibt nur den
+  Hinweistext-Anwendungsfall, keine konkrete Ähnlichkeitsmetrik; die einfachste, am wenigsten
+  überraschende Interpretation wurde gewählt (CLAUDE.md Abschnitt 4). Schließt bewusst
+  soft-gelöschte Datensätze mit ein (PRD: Hinweis auf bereits gelöschten, ähnlich benannten
+  Stakeholder).
+- Kein neuer API-Endpoint und keine UI in dieser Story (reines Domain-Modell + Repository) — die
+  lokale Verifizierbarkeit (CLAUDE.md Kernregel 4) beschränkt sich daher auf einen Smoke-Check,
+  dass `docker-compose up` weiterhin fehlerfrei startet (keine Migrations-/Schema-Regression); ein
+  Klickpfad entsteht erst mit US-021.
+- Keine neue EF-Core-Migration nötig — das Schema wurde bereits in US-003 als Skeleton angelegt
+  (`docs/adr/0001-domain-entity-skeletons-vor-aggregate-stories.md`).
+
+### Status
+
+Fertig am 19.08.2026. Umsetzung: PR auf `main` (Branch
+`feature/US-020-stakeholder-aggregate`), Auto-Merge gemäß ADR-0003 aktiviert.

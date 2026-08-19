@@ -1,4 +1,5 @@
 using SlobSteak.Domain.Shared.Enums;
+using SlobSteak.Domain.Shared.Exceptions;
 using SlobSteak.Domain.Shared.ValueObjects;
 
 namespace SlobSteak.Domain.Stakeholders;
@@ -8,12 +9,13 @@ namespace SlobSteak.Domain.Stakeholders;
 /// PRD Abschnitt 4.1 (Entität <c>stakeholders</c>).
 /// </summary>
 /// <remarks>
-/// Bewusst minimales Skeleton im Rahmen von US-003 (Datenbankschema): Dieser Konstruktor prüft
-/// nur strukturelle Grundbedingungen. Die <c>Create</c>-Factory-Methode mit
-/// <c>StakeholderNameRequiredError</c>, <c>UpdateDetails</c>, <c>SoftDelete</c>/<c>Restore</c>
-/// (inkl. Idempotenz), <c>IsDeleted</c> sowie das Repository-Interface
-/// <c>IStakeholderRepository</c> werden erst in US-020 (Stakeholder-Aggregate) ergänzt; die
-/// Kommunikationszuordnungen (<c>AssignCommunication</c> usw.) erst in US-039 — siehe
+/// US-020 (Stakeholder-Aggregate): <see cref="Create"/> ist der vorgesehene Weg, einen neuen
+/// Stakeholder fachlich korrekt anzulegen; <see cref="UpdateDetails"/>/<see cref="SoftDelete"/>/
+/// <see cref="Restore"/> sind der einzige Weg, ihn zu ändern bzw. seinen Lebenszyklus zu steuern.
+/// Der öffentliche Konstruktor bleibt zusätzlich bestehen — er wird von EF Core zur
+/// Rematerialisierung aus der Datenbank verwendet (Parameterbindung nach Property-Namen), analog
+/// zu <see cref="Identity.User"/> (US-004). Kommunikationszuordnungen (<c>AssignCommunication</c>
+/// usw.) folgen erst in US-039, siehe
 /// <c>docs/adr/0001-domain-entity-skeletons-vor-aggregate-stories.md</c>.
 /// </remarks>
 public sealed class Stakeholder
@@ -70,7 +72,10 @@ public sealed class Stakeholder
 
     public string? Organization { get; private set; }
 
-    /// <summary>Nullable, primär für <see cref="StakeholderType.Person"/> relevant.</summary>
+    /// <summary>Nullable, primär für <see cref="StakeholderType.Person"/> relevant — bei
+    /// <see cref="StakeholderType.Organization"/> besteht bewusst keine Domain-Restriktion
+    /// (US-020 Akzeptanzkriterium 3): eine etwaige Ausblendung ist rein UI-seitig (PRD F1.1
+    /// Edge-Case).</summary>
     public string? Position { get; private set; }
 
     public Email? Email { get; private set; }
@@ -93,4 +98,111 @@ public sealed class Stakeholder
     public DateTimeOffset? DeletedAt { get; private set; }
 
     public Guid? DeletedBy { get; private set; }
+
+    /// <summary>Erzeugt einen neuen Stakeholder mit den übergebenen Stammdaten.</summary>
+    /// <param name="email">Optional; wird nur bei nicht-leerem Wert als <see cref="ValueObjects.Email"/>
+    /// validiert (US-020 Akzeptanzkriterium 2) — ein leeres Feld ist zulässig.</param>
+    /// <exception cref="StakeholderNameRequiredError"><paramref name="name"/> ist leer oder
+    /// besteht nur aus Leerzeichen.</exception>
+    /// <exception cref="InvalidEmailFormatError"><paramref name="email"/> ist gesetzt, aber kein
+    /// gültiges <see cref="ValueObjects.Email"/>-Format.</exception>
+    public static Stakeholder Create(
+        Guid projectId,
+        StakeholderType type,
+        string name,
+        string? organization,
+        string? position,
+        string? email,
+        string? phone,
+        string? locationDepartment,
+        string? description,
+        Guid createdBy)
+    {
+        if (string.IsNullOrWhiteSpace(name))
+        {
+            throw new StakeholderNameRequiredError();
+        }
+
+        var emailValueObject = string.IsNullOrWhiteSpace(email) ? null : new Email(email);
+        var now = DateTimeOffset.UtcNow;
+
+        return new Stakeholder(
+            Guid.NewGuid(),
+            projectId,
+            type,
+            name,
+            organization,
+            position,
+            emailValueObject,
+            phone,
+            locationDepartment,
+            description,
+            createdBy,
+            now,
+            createdBy,
+            now,
+            deletedAt: null,
+            deletedBy: null);
+    }
+
+    /// <summary>Aktualisiert die Stammdaten und setzt <see cref="UpdatedBy"/>/<see cref="UpdatedAt"/>
+    /// (US-020 Akzeptanzkriterium 4). <paramref name="email"/> wird analog zu <see cref="Create"/>
+    /// behandelt (optional, nur bei nicht-leerem Wert validiert).</summary>
+    /// <exception cref="StakeholderNameRequiredError"><paramref name="name"/> ist leer oder
+    /// besteht nur aus Leerzeichen.</exception>
+    /// <exception cref="InvalidEmailFormatError"><paramref name="email"/> ist gesetzt, aber kein
+    /// gültiges <see cref="ValueObjects.Email"/>-Format.</exception>
+    public void UpdateDetails(
+        StakeholderType type,
+        string name,
+        string? organization,
+        string? position,
+        string? email,
+        string? phone,
+        string? locationDepartment,
+        string? description,
+        Guid updatedBy)
+    {
+        if (string.IsNullOrWhiteSpace(name))
+        {
+            throw new StakeholderNameRequiredError();
+        }
+
+        Type = type;
+        Name = name;
+        Organization = organization;
+        Position = position;
+        Email = string.IsNullOrWhiteSpace(email) ? null : new Email(email);
+        Phone = phone;
+        LocationDepartment = locationDepartment;
+        Description = description;
+        UpdatedBy = updatedBy;
+        UpdatedAt = DateTimeOffset.UtcNow;
+    }
+
+    /// <summary>Markiert den Stakeholder als gelöscht (<see cref="DeletedAt"/>/<see cref="DeletedBy"/>).
+    /// Idempotent (US-020 Akzeptanzkriterium 5, PRD F1.3 Edge Case): ein erneuter Aufruf auf einem
+    /// bereits gelöschten Stakeholder ändert <see cref="DeletedAt"/> nicht erneut.</summary>
+    public void SoftDelete(Guid deletedBy)
+    {
+        if (DeletedAt is not null)
+        {
+            return;
+        }
+
+        DeletedAt = DateTimeOffset.UtcNow;
+        DeletedBy = deletedBy;
+    }
+
+    /// <summary>Macht ein zuvor gesetztes Soft-Delete rückgängig (<see cref="DeletedAt"/>/
+    /// <see cref="DeletedBy"/> werden auf <c>null</c> zurückgesetzt). Idempotent — auf einem
+    /// bereits aktiven Stakeholder passiert nichts.</summary>
+    public void Restore()
+    {
+        DeletedAt = null;
+        DeletedBy = null;
+    }
+
+    /// <summary>Liefert <c>true</c>, wenn der Stakeholder soft-gelöscht ist.</summary>
+    public bool IsDeleted() => DeletedAt is not null;
 }

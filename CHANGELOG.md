@@ -4,6 +4,26 @@ Alle nennenswerten Änderungen an diesem Projekt werden hier je User Story dokum
 
 ## [Unreleased]
 
+### US-020 — Stakeholder-Aggregate (Domain Model, Invarianten)
+
+- `Stakeholder` (Domain-Skeleton seit US-003) um die volle Aggregate-Logik erweitert: `Create`
+  (wirft `StakeholderNameRequiredError` bei leerem Namen, `InvalidEmailFormatError` bei
+  ungültigem, aber gesetztem `email`), `UpdateDetails`, `SoftDelete` (idempotent — mehrfacher
+  Aufruf ändert `deleted_at` nicht erneut), `Restore`, `IsDeleted`. Neue Exception
+  `StakeholderNameRequiredError`.
+- Neues Repository-Interface `IStakeholderRepository`
+  (`FindByIdAsync`/`FindActiveByProjectAsync`/`FindDeletedByProjectAsync`/`SaveAsync`/
+  `ExistsSimilarNameInProjectAsync`) mit EF-Core-Implementierung gegen die seit US-003 migrierte
+  `stakeholders`-Tabelle — keine neue Migration nötig.
+  `ExistsSimilarNameInProjectAsync` vergleicht case-insensitiv und bezieht bewusst
+  soft-gelöschte Datensätze mit ein (PRD Abschnitt 4.3: Hinweis auf bereits gelöschten, ähnlich
+  benannten Stakeholder beim Anlegen).
+- Tests: `StakeholderTests` (Domain.Tests, 13 Fälle), dedizierter Story-Test
+  `US020_StakeholderAggregateTests` (8 Facts, davon AC8 als Integrationstest gegen echte
+  Testcontainers-PostgreSQL).
+- Reine Domain-/Infrastructure-Story ohne neuen API-Endpoint oder UI — Smoke-Test beschränkt sich
+  auf die Regressionsprüfung, dass `docker-compose up` weiterhin fehlerfrei startet.
+
 ### US-019 — Projekt-Workspace-Shell mit Tab-Navigation (S3)
 
 - Neuer Endpoint `GET /api/v1/projects/{projectId}` (im bestehenden `ProjectController` aus
