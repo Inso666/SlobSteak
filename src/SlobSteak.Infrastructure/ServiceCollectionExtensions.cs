@@ -3,9 +3,11 @@ using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using SlobSteak.Domain.Identity;
 using SlobSteak.Domain.Projects;
+using SlobSteak.Domain.Stakeholders;
 using SlobSteak.Infrastructure.Persistence;
 using SlobSteak.Infrastructure.Persistence.Identity;
 using SlobSteak.Infrastructure.Persistence.Projects;
+using SlobSteak.Infrastructure.Persistence.Stakeholders;
 
 namespace SlobSteak.Infrastructure;
 
@@ -32,6 +34,7 @@ public static class ServiceCollectionExtensions
         services.AddScoped<IUserRepository, UserRepository>();
         services.AddScoped<IProjectRepository, ProjectRepository>();
         services.AddScoped<IProjectOverviewQuery, ProjectOverviewQuery>();
+        services.AddScoped<IStakeholderRepository, StakeholderRepository>();
 
         return services;
     }
