@@ -4,6 +4,29 @@ Alle nennenswerten Änderungen an diesem Projekt werden hier je User Story dokum
 
 ## [Unreleased]
 
+### US-022 — Stakeholder-Stammdaten bearbeiten: API + UI inkl. Änderungsverlauf
+
+- Neuer Endpoint `PATCH /api/v1/stakeholders/{id}` — nur für `PL`/`Coreteam`/`Architect`, `403`
+  für `User`, `404` für nicht existierende oder bereits soft-gelöschte Stakeholder. Änderungen
+  sind ohne Freigabeprozess sofort persistiert (kein Draft-/Approval-Zustand).
+- Neuer `UpdateStakeholderDetailsService`; `StakeholderResponse` um `updatedByName`/`updatedAt`
+  erweitert (auch `CreateStakeholderService` aus US-021 löst den anlegenden Nutzer jetzt für
+  einen konsistenten Response-Contract auf).
+- Neuer `StakeholderProjectRoleAuthorizationHandler` — zweiter Handler für dieselbe
+  `ProjectRoleRequirement` aus US-007, löst das Projekt über die Stakeholder-Id statt eines
+  `projectId`-Routensegments auf (siehe ADR-0007). `IStakeholderRepository`-Zugriff bewusst mit
+  `includeDeleted: true`, damit autorisierte Nutzer für gelöschte Stakeholder den korrekten `404`
+  aus der Application-Schicht erhalten statt eines irreführenden `403`.
+- Neue Angular-Komponente `EditStakeholderFormComponent` — „Bearbeiten“-Aktion je Zeile der
+  session-lokalen Liste aus US-021, zeigt „Zuletzt geändert von [Name] am [Datum]“ im Kopfbereich
+  (Stakeholder-Detailseite mit derselben Anzeige folgt erst mit US-026).
+- Tests: `UpdateStakeholderDetailsServiceTests` (Application.Tests, 4 Fälle), dedizierter
+  Story-Test `US022_StakeholderBearbeitenTests` (8 Facts/Theories über echte
+  Testcontainers-PostgreSQL), `edit-stakeholder-form.component.spec.ts` (7 Fälle), 3 ergänzende
+  Fälle in `create-stakeholder-form.component.spec.ts` für die Bearbeiten-Integration.
+- Smoke-Test: isolierter `docker compose up --build` — Stakeholder anlegen, per `PATCH`
+  aktualisieren (`200`, `updatedByName`/`updatedAt` korrekt), Rolle `User` erhält `403`.
+
 ### US-021 — Stakeholder anlegen: API + Formular-UI
 
 - Neuer Endpoint `POST /api/v1/projects/{projectId}/stakeholders` — nur für Rollen `PL`,
