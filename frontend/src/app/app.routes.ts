@@ -5,20 +5,43 @@ import { ProjectsAdminComponent } from './features/admin/projects-admin/projects
 import { authGuard } from './features/auth/auth.guard';
 import { LoginPageComponent } from './features/auth/login-page/login-page.component';
 import { ProjectOverviewComponent } from './features/projects/project-overview/project-overview.component';
+import { roleGuard } from './core/guards/role.guard';
+import { AccessDeniedComponent } from './features/workspace/access-denied/access-denied.component';
+import { DistributionPlaceholderComponent } from './features/workspace/distribution-placeholder/distribution-placeholder.component';
+import { MapPlaceholderComponent } from './features/workspace/map-placeholder/map-placeholder.component';
+import { ProjectWorkspaceLayoutComponent } from './features/workspace/project-workspace-layout/project-workspace-layout.component';
+import { StakeholderListPlaceholderComponent } from './features/workspace/stakeholder-list-placeholder/stakeholder-list-placeholder.component';
+
+/** Alle vier projektbezogenen Rollen (kein `Admin` — das ist eine instanzweite Systemrolle). */
+const ALL_PROJECT_ROLES = ['PL', 'Coreteam', 'Architect', 'User'] as const;
 
 /**
- * Routentabelle (US-009, erweitert um US-016/US-017/US-018). `/projects` (Projektübersicht, S2)
- * ist ab US-018 ein echtes Ziel, geschützt durch `authGuard` (jede gültige Session, im Unterschied
- * zu `adminGuard`). Klick auf eine Projektkarte navigiert zu `/projects/:id` (Projekt-Workspace,
- * S3) — diese Route entsteht erst mit US-019, aktuell ohne Treffer (analog zum vorherigen
- * Zwischenzustand von `/projects` selbst vor dieser Story). `/admin/users` und `/admin/projects`
- * sind bereits durch `adminGuard` clientseitig geschützt (US-016/US-017 Akzeptanzkriterium 4/5) —
- * die Navigation, aus der dieser Bereich sichtbar erreichbar ist, entsteht mit der Workspace-Shell
- * in US-019.
+ * Routentabelle (US-009, erweitert um US-016/US-017/US-018/US-019). `/projects` (Projektübersicht,
+ * S2) ist geschützt durch `authGuard` (jede gültige Session). `/projects/:id` (Projekt-Workspace,
+ * S3) ist zusätzlich durch `roleGuard(ALL_PROJECT_ROLES)` geschützt — nur wer irgendeine der vier
+ * Projektrollen im Zielprojekt hat (also Mitglied ist), kommt hinein; ein Systemadmin ohne eigene
+ * Zuweisung hat laut PRD Abschnitt 2.3 keinen fachlichen Zugriff. Innerhalb der Workspace-Shell
+ * ist „Stakeholder-Liste“ der Standard-Landingtab (Akzeptanzkriterium 2, für alle vier Rollen
+ * sichtbar); „Map“ und „Verteiler“ tragen zusätzlich einen enger gefassten `roleGuard“
+ * (Akzeptanzkriterium 3/4) — bei fehlender Berechtigung landet die Navigation auf
+ * `access-denied` (Akzeptanzkriterium 5). `/admin/users` und `/admin/projects` sind durch
+ * `adminGuard` clientseitig geschützt (US-016/US-017 Akzeptanzkriterium 4/5).
  */
 export const routes: Routes = [
   { path: 'login', component: LoginPageComponent },
   { path: 'projects', component: ProjectOverviewComponent, canActivate: [authGuard] },
+  {
+    path: 'projects/:id',
+    component: ProjectWorkspaceLayoutComponent,
+    canActivate: [authGuard, roleGuard(ALL_PROJECT_ROLES)],
+    children: [
+      { path: '', redirectTo: 'stakeholders', pathMatch: 'full' },
+      { path: 'stakeholders', component: StakeholderListPlaceholderComponent },
+      { path: 'map', component: MapPlaceholderComponent, canActivate: [roleGuard(['PL', 'Coreteam', 'Architect'])] },
+      { path: 'distribution', component: DistributionPlaceholderComponent, canActivate: [roleGuard(['PL', 'Coreteam'])] },
+      { path: 'access-denied', component: AccessDeniedComponent },
+    ],
+  },
   { path: 'admin/users', component: UsersAdminComponent, canActivate: [adminGuard] },
   { path: 'admin/projects', component: ProjectsAdminComponent, canActivate: [adminGuard] },
   { path: '', redirectTo: 'login', pathMatch: 'full' },

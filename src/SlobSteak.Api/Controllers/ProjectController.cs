@@ -44,4 +44,31 @@ public sealed class ProjectController : ControllerBase
         var items = await _projectOverviewQuery.GetForUserAsync(userId, cancellationToken);
         return Ok(items.Select(ProjectOverviewResponse.FromItem));
     }
+
+    /// <summary>Liefert ein einzelnes Projekt aus Sicht des angemeldeten Nutzers inklusive eigener
+    /// Rolle (US-019: Header/Rollen-Badge der Projekt-Workspace-Shell). <c>404</c>, wenn der
+    /// Nutzer in diesem Projekt keine <c>ProjectMembership</c> hat — auch für Systemadmins ohne
+    /// eigene Zuweisung (PRD Abschnitt 2.3: „Admin hat keinen fachlichen Zugriff … sofern sie sich
+    /// nicht zusätzlich selbst einem Projekt zuweist“).</summary>
+    [HttpGet("{projectId:guid}")]
+    [ProducesResponseType(typeof(ProjectOverviewResponse), StatusCodes.Status200OK)]
+    [ProducesResponseType(StatusCodes.Status401Unauthorized)]
+    [ProducesResponseType(StatusCodes.Status404NotFound)]
+    public async Task<IActionResult> GetMyProject(Guid projectId, CancellationToken cancellationToken)
+    {
+        var userIdClaim = User.FindFirst("sub")?.Value;
+        if (!Guid.TryParse(userIdClaim, out var userId))
+        {
+            return Unauthorized();
+        }
+
+        var items = await _projectOverviewQuery.GetForUserAsync(userId, cancellationToken);
+        var item = items.SingleOrDefault(i => i.ProjectId == projectId);
+        if (item is null)
+        {
+            return NotFound();
+        }
+
+        return Ok(ProjectOverviewResponse.FromItem(item));
+    }
 }

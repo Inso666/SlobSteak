@@ -22,4 +22,11 @@ export class ProjectsService {
   listMyProjects(): Observable<ProjectOverviewItem[]> {
     return this.http.get<ProjectOverviewItem[]>('/api/v1/projects');
   }
+
+  /** Liefert ein einzelnes Projekt inklusive eigener Rolle (US-019: Header/Rollen-Badge der
+   * Projekt-Workspace-Shell, sowie `roleGuard` für die Tab-Sichtbarkeit). 404, wenn der Nutzer in
+   * diesem Projekt keine Mitgliedschaft hat. */
+  getProject(id: string): Observable<ProjectOverviewItem> {
+    return this.http.get<ProjectOverviewItem>(`/api/v1/projects/${id}`);
+  }
 }
