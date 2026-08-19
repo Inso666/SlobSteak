@@ -4,6 +4,31 @@ Alle nennenswerten Änderungen an diesem Projekt werden hier je User Story dokum
 
 ## [Unreleased]
 
+### US-021 — Stakeholder anlegen: API + Formular-UI
+
+- Neuer Endpoint `POST /api/v1/projects/{projectId}/stakeholders` — nur für Rollen `PL`,
+  `Coreteam`, `Architect` erreichbar (`RequireProjectRoleAttribute`, erster echter Einsatz seit
+  US-007), `403` für Rolle `User`. `400` mit `{"error":"NAME_REQUIRED"}`/
+  `{"error":"INVALID_EMAIL_FORMAT"}`/`{"error":"INVALID_TYPE"}` bei ungültigen Eingaben.
+  Namensduplikat im Projekt blockiert nicht, liefert aber zusätzlich
+  `similarStakeholderWarning` mit Name/ID des Treffers (F1.1 Edge Case).
+- Neuer `CreateStakeholderService` (Application) sowie `IStakeholderRepository.
+  FindSimilarNameInProjectAsync` (ergänzt US-020; `ExistsSimilarNameInProjectAsync` delegiert
+  jetzt intern daran).
+- Neue Angular-Seite `CreateStakeholderFormComponent` — ersetzt den bisherigen Platzhalter im
+  Standard-Landingtab „Stakeholder-Liste“ der Projekt-Workspace-Shell (US-019). Formular mit allen
+  Stammdatenfeldern, Speichern-Button bei ungültigem E-Mail-Format deaktiviert, `position`
+  ausgeblendet bei `type = Organization`; neu angelegte Stakeholder erscheinen sofort in einer
+  session-lokalen Liste unterhalb des Formulars (eine serverseitig geladene Liste mit
+  Suche/Filter folgt erst mit US-025).
+- Tests: `CreateStakeholderServiceTests` (Application.Tests, 4 Fälle), dedizierter Story-Test
+  `US021_StakeholderAnlegenTests` (8 Facts/Theories über echte Testcontainers-PostgreSQL),
+  ergänzend `StakeholderController_CreateTests` (5 Fälle, Response-Contract/Randfälle),
+  `create-stakeholder-form.component.spec.ts` (7 Fälle).
+- Smoke-Test: isolierter `docker compose up --build` auf alternativen Ports — Stakeholder als PL
+  anlegen (201), Namensduplikat liefert Warnung, Rolle `User` erhält 403;
+  `/projects/:id/stakeholders` wird von der SPA ausgeliefert.
+
 ### US-020 — Stakeholder-Aggregate (Domain Model, Invarianten)
 
 - `Stakeholder` (Domain-Skeleton seit US-003) um die volle Aggregate-Logik erweitert: `Create`

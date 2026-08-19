@@ -1,0 +1,33 @@
+.create-stakeholder {
+  padding: 1rem 0;
+}
+
+form {
+  display: flex;
+  flex-direction: column;
+  gap: 0.25rem;
+  max-width: 24rem;
+  margin-bottom: 1.5rem;
+}
+
+table {
+  width: 100%;
+  border-collapse: collapse;
+}
+
+th,
+td {
+  text-align: left;
+  padding: 0.5rem;
+  border-bottom: 1px solid #ddd;
+}
+
+.field-error {
+  color: #b00020;
+  font-size: 0.875rem;
+}
+
+.info-message {
+  color: #8a6d00;
+  font-size: 0.875rem;
+}

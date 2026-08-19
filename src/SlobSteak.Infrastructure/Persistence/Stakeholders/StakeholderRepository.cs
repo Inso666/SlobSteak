@@ -61,6 +61,13 @@ public sealed class StakeholderRepository : IStakeholderRepository
         Guid projectId,
         string name,
         Guid? excludeStakeholderId = null,
+        CancellationToken cancellationToken = default) =>
+        await FindSimilarNameInProjectAsync(projectId, name, excludeStakeholderId, cancellationToken) is not null;
+
+    public async Task<Stakeholder?> FindSimilarNameInProjectAsync(
+        Guid projectId,
+        string name,
+        Guid? excludeStakeholderId = null,
         CancellationToken cancellationToken = default)
     {
         var normalizedName = name.Trim().ToLowerInvariant();
@@ -70,11 +77,10 @@ public sealed class StakeholderRepository : IStakeholderRepository
         // Stakeholder hinweisen können (PRD Abschnitt 4.3). Client-seitiger Vergleich statt
         // SQL-`ILIKE`, um von der plattformunabhängigen .NET-Kleinschreibung/Trim-Semantik
         // unabhängig von der DB-Collation zu bleiben — bei kleinen Projektgrößen unkritisch.
-        var namesInProject = await _dbContext.Stakeholders
+        var candidates = await _dbContext.Stakeholders
             .Where(s => s.ProjectId == projectId && s.Id != excludeStakeholderId)
-            .Select(s => s.Name)
             .ToListAsync(cancellationToken);
 
-        return namesInProject.Any(existingName => existingName.Trim().ToLowerInvariant() == normalizedName);
+        return candidates.FirstOrDefault(s => s.Name.Trim().ToLowerInvariant() == normalizedName);
     }
 }

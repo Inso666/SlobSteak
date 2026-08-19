@@ -60,7 +60,7 @@ Jede Story ist so geschnitten, dass sie in einem einzigen fokussierten Entwicklu
 | ID | Titel | Bounded Context | Abhängigkeiten | Datei | Status |
 |---|---|---|---|---|---|
 | US-020 | Stakeholder-Aggregate (Domain Model, Invarianten) | StakeholderManagement | US-002, US-003, US-010 | [US-020-stakeholder-aggregate.md](US-020-stakeholder-aggregate.md) | fertig (19.08.2026) |
-| US-021 | Stakeholder anlegen: API + Formular-UI | StakeholderManagement | US-020, US-007, US-019 | [US-021-stakeholder-anlegen.md](US-021-stakeholder-anlegen.md) | offen |
+| US-021 | Stakeholder anlegen: API + Formular-UI | StakeholderManagement | US-020, US-007, US-019 | [US-021-stakeholder-anlegen.md](US-021-stakeholder-anlegen.md) | fertig (19.08.2026) |
 | US-022 | Stakeholder-Stammdaten bearbeiten: API + UI inkl. Änderungsverlauf | StakeholderManagement | US-021 | [US-022-stakeholder-bearbeiten.md](US-022-stakeholder-bearbeiten.md) | offen |
 | US-023 | Stakeholder Soft-Delete: API + UI | StakeholderManagement | US-020, US-022 | [US-023-stakeholder-soft-delete.md](US-023-stakeholder-soft-delete.md) | offen |
 | US-024 | Stakeholder Wiederherstellen & Papierkorb-Ansicht: API + UI (S3.x) | StakeholderManagement | US-023, US-025 | [US-024-stakeholder-wiederherstellen.md](US-024-stakeholder-wiederherstellen.md) | offen |

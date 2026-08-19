@@ -32,4 +32,14 @@ public interface IStakeholderRepository
         string name,
         Guid? excludeStakeholderId = null,
         CancellationToken cancellationToken = default);
+
+    /// <summary>Liefert den ersten Stakeholder im Projekt mit ähnlichem/identischem Namen (US-021
+    /// Akzeptanzkriterium 4: der Warnhinweis beim Anlegen braucht Name/ID des Treffers, nicht nur
+    /// die boolesche Existenz aus <see cref="ExistsSimilarNameInProjectAsync"/>). Gleiche Semantik
+    /// wie diese (case-insensitiv, inklusive soft-gelöschter Datensätze).</summary>
+    Task<Stakeholder?> FindSimilarNameInProjectAsync(
+        Guid projectId,
+        string name,
+        Guid? excludeStakeholderId = null,
+        CancellationToken cancellationToken = default);
 }

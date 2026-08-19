@@ -10,7 +10,7 @@ import { AccessDeniedComponent } from './features/workspace/access-denied/access
 import { DistributionPlaceholderComponent } from './features/workspace/distribution-placeholder/distribution-placeholder.component';
 import { MapPlaceholderComponent } from './features/workspace/map-placeholder/map-placeholder.component';
 import { ProjectWorkspaceLayoutComponent } from './features/workspace/project-workspace-layout/project-workspace-layout.component';
-import { StakeholderListPlaceholderComponent } from './features/workspace/stakeholder-list-placeholder/stakeholder-list-placeholder.component';
+import { CreateStakeholderFormComponent } from './features/stakeholders/create-stakeholder-form/create-stakeholder-form.component';
 
 /** Alle vier projektbezogenen Rollen (kein `Admin` — das ist eine instanzweite Systemrolle). */
 const ALL_PROJECT_ROLES = ['PL', 'Coreteam', 'Architect', 'User'] as const;
@@ -26,6 +26,10 @@ const ALL_PROJECT_ROLES = ['PL', 'Coreteam', 'Architect', 'User'] as const;
  * (Akzeptanzkriterium 3/4) — bei fehlender Berechtigung landet die Navigation auf
  * `access-denied` (Akzeptanzkriterium 5). `/admin/users` und `/admin/projects` sind durch
  * `adminGuard` clientseitig geschützt (US-016/US-017 Akzeptanzkriterium 4/5).
+ *
+ * US-021: `stakeholders` rendert seit dieser Story `CreateStakeholderFormComponent` (ersetzt den
+ * bisherigen Platzhalter) — die eigentliche, serverseitig geladene Liste mit Suche/Filter folgt
+ * erst mit US-025.
  */
 export const routes: Routes = [
   { path: 'login', component: LoginPageComponent },
@@ -36,7 +40,7 @@ export const routes: Routes = [
     canActivate: [authGuard, roleGuard(ALL_PROJECT_ROLES)],
     children: [
       { path: '', redirectTo: 'stakeholders', pathMatch: 'full' },
-      { path: 'stakeholders', component: StakeholderListPlaceholderComponent },
+      { path: 'stakeholders', component: CreateStakeholderFormComponent },
       { path: 'map', component: MapPlaceholderComponent, canActivate: [roleGuard(['PL', 'Coreteam', 'Architect'])] },
       { path: 'distribution', component: DistributionPlaceholderComponent, canActivate: [roleGuard(['PL', 'Coreteam'])] },
       { path: 'access-denied', component: AccessDeniedComponent },
