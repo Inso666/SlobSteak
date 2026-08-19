@@ -4,6 +4,28 @@ Alle nennenswerten Änderungen an diesem Projekt werden hier je User Story dokum
 
 ## [Unreleased]
 
+### US-027 — StakeholderAssessment-Aggregate (Domain Model, Invarianten)
+
+- `StakeholderAssessment.Create(stakeholderId, role, influence, interest, notes, updatedBy)` neu:
+  akzeptiert für `role` ausschließlich `PL`/`Coreteam`/`Architect` (`InvalidAssessmentRoleError`
+  bei `User`); `influence`/`interest` werden intern als `Score`-Value-Objects (0–100,
+  Wiederverwendung US-002) validiert (`InvalidScoreRangeError`).
+- `StakeholderAssessment.Update(influence, interest, notes, updatedBy, expectedVersion)` neu:
+  aktualisiert Werte + `updated_by`/`updated_at`, erhöht `Version` (optimistisches Locking) —
+  wirft `StaleAssessmentError`, wenn `expectedVersion` nicht der aktuellen `Version` entspricht
+  (Grundlage für die Konfliktwarnung in US-028).
+- Neues Repository-Interface `IStakeholderAssessmentRepository`
+  (`FindByStakeholderAndRoleAsync`/`FindAllByStakeholderAsync`/`SaveAsync`) + EF-Core-
+  Implementierung; der Unique-Index (`stakeholder_id`, `role`) aus US-003 wird von einem
+  Integrationstest gegen eine echte Testcontainers-PostgreSQL-Instanz verifiziert.
+- Domain-only Story (kein API-/UI-Anteil) — `Version` als EF-Core-`IsConcurrencyToken()` (seit
+  US-003/ADR-0002) bleibt als zusätzliche DB-seitige Absicherung neben der domain-eigenen
+  `expectedVersion`-Prüfung bestehen.
+- Tests: dedizierter Story-Test `US027_AssessmentAggregateTests`, erweiterte
+  `StakeholderAssessmentTests` (Domain).
+- Smoke-Test: `dotnet test` (gesamte Solution) grün; isolierter `docker compose up` verifiziert,
+  dass die neue DI-Registrierung den API-Start nicht bricht.
+
 ### US-026 — Stakeholder-Detailseite Shell (S4)
 
 - `GET /api/v1/stakeholders/{id}` (neu) liefert einen einzelnen Stakeholder für alle vier

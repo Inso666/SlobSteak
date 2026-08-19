@@ -69,12 +69,12 @@ Jede Story ist so geschnitten, dass sie in einem einzigen fokussierten Entwicklu
 
 ### Phase 4 — Stakeholder Assessment (Perspektiven)
 
-| ID | Titel | Bounded Context | Abhängigkeiten | Datei |
-|---|---|---|---|---|
-| US-027 | StakeholderAssessment-Aggregate (Domain Model, Invarianten) | StakeholderAssessment | US-002, US-003, US-020 | [US-027-assessment-aggregate.md](US-027-assessment-aggregate.md) |
-| US-028 | Assessment erstellen/aktualisieren API inkl. Optimistic-Locking-Konfliktregel | StakeholderAssessment | US-027, US-007, US-011 | [US-028-assessment-api.md](US-028-assessment-api.md) |
-| US-029 | Assessment-Tabs UI auf Stakeholder-Detailseite inkl. „zuletzt geändert von/am“ | StakeholderAssessment | US-028, US-026 | [US-029-assessment-ui.md](US-029-assessment-ui.md) |
-| US-030 | Server-seitige Sichtbarkeitsregel für Rolle User (Assessment-Daten) | StakeholderAssessment | US-028, US-029 | [US-030-assessment-sichtbarkeit-user.md](US-030-assessment-sichtbarkeit-user.md) |
+| ID | Titel | Bounded Context | Abhängigkeiten | Datei | Status |
+|---|---|---|---|---|---|
+| US-027 | StakeholderAssessment-Aggregate (Domain Model, Invarianten) | StakeholderAssessment | US-002, US-003, US-020 | [US-027-assessment-aggregate.md](US-027-assessment-aggregate.md) | fertig (19.08.2026) |
+| US-028 | Assessment erstellen/aktualisieren API inkl. Optimistic-Locking-Konfliktregel | StakeholderAssessment | US-027, US-007, US-011 | [US-028-assessment-api.md](US-028-assessment-api.md) | offen |
+| US-029 | Assessment-Tabs UI auf Stakeholder-Detailseite inkl. „zuletzt geändert von/am“ | StakeholderAssessment | US-028, US-026 | [US-029-assessment-ui.md](US-029-assessment-ui.md) | offen |
+| US-030 | Server-seitige Sichtbarkeitsregel für Rolle User (Assessment-Daten) | StakeholderAssessment | US-028, US-029 | [US-030-assessment-sichtbarkeit-user.md](US-030-assessment-sichtbarkeit-user.md) | offen |
 
 ### Phase 5 — Stakeholder Map
 
