@@ -76,6 +76,9 @@ builder.Services.AddAuthorization(options =>
 builder.Services.AddSingleton<IAuthorizationHandler, SystemAdminAuthorizationHandler>();
 // Scoped statt Singleton: hängt von IProjectRepository (scoped, EF-DbContext-basiert) ab.
 builder.Services.AddScoped<IAuthorizationHandler, ProjectRoleAuthorizationHandler>();
+// Zweiter Handler für dieselbe ProjectRoleRequirement (US-022): löst das Projekt für Routen ohne
+// projectId-Segment (z. B. PATCH /api/v1/stakeholders/{id}) über die Stakeholder-Id auf.
+builder.Services.AddScoped<IAuthorizationHandler, StakeholderProjectRoleAuthorizationHandler>();
 builder.Services.AddSingleton<IAuthorizationMiddlewareResultHandler, JsonAuthorizationMiddlewareResultHandler>();
 
 // Seed-Admin-Bootstrap (US-005) läuft beim echten Hoststart (Development/Production), aber

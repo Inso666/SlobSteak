@@ -1,3 +1,4 @@
+using SlobSteak.Domain.Identity;
 using SlobSteak.Domain.Shared.Enums;
 using SlobSteak.Domain.Stakeholders;
 
@@ -12,10 +13,12 @@ namespace SlobSteak.Application.Stakeholders;
 public sealed class CreateStakeholderService
 {
     private readonly IStakeholderRepository _stakeholderRepository;
+    private readonly IUserRepository _userRepository;
 
-    public CreateStakeholderService(IStakeholderRepository stakeholderRepository)
+    public CreateStakeholderService(IStakeholderRepository stakeholderRepository, IUserRepository userRepository)
     {
         _stakeholderRepository = stakeholderRepository;
+        _userRepository = userRepository;
     }
 
     /// <exception cref="Domain.Shared.Exceptions.StakeholderNameRequiredError"><paramref name="name"/>
@@ -42,7 +45,8 @@ public sealed class CreateStakeholderService
 
         await _stakeholderRepository.SaveAsync(stakeholder, cancellationToken);
 
+        var creator = await _userRepository.FindByIdAsync(createdBy, cancellationToken);
         var warning = similar is null ? null : new SimilarStakeholderWarning(similar.Id, similar.Name);
-        return new CreateStakeholderResult(stakeholder, warning);
+        return new CreateStakeholderResult(stakeholder, creator?.Name ?? "(unbekannter Nutzer)", warning);
     }
 }

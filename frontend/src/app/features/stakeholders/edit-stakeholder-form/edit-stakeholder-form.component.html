@@ -1,0 +1,47 @@
+<section class="edit-stakeholder">
+  <h3>Stakeholder bearbeiten</h3>
+  <p class="last-modified">Zuletzt geändert von {{ stakeholder.updatedByName }} am {{ stakeholder.updatedAt | date: 'medium' }}</p>
+
+  <form [formGroup]="form" (ngSubmit)="onSubmit()">
+    <label for="edit-name">Name</label>
+    <input id="edit-name" formControlName="name" />
+
+    <label for="edit-type">Typ</label>
+    <select id="edit-type" formControlName="type">
+      <option value="Person">Person</option>
+      <option value="Organization">Organisation</option>
+    </select>
+
+    <label for="edit-organization">Organisation</label>
+    <input id="edit-organization" formControlName="organization" />
+
+    @if (!isOrganization) {
+      <label for="edit-position">Position/Funktion</label>
+      <input id="edit-position" formControlName="position" />
+    }
+
+    <label for="edit-email">E-Mail</label>
+    <input id="edit-email" type="email" formControlName="email" />
+    @if (form.controls.email.invalid && form.controls.email.dirty) {
+      <p class="field-error">Ungültiges E-Mail-Format.</p>
+    }
+
+    <label for="edit-phone">Telefon</label>
+    <input id="edit-phone" formControlName="phone" />
+
+    <label for="edit-locationDepartment">Standort/Abteilung</label>
+    <input id="edit-locationDepartment" formControlName="locationDepartment" />
+
+    <label for="edit-description">Beschreibung</label>
+    <textarea id="edit-description" formControlName="description"></textarea>
+
+    @if (errorMessage) {
+      <p class="field-error">{{ errorMessage }}</p>
+    }
+
+    <div class="actions">
+      <button type="submit" [disabled]="form.invalid">Speichern</button>
+      <button type="button" (click)="onCancel()">Abbrechen</button>
+    </div>
+  </form>
+</section>

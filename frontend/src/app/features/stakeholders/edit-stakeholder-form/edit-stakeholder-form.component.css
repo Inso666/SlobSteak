@@ -1,0 +1,28 @@
+.edit-stakeholder {
+  padding: 1rem;
+  margin: 0.5rem 0;
+  border: 1px solid #ddd;
+}
+
+.last-modified {
+  color: #666;
+  font-size: 0.875rem;
+}
+
+form {
+  display: flex;
+  flex-direction: column;
+  gap: 0.25rem;
+  max-width: 24rem;
+}
+
+.actions {
+  display: flex;
+  gap: 0.5rem;
+  margin-top: 0.5rem;
+}
+
+.field-error {
+  color: #b00020;
+  font-size: 0.875rem;
+}

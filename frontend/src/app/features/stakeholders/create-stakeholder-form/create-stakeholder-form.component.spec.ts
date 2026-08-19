@@ -19,11 +19,13 @@ describe('CreateStakeholderFormComponent', () => {
     phone: null,
     locationDepartment: null,
     description: null,
+    updatedByName: 'Anna Admin',
+    updatedAt: '2026-08-19T10:00:00Z',
     similarStakeholderWarning: null,
   };
 
   beforeEach(async () => {
-    stakeholdersServiceSpy = jasmine.createSpyObj('StakeholdersService', ['createStakeholder']);
+    stakeholdersServiceSpy = jasmine.createSpyObj('StakeholdersService', ['createStakeholder', 'updateStakeholder']);
     stakeholdersServiceSpy.createStakeholder.and.returnValue(of(createdStakeholder));
 
     await TestBed.configureTestingModule({
@@ -165,5 +167,42 @@ describe('CreateStakeholderFormComponent', () => {
     component['onSubmit']();
 
     expect(component['errorMessage']).toBe('Der Name darf nicht leer sein.');
+  });
+
+  // US-022: Bearbeiten-Aktion je Zeile der session-lokalen Liste.
+  it('should set the editing stakeholder when Bearbeiten is clicked', () => {
+    const fixture = TestBed.createComponent(CreateStakeholderFormComponent);
+    fixture.detectChanges();
+    const component = fixture.componentInstance;
+    component['createdStakeholders'] = [createdStakeholder];
+
+    component['onEdit'](createdStakeholder);
+
+    expect(component['editingStakeholder']).toEqual(createdStakeholder);
+  });
+
+  it('should clear the editing stakeholder when editing is cancelled', () => {
+    const fixture = TestBed.createComponent(CreateStakeholderFormComponent);
+    fixture.detectChanges();
+    const component = fixture.componentInstance;
+    component['editingStakeholder'] = createdStakeholder;
+
+    component['onEditCancelled']();
+
+    expect(component['editingStakeholder']).toBeNull();
+  });
+
+  it('should replace the updated stakeholder in the session list and stop editing', () => {
+    const fixture = TestBed.createComponent(CreateStakeholderFormComponent);
+    fixture.detectChanges();
+    const component = fixture.componentInstance;
+    component['createdStakeholders'] = [createdStakeholder];
+    component['editingStakeholder'] = createdStakeholder;
+    const updated = { ...createdStakeholder, name: 'Neuer Name' };
+
+    component['onEditUpdated'](updated);
+
+    expect(component['createdStakeholders']).toEqual([updated]);
+    expect(component['editingStakeholder']).toBeNull();
   });
 });
