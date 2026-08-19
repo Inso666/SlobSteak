@@ -31,6 +31,7 @@ public static class ServiceCollectionExtensions
 
         services.AddScoped<IUserRepository, UserRepository>();
         services.AddScoped<IProjectRepository, ProjectRepository>();
+        services.AddScoped<IProjectOverviewQuery, ProjectOverviewQuery>();
 
         return services;
     }

@@ -33,3 +33,31 @@ Als **Nutzer** möchte ich **nach dem Login eine Kartenübersicht der mir zugewi
 **Wichtige Invarianten & Validierungsregeln:**
 
 - Nicht-Admin-Nutzer sehen ausschließlich Projekte mit eigener Mitgliedschaft (kein Zugriff auf fremde Projekte über diese Liste).
+
+### Anmerkungen des Dev-Agenten
+
+- `GET /api/v1/projects` ist als reines Read-Modell umgesetzt: `IProjectOverviewQuery` liegt
+  bewusst in `SlobSteak.Domain.Projects` (nicht `SlobSteak.Application`, wie der Name
+  `ProjectOverviewQuery.cs` in den technischen Hinweisen zunächst vermuten lassen könnte) — die
+  Infrastructure-Implementierung darf laut CLAUDE.md Abschnitt 3.1 nur auf `SlobSteak.Domain`
+  referenzieren, nicht auf `SlobSteak.Application`, analog zu `IProjectRepository`.
+- Die Stakeholder-Zählung greift direkt auf das seit US-003 migrierte `Stakeholders`-DbSet zu
+  (`DeletedAt == null`), ohne über ein `IStakeholderRepository` zu gehen — das existiert erst ab
+  US-020 (siehe `docs/adr/0001-domain-entity-skeletons-vor-aggregate-stories.md`). Als reines,
+  lastarmes Read-Modell (keine Aggregate-Rekonstruktion) ist das zulässig; sobald US-020 landet,
+  liefert dieselbe Query automatisch korrekte Werte für tatsächlich angelegte Stakeholder.
+- Neuer `authGuard` (jede gültige Session) ergänzt den bestehenden `adminGuard` (zusätzlich
+  `isSystemAdmin`) für die `/projects`-Route.
+- Klick auf eine Projektkarte navigiert zu `/projects/:id` (Projekt-Workspace, S3) — diese Route
+  entsteht erst mit US-019; aktuell ohne Treffer, analog zum Zwischenzustand, den `/projects`
+  selbst zwischen US-009 und dieser Story hatte (siehe Anmerkungen dort).
+- CTA „Neues Projekt“ (Akzeptanzkriterium 4) navigiert zur bestehenden Projektanlage aus US-017
+  (`/admin/projects`) statt ein eigenes Formular zu duplizieren — die Story spezifiziert keinen
+  eigenen Anlage-Dialog auf diesem Screen.
+- Tab „Alle Projekte“ (Akzeptanzkriterium 2) fragt den bestehenden `GET /api/v1/admin/projects`
+  aus US-017 ab (`AdminProjectsService` wiederverwendet) statt einen neuen Endpoint zu duplizieren.
+
+### Status
+
+Fertig am 19.08.2026. Umsetzung: PR auf `main` (Branch
+`feature/US-018-projektuebersicht-ui`), Auto-Merge gemäß ADR-0003 aktiviert.

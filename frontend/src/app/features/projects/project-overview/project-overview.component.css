@@ -1,0 +1,48 @@
+.project-overview {
+  max-width: 60rem;
+  margin: 2rem auto;
+  padding: 1.5rem;
+}
+
+.tabs {
+  display: flex;
+  gap: 0.5rem;
+  margin-bottom: 1rem;
+}
+
+.tabs button.active {
+  font-weight: bold;
+}
+
+.create-project-cta {
+  margin-bottom: 1rem;
+}
+
+.empty-state {
+  color: #666;
+}
+
+.project-cards {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(14rem, 1fr));
+  gap: 1rem;
+}
+
+.project-card {
+  text-align: left;
+  padding: 1rem;
+  border: 1px solid #ddd;
+  border-radius: 0.25rem;
+  cursor: pointer;
+  background: none;
+}
+
+.project-card h2 {
+  margin: 0 0 0.5rem;
+  font-size: 1.1rem;
+}
+
+.project-card p {
+  margin: 0.25rem 0;
+  font-size: 0.9rem;
+}
