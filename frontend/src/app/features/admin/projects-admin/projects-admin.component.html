@@ -1,0 +1,49 @@
+<section class="admin-projects">
+  <h1>Projektverwaltung</h1>
+
+  <table>
+    <thead>
+      <tr>
+        <th>Name</th>
+        <th>Status</th>
+        <th>Mitglieder</th>
+        <th></th>
+      </tr>
+    </thead>
+    <tbody>
+      @for (project of projects; track project.id) {
+        <tr>
+          <td>{{ project.name }}</td>
+          <td>{{ project.status }}</td>
+          <td>{{ project.memberCount }}</td>
+          <td>
+            <button type="button" (click)="onSelectProject(project)">
+              {{ selectedProjectId === project.id ? 'Mitglieder ausblenden' : 'Mitglieder verwalten' }}
+            </button>
+          </td>
+        </tr>
+        @if (selectedProjectId === project.id) {
+          <tr>
+            <td colspan="4">
+              <app-project-membership-manager [projectId]="project.id" />
+            </td>
+          </tr>
+        }
+      }
+    </tbody>
+  </table>
+
+  <h2>Projekt anlegen</h2>
+  <form [formGroup]="createForm" (ngSubmit)="onCreateProject()">
+    <label for="name">Name</label>
+    <input id="name" formControlName="name" />
+
+    <label for="description">Beschreibung</label>
+    <input id="description" formControlName="description" />
+    @if (createErrorMessage) {
+      <p class="field-error">{{ createErrorMessage }}</p>
+    }
+
+    <button type="submit" [disabled]="createForm.invalid">Projekt anlegen</button>
+  </form>
+</section>

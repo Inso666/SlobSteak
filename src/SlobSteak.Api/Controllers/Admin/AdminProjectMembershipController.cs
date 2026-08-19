@@ -27,18 +27,46 @@ public sealed class ChangeMembershipRoleRequest
     public string Role { get; init; } = string.Empty;
 }
 
-/// <summary>Admin-API für die Zuweisung von Nutzern zu Projekten mit Rolle (US-015).
-/// Ausschließlich für Systemadmins erreichbar (PRD Berechtigungsmatrix, Abschnitt 2.3).</summary>
+/// <summary>Response-DTO für eine Mitgliedschaft inklusive aufgelöstem Nutzernamen/E-Mail
+/// (US-017 Akzeptanzkriterium 3/4). Wire-Contract camelCase gemäß CLAUDE.md Abschnitt 3.1.</summary>
+public sealed record ProjectMembershipResponse(Guid UserId, string UserName, string UserEmail, string Role)
+{
+    public static ProjectMembershipResponse FromDetail(ProjectMembershipDetail detail) =>
+        new(detail.UserId, detail.UserName, detail.UserEmail, detail.Role.ToString());
+}
+
+/// <summary>Admin-API für die Zuweisung von Nutzern zu Projekten mit Rolle (US-015, erweitert um
+/// die Mitgliederliste in US-017). Ausschließlich für Systemadmins erreichbar (PRD
+/// Berechtigungsmatrix, Abschnitt 2.3).</summary>
 [ApiController]
 [Route("api/v1/admin/projects/{projectId:guid}/memberships")]
 [Authorize(Policy = AuthorizationPolicies.SystemAdmin)]
 public sealed class AdminProjectMembershipController : ControllerBase
 {
     private readonly AssignProjectMembershipService _service;
+    private readonly ListProjectMembershipsService _listMembershipsService;
 
-    public AdminProjectMembershipController(AssignProjectMembershipService service)
+    public AdminProjectMembershipController(AssignProjectMembershipService service, ListProjectMembershipsService listMembershipsService)
     {
         _service = service;
+        _listMembershipsService = listMembershipsService;
+    }
+
+    /// <summary>Listet die Mitgliedschaften eines Projekts inklusive Nutzername/E-Mail (US-017
+    /// Akzeptanzkriterium 3/4).</summary>
+    [HttpGet]
+    [ProducesResponseType(typeof(IReadOnlyList<ProjectMembershipResponse>), StatusCodes.Status200OK)]
+    [ProducesResponseType(StatusCodes.Status403Forbidden)]
+    [ProducesResponseType(StatusCodes.Status404NotFound)]
+    public async Task<IActionResult> ListMemberships(Guid projectId, CancellationToken cancellationToken)
+    {
+        var memberships = await _listMembershipsService.ListMembershipsAsync(projectId, cancellationToken);
+        if (memberships is null)
+        {
+            return NotFound();
+        }
+
+        return Ok(memberships.Select(ProjectMembershipResponse.FromDetail));
     }
 
     /// <summary>Weist einen Nutzer dem Projekt mit einer Rolle zu.</summary>

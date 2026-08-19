@@ -33,3 +33,31 @@ Als **Admin** möchte ich **Projekte über eine Weboberfläche anlegen und je Pr
 **Wichtige Invarianten & Validierungsregeln:**
 
 - Rollen-Select bietet ausschließlich `PL`, `Coreteam`, `Architect`, `User` an (kein `Admin`).
+
+### Anmerkungen des Dev-Agenten
+
+- Für Akzeptanzkriterium 1 (Mitgliederzahl je Projekt) gab es noch keinen Backend-Endpoint —
+  ergänzt: `GET /api/v1/admin/projects` (`ListProjectsService`) mit `memberCount` im Response-DTO.
+  Notwendige Infrastruktur, kein Vorgriff auf eine spätere Story.
+- Für die Mitgliederverwaltung (Akzeptanzkriterium 3/4) muss die UI die Mitgliedschaften eines
+  Projekts mit aufgelöstem Nutzernamen/E-Mail anzeigen können — `Project.Memberships` kennt nur die
+  rohe `UserId` (Bounded-Context-Grenze zu IdentityAccess). Ergänzt: `GET
+  /api/v1/admin/projects/{projectId}/memberships` (`ListProjectMembershipsService`), der die
+  Zusammenführung mit `IUserRepository` ausschließlich in der Application-Schicht vornimmt (kein
+  EF-Core-Join über die Aggregate-Grenze hinweg, CLAUDE.md Abschnitt 3.1).
+- `IProjectRepository.FindAllAsync` lud bisher keine `Memberships` (`Include`) — ergänzt, da sonst
+  `memberCount` immer 0 gewesen wäre.
+- Das Dropdown „bestehenden Nutzer auswählen“ (Akzeptanzkriterium 3) filtert clientseitig bereits
+  zugewiesene Nutzer heraus (kein eigenes Akzeptanzkriterium, aber naheliegende UX-Ergänzung, um
+  unnötige `409 MEMBERSHIP_ALREADY_EXISTS`-Antworten zu vermeiden).
+- Die „Entfernen“-Aktion nutzt den nativen `confirm()`-Dialog als Bestätigung (Akzeptanzkriterium
+  4) — kein eigener Modal-Dialog vorgesehen, analog zum bestehenden Muster in US-016 (temporäres
+  Passwort direkt in der Erfolgsmeldung statt eigenem Dialog).
+- Ein sichtbarer Navigationseintrag existiert weiterhin nicht (Workspace-Shell folgt erst mit
+  US-019) — die Route `/admin/projects` ist bereits vollständig funktions- und zugriffsgeschützt
+  erreichbar, analog zu `/admin/users` aus US-016.
+
+### Status
+
+Fertig am 19.08.2026. Umsetzung: PR auf `main` (Branch
+`feature/US-017-admin-ui-projektverwaltung`), Auto-Merge gemäß ADR-0003 aktiviert.

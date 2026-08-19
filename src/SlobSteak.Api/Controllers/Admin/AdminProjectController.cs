@@ -28,18 +28,39 @@ public sealed record ProjectResponse(Guid Id, string Name, string? Description, 
         new(project.Id, project.Name, project.Description, project.Status.ToString(), project.CreatedAt);
 }
 
-/// <summary>Admin-API für Projektverwaltung (US-014). Ausschließlich für Systemadmins erreichbar
-/// (PRD Berechtigungsmatrix, Abschnitt 2.3).</summary>
+/// <summary>Response-DTO für einen Eintrag der Admin-Projektliste (US-017 Akzeptanzkriterium 1).
+/// Enthält zusätzlich <c>memberCount</c>, das <see cref="ProjectResponse"/> bewusst nicht führt.</summary>
+public sealed record ProjectListItemResponse(Guid Id, string Name, string? Description, string Status, int MemberCount, DateTimeOffset CreatedAt)
+{
+    public static ProjectListItemResponse FromDomain(Project project) =>
+        new(project.Id, project.Name, project.Description, project.Status.ToString(), project.Memberships.Count, project.CreatedAt);
+}
+
+/// <summary>Admin-API für Projektverwaltung (US-014, erweitert um die Liste in US-017).
+/// Ausschließlich für Systemadmins erreichbar (PRD Berechtigungsmatrix, Abschnitt 2.3).</summary>
 [ApiController]
 [Route("api/v1/admin/projects")]
 [Authorize(Policy = AuthorizationPolicies.SystemAdmin)]
 public sealed class AdminProjectController : ControllerBase
 {
     private readonly CreateProjectService _createProjectService;
+    private readonly ListProjectsService _listProjectsService;
 
-    public AdminProjectController(CreateProjectService createProjectService)
+    public AdminProjectController(CreateProjectService createProjectService, ListProjectsService listProjectsService)
     {
         _createProjectService = createProjectService;
+        _listProjectsService = listProjectsService;
+    }
+
+    /// <summary>Listet alle Projekte mit Name, Status und Mitgliederzahl (US-017: Sub-Bereich
+    /// „Projekte“ im Admin-Bereich, Akzeptanzkriterium 1).</summary>
+    [HttpGet]
+    [ProducesResponseType(typeof(IReadOnlyList<ProjectListItemResponse>), StatusCodes.Status200OK)]
+    [ProducesResponseType(StatusCodes.Status403Forbidden)]
+    public async Task<IActionResult> ListProjects(CancellationToken cancellationToken)
+    {
+        var projects = await _listProjectsService.ListProjectsAsync(cancellationToken);
+        return Ok(projects.Select(ProjectListItemResponse.FromDomain));
     }
 
     /// <summary>Legt ein neues Projekt an (Status <c>active</c>).</summary>

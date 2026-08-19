@@ -4,6 +4,30 @@ Alle nennenswerten Änderungen an diesem Projekt werden hier je User Story dokum
 
 ## [Unreleased]
 
+### US-017 — Admin-Bereich UI: Projektverwaltung & Mitgliederzuweisung
+
+- Neuer Endpoint `GET /api/v1/admin/projects` (nur `SystemAdmin`-Policy) liefert Name, Status und
+  Mitgliederzahl je Projekt — ergänzt `ListProjectsService`; `IProjectRepository.FindAllAsync`
+  lädt jetzt zusätzlich `Include(p => p.Memberships)`, sonst wäre `memberCount` immer `0` gewesen.
+- Neuer Endpoint `GET /api/v1/admin/projects/{projectId}/memberships` liefert die Mitgliedschaften
+  eines Projekts inklusive aufgelöstem Nutzernamen/E-Mail — ergänzt `ListProjectMembershipsService`
+  (führt `Project.Memberships` und `IUserRepository` ausschließlich in der Application-Schicht
+  zusammen, kein Cross-Aggregate-EF-Join).
+- Neue Angular-Seite `ProjectsAdminComponent` (`/admin/projects`, geschützt durch `adminGuard`):
+  Projektliste mit Name/Status/Mitgliederzahl, Formular „Projekt anlegen“. Ausgelagerte
+  `ProjectMembershipManagerComponent` je ausgewähltem Projekt: Dropdown zur Auswahl eines noch
+  nicht zugewiesenen Nutzers + Rollen-Select zum Hinzufügen, Rollen-Select je Zeile zur Änderung,
+  „Entfernen“-Aktion mit Bestätigungsdialog.
+- Tests: `ListProjectsServiceTests`/`ListProjectMembershipsServiceTests` (Application.Tests,
+  gemockt), dedizierter Story-Test `US017_AdminUiProjektverwaltungTests` (5 Fälle, echte
+  Testcontainers-PostgreSQL), `projects-admin.component.spec.ts` (4 Fälle),
+  `project-membership-manager.component.spec.ts` (7 Fälle).
+- Smoke-Test: isolierter `docker compose up --build` auf alternativen Ports (5433/5001/4201, um
+  die parallel laufende lokale Entwicklungsumgebung nicht zu stören) → Login, Passwortänderung,
+  Projekt anlegen, Nutzer anlegen, Mitgliedschaft zuweisen/ändern/entfernen — alle Akzeptanz-
+  kriterien end-to-end gegen die echten Endpunkte verifiziert; `/admin/projects` wird korrekt von
+  der SPA ausgeliefert.
+
 ### Chore — Fix: `docker-compose.ghcr.yml` fehlten SEED_ADMIN_*/JWT_SIGNING_KEY
 
 - `docker-compose.ghcr.yml` (GHCR-Image-Variante, siehe US-003-Changelog-Eintrag) erhielt nie die

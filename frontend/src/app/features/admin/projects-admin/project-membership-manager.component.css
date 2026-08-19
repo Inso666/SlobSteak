@@ -1,0 +1,23 @@
+.membership-manager {
+  margin-top: 1rem;
+  padding: 1rem;
+  border: 1px solid #ddd;
+}
+
+table {
+  width: 100%;
+  border-collapse: collapse;
+  margin-bottom: 1rem;
+}
+
+th,
+td {
+  text-align: left;
+  padding: 0.5rem;
+  border-bottom: 1px solid #ddd;
+}
+
+.field-error {
+  color: #b00020;
+  font-size: 0.875rem;
+}

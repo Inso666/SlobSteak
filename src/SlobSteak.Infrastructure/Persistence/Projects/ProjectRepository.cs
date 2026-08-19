@@ -110,8 +110,11 @@ public sealed class ProjectRepository : IProjectRepository
         postgresException.SqlState == PostgresErrorCodes.UniqueViolation &&
         postgresException.ConstraintName == MembershipUniqueConstraintName;
 
+    /// <summary>Lädt alle Projekte inklusive ihrer Mitgliedschaften (US-017: Mitgliederzahl in der
+    /// Admin-Projektliste, Akzeptanzkriterium 1) — ohne <c>Include</c> wäre <c>Memberships.Count</c>
+    /// hier immer 0.</summary>
     public async Task<IReadOnlyList<Project>> FindAllAsync(CancellationToken cancellationToken = default) =>
-        await _dbContext.Projects.ToListAsync(cancellationToken);
+        await _dbContext.Projects.Include(p => p.Memberships).ToListAsync(cancellationToken);
 
     public async Task<IReadOnlyList<Project>> FindByMemberUserIdAsync(Guid userId, CancellationToken cancellationToken = default)
     {

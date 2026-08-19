@@ -1,0 +1,64 @@
+<section class="membership-manager">
+  <h3>Mitglieder</h3>
+
+  <table>
+    <thead>
+      <tr>
+        <th>Name</th>
+        <th>E-Mail</th>
+        <th>Rolle</th>
+        <th></th>
+      </tr>
+    </thead>
+    <tbody>
+      @for (membership of memberships; track membership.userId) {
+        <tr>
+          <td>{{ membership.userName }}</td>
+          <td>{{ membership.userEmail }}</td>
+          <td>
+            <select
+              [ngModel]="membership.role"
+              [ngModelOptions]="{ standalone: true }"
+              (ngModelChange)="onChangeRole(membership, $event)"
+            >
+              @for (role of roles; track role) {
+                <option [value]="role">{{ role }}</option>
+              }
+            </select>
+          </td>
+          <td>
+            <button type="button" (click)="onRemoveMember(membership)">Entfernen</button>
+          </td>
+        </tr>
+      } @empty {
+        <tr>
+          <td colspan="4">Noch keine Mitglieder zugewiesen.</td>
+        </tr>
+      }
+    </tbody>
+  </table>
+
+  @if (errorMessage) {
+    <p class="field-error">{{ errorMessage }}</p>
+  }
+
+  <h4>Mitglied hinzufügen</h4>
+  <form [formGroup]="assignForm" (ngSubmit)="onAssignMember()">
+    <label for="userId">Nutzer</label>
+    <select id="userId" formControlName="userId">
+      <option value="" disabled>Nutzer wählen…</option>
+      @for (user of assignableUsers; track user.id) {
+        <option [value]="user.id">{{ user.name }} ({{ user.email }})</option>
+      }
+    </select>
+
+    <label for="role">Rolle</label>
+    <select id="role" formControlName="role">
+      @for (role of roles; track role) {
+        <option [value]="role">{{ role }}</option>
+      }
+    </select>
+
+    <button type="submit" [disabled]="assignForm.invalid">Hinzufügen</button>
+  </form>
+</section>
