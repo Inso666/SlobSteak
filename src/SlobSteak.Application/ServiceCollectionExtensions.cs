@@ -1,6 +1,7 @@
 using Microsoft.Extensions.DependencyInjection;
 using SlobSteak.Application.Identity;
 using SlobSteak.Application.Projects;
+using SlobSteak.Application.Stakeholders;
 
 namespace SlobSteak.Application;
 
@@ -22,6 +23,7 @@ public static class ServiceCollectionExtensions
         services.AddScoped<ListProjectsService>();
         services.AddScoped<AssignProjectMembershipService>();
         services.AddScoped<ListProjectMembershipsService>();
+        services.AddScoped<CreateStakeholderService>();
 
         return services;
     }
