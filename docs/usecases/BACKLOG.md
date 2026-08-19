@@ -62,7 +62,7 @@ Jede Story ist so geschnitten, dass sie in einem einzigen fokussierten Entwicklu
 | US-020 | Stakeholder-Aggregate (Domain Model, Invarianten) | StakeholderManagement | US-002, US-003, US-010 | [US-020-stakeholder-aggregate.md](US-020-stakeholder-aggregate.md) | fertig (19.08.2026) |
 | US-021 | Stakeholder anlegen: API + Formular-UI | StakeholderManagement | US-020, US-007, US-019 | [US-021-stakeholder-anlegen.md](US-021-stakeholder-anlegen.md) | fertig (19.08.2026) |
 | US-022 | Stakeholder-Stammdaten bearbeiten: API + UI inkl. Änderungsverlauf | StakeholderManagement | US-021 | [US-022-stakeholder-bearbeiten.md](US-022-stakeholder-bearbeiten.md) | fertig (19.08.2026) |
-| US-023 | Stakeholder Soft-Delete: API + UI | StakeholderManagement | US-020, US-022 | [US-023-stakeholder-soft-delete.md](US-023-stakeholder-soft-delete.md) | offen |
+| US-023 | Stakeholder Soft-Delete: API + UI | StakeholderManagement | US-020, US-022 | [US-023-stakeholder-soft-delete.md](US-023-stakeholder-soft-delete.md) | fertig (19.08.2026) |
 | US-024 | Stakeholder Wiederherstellen & Papierkorb-Ansicht: API + UI (S3.x) | StakeholderManagement | US-023, US-025 | [US-024-stakeholder-wiederherstellen.md](US-024-stakeholder-wiederherstellen.md) | offen |
 | US-025 | Stakeholder-Liste mit Suche/Filter: API + UI inkl. Rollen-Sichtbarkeitsregel | StakeholderManagement | US-020, US-019 | [US-025-stakeholder-liste.md](US-025-stakeholder-liste.md) | offen |
 | US-026 | Stakeholder-Detailseite Shell (S4) | StakeholderManagement | US-022, US-025 | [US-026-stakeholder-detail-shell.md](US-026-stakeholder-detail-shell.md) | offen |

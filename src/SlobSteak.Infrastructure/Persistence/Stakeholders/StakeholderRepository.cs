@@ -83,4 +83,14 @@ public sealed class StakeholderRepository : IStakeholderRepository
 
         return candidates.FirstOrDefault(s => s.Name.Trim().ToLowerInvariant() == normalizedName);
     }
+
+    public async Task<StakeholderDeletionImpact> GetDeletionImpactAsync(Guid stakeholderId, CancellationToken cancellationToken = default)
+    {
+        var assessmentCount = await _dbContext.StakeholderAssessments
+            .CountAsync(a => a.StakeholderId == stakeholderId, cancellationToken);
+        var communicationAssignmentCount = await _dbContext.StakeholderCommunicationAssignments
+            .CountAsync(a => a.StakeholderId == stakeholderId, cancellationToken);
+
+        return new StakeholderDeletionImpact(assessmentCount, communicationAssignmentCount);
+    }
 }

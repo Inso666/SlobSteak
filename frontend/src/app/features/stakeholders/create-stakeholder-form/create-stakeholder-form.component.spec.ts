@@ -25,7 +25,12 @@ describe('CreateStakeholderFormComponent', () => {
   };
 
   beforeEach(async () => {
-    stakeholdersServiceSpy = jasmine.createSpyObj('StakeholdersService', ['createStakeholder', 'updateStakeholder']);
+    stakeholdersServiceSpy = jasmine.createSpyObj('StakeholdersService', [
+      'createStakeholder',
+      'updateStakeholder',
+      'getDeletionImpact',
+      'deleteStakeholder',
+    ]);
     stakeholdersServiceSpy.createStakeholder.and.returnValue(of(createdStakeholder));
 
     await TestBed.configureTestingModule({
@@ -204,5 +209,43 @@ describe('CreateStakeholderFormComponent', () => {
 
     expect(component['createdStakeholders']).toEqual([updated]);
     expect(component['editingStakeholder']).toBeNull();
+  });
+
+  // US-023: Löschen-Aktion je Zeile der session-lokalen Liste.
+  it('should set the deleting stakeholder when Löschen is clicked, closing an open edit form', () => {
+    const fixture = TestBed.createComponent(CreateStakeholderFormComponent);
+    fixture.detectChanges();
+    const component = fixture.componentInstance;
+    component['createdStakeholders'] = [createdStakeholder];
+    component['editingStakeholder'] = createdStakeholder;
+
+    component['onDeleteClick'](createdStakeholder);
+
+    expect(component['deletingStakeholder']).toEqual(createdStakeholder);
+    expect(component['editingStakeholder']).toBeNull();
+  });
+
+  it('should clear the deleting stakeholder when deletion is cancelled', () => {
+    const fixture = TestBed.createComponent(CreateStakeholderFormComponent);
+    fixture.detectChanges();
+    const component = fixture.componentInstance;
+    component['deletingStakeholder'] = createdStakeholder;
+
+    component['onDeleteCancelled']();
+
+    expect(component['deletingStakeholder']).toBeNull();
+  });
+
+  it('should remove the deleted stakeholder from the session list', () => {
+    const fixture = TestBed.createComponent(CreateStakeholderFormComponent);
+    fixture.detectChanges();
+    const component = fixture.componentInstance;
+    component['createdStakeholders'] = [createdStakeholder];
+    component['deletingStakeholder'] = createdStakeholder;
+
+    component['onDeleted'](createdStakeholder.id);
+
+    expect(component['createdStakeholders']).toEqual([]);
+    expect(component['deletingStakeholder']).toBeNull();
   });
 });
