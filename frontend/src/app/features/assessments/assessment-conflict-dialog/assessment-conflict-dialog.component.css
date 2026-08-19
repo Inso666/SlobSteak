@@ -1,0 +1,12 @@
+.conflict-dialog {
+  padding: 1rem;
+  margin: 0.5rem 0;
+  border: 1px solid #b00020;
+  background-color: #fff4f4;
+}
+
+.actions {
+  display: flex;
+  gap: 0.5rem;
+  margin-top: 0.5rem;
+}

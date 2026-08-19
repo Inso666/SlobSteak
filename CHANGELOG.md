@@ -4,6 +4,34 @@ Alle nennenswerten Änderungen an diesem Projekt werden hier je User Story dokum
 
 ## [Unreleased]
 
+### US-029 — Assessment-Tabs UI auf Stakeholder-Detailseite inkl. „zuletzt geändert von/am“
+
+- Neue `AssessmentTabsComponent` (Frontend) — drei Tabs „PL-Sicht“/„Coreteam-Sicht“/
+  „Architect-Sicht“ auf der Stakeholder-Detailseite (US-026), gespeist aus `GET .../assessments`
+  (US-028). Jeder Tab zeigt Einfluss-/Interesse-Slider, Notizfeld und „zuletzt geändert von/am“.
+  Nur der Tab der eigenen Projekt-Rolle ist editierbar (`form.enable()`/`disable()`), übrige Tabs
+  bleiben sichtbar, aber read-only.
+- `status: "NOT_ASSESSED"` zeigt „Noch nicht bewertet“ mit „Jetzt bewerten“-CTA (nur für die
+  eigene Rolle klickbar); `status: "NO_ROLE_ASSIGNED"` zeigt „Keine Rolle zugewiesen“ ganz ohne
+  Eingabemöglichkeit.
+- Neue `AssessmentConflictDialogComponent`: erscheint bei `409 ASSESSMENT_MODIFIED` beim
+  Speichern, mit „Trotzdem speichern“ (erneuter Request ohne `expectedVersion`) und „Abbrechen“
+  (Neuladen der aktuellen Werte).
+- Neuer `AssessmentsService` (Frontend); `StakeholderDetailComponent` (US-026) reicht
+  `currentUserRole` durch und befüllt den bisherigen Assessment-Platzhalter-Slot.
+- Tests: `assessment-tabs.component.spec.ts` (7 Fälle, deckt alle 6 Akzeptanzkriterien),
+  `assessment-conflict-dialog.component.spec.ts`, erweiterte `stakeholder-detail.component.spec.ts`.
+- Reiner Frontend-Anteil, kein Backend-Code — `dotnet test` unverändert grün.
+- **Anmerkung zum Smoke-Test**: API-seitig End-to-End über curl verifiziert (Erstanlage,
+  Konflikt-Response, `NO_ROLE_ASSIGNED`). Ein visueller Browser-Smoke-Test über die
+  `claude-in-chrome`-Erweiterung zeigte für *jede* Angular-`HttpClient`-gespeiste Ansicht (auch
+  bereits bestehende, unveränderte Seiten wie `/admin/users`) leere Listen, obwohl Netzwerk-Log
+  und ein manueller `fetch()` im selben Seitenkontext mit demselben Token korrekte Daten lieferten
+  — reproduziert identisch auf dem unveränderten, bereits gemergten US-028-Stand. Das deutet auf
+  eine Interaktion der Browser-Erweiterung mit Angulars zone.js-gepatchten `HttpClient`-Requests
+  hin, nicht auf einen echten Anwendungsfehler; siehe „Anmerkungen des Dev-Agenten“ in der
+  Story-Datei.
+
 ### US-028 — Assessment erstellen/aktualisieren API inkl. Optimistic-Locking-Konfliktregel
 
 - `PUT /api/v1/stakeholders/{id}/assessments/{role}` (neu): legt ein Assessment an oder

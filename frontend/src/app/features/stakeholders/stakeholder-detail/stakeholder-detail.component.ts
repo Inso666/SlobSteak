@@ -5,6 +5,7 @@ import { Stakeholder, StakeholdersService } from '../stakeholders.service';
 import { ProjectsService } from '../../projects/projects.service';
 import { EditStakeholderFormComponent } from '../edit-stakeholder-form/edit-stakeholder-form.component';
 import { DeleteStakeholderDialogComponent } from '../delete-stakeholder-dialog/delete-stakeholder-dialog.component';
+import { AssessmentTabsComponent } from '../../assessments/assessment-tabs/assessment-tabs.component';
 
 /**
  * Stakeholder-Detailseite (US-026, Screen S4). Lädt einen einzelnen Stakeholder über
@@ -15,15 +16,17 @@ import { DeleteStakeholderDialogComponent } from '../delete-stakeholder-dialog/d
  * verfügbar — für Rolle `User` rein read-only, serverseitig ohnehin weiterhin über den
  * rollen-beschränkten `PATCH`-Endpoint abgesichert. Der CTA „Löschen“ (über die bestehende
  * {@link DeleteStakeholderDialogComponent} aus US-023) ist ausschließlich für `PL` sichtbar
- * (Akzeptanzkriterium 4); nach erfolgreichem Löschen navigiert die Seite zurück zur Liste. Reserviert
- * klar erkennbare Platzhalter-Slots für „Kommunikationszuordnungen“ (US-040) und „Assessment“
- * (US-029) (Akzeptanzkriterium 3). Ein 404 (Stakeholder nicht vorhanden oder soft-gelöscht,
- * Akzeptanzkriterium 5) zeigt eine „Nicht gefunden“-Ansicht statt der Detailinhalte.
+ * (Akzeptanzkriterium 4); nach erfolgreichem Löschen navigiert die Seite zurück zur Liste.
+ * Reserviert einen Platzhalter-Slot für „Kommunikationszuordnungen“ (US-040) sowie seit US-029
+ * den befüllten Assessment-Bereich ({@link AssessmentTabsComponent}, `currentUserRole` wird
+ * durchgereicht, damit nur der Tab der eigenen Rolle editierbar ist). Ein 404 (Stakeholder nicht
+ * vorhanden oder soft-gelöscht, Akzeptanzkriterium 5) zeigt eine „Nicht gefunden“-Ansicht statt
+ * der Detailinhalte.
  */
 @Component({
   selector: 'app-stakeholder-detail',
   standalone: true,
-  imports: [RouterLink, DatePipe, EditStakeholderFormComponent, DeleteStakeholderDialogComponent],
+  imports: [RouterLink, DatePipe, EditStakeholderFormComponent, DeleteStakeholderDialogComponent, AssessmentTabsComponent],
   templateUrl: './stakeholder-detail.component.html',
   styleUrl: './stakeholder-detail.component.css',
 })

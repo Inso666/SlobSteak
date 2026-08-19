@@ -1,0 +1,8 @@
+<div class="conflict-dialog">
+  <p>Diese Bewertung wurde zwischenzeitlich von {{ modifiedBy }} am {{ modifiedAt | date: 'medium' }} aktualisiert. Trotzdem speichern?</p>
+
+  <div class="actions">
+    <button type="button" (click)="overwrite.emit()">Trotzdem speichern</button>
+    <button type="button" (click)="cancelled.emit()">Abbrechen</button>
+  </div>
+</div>

@@ -34,3 +34,35 @@ Als **Nutzer mit perspektiv-tragender Rolle** möchte ich **auf der Stakeholder-
 **Wichtige Invarianten & Validierungsregeln:**
 
 - Nur die eigene Rolle ist editierbar — UI-seitige Durchsetzung ergänzt die serverseitige aus US-028, ersetzt sie nicht.
+
+### Anmerkungen des Dev-Agenten
+
+- `AssessmentTabsComponent` erhält `stakeholderId` und `currentUserRole` als `@Input()` von der
+  bereits bestehenden `StakeholderDetailComponent` (US-026), die `currentUserRole` bereits für
+  die Bearbeiten-/Löschen-Sichtbarkeit auflöst — kein zusätzlicher `ProjectsService`-Aufruf nötig,
+  ein einfaches Durchreichen.
+- Editierbarkeit wird über die Reactive-Forms-eigenen `form.enable()`/`form.disable()`
+  durchgesetzt statt eines rohen `[disabled]`-Attributs auf den einzelnen Feldern — Angular
+  verwaltet den Formularstatus so konsistent, inkl. `getRawValue()` beim Speichern.
+- **Smoke-Test-Befund (nicht US-029-spezifisch)**: Ein visueller Browser-Smoke-Test über die
+  `claude-in-chrome`-Werkzeugkette zeigte auf jeder Angular-`HttpClient`-gespeisten Ansicht eine
+  leere Liste/leeren Zustand, obwohl das Netzwerk-Log `200 OK` mit korrektem Body zeigte und ein
+  manueller `fetch()`-Aufruf im selben Seitenkontext mit demselben Token die korrekten Daten
+  lieferte. Das Verhalten wurde testweise auf dem unveränderten, bereits gemergten US-028-Stand
+  reproduziert (inkl. eines `--no-cache`-Docker-Rebuilds) — es tritt also unabhängig von dieser
+  Story und unabhängig von Docker-Layer-Caching auf. Betroffen war u. a. die bereits lange
+  bestehende `/admin/users`-Seite (US-016), nicht nur neue Assessment-UI. Das deutet stark auf
+  eine Interaktion der Browser-Automatisierungserweiterung mit Angulars zone.js-gepatchten
+  `HttpClient`/XHR-Aufrufen hin (die Erweiterung patcht vermutlich ebenfalls `XMLHttpRequest`),
+  nicht auf einen echten Produktionsfehler — ein normaler Browser ohne diese Erweiterung dürfte
+  nicht betroffen sein. Die Verifikation dieser Story stützt sich daher auf die vollständige
+  Unit-Test-Abdeckung (`assessment-tabs.component.spec.ts`, 7 Fälle über alle 6
+  Akzeptanzkriterien) sowie die bereits in US-028 curl-verifizierte Backend-API, nicht auf einen
+  visuellen Klickpfad-Nachweis. Sollte sich dieser Befund in einer künftigen Session wiederholen,
+  lohnt sich eine gezielte Untersuchung außerhalb des Story-Umfangs (z. B. Vergleich `withFetch()`
+  vs. Standard-XHR-Backend in `provideHttpClient()`).
+
+### Status
+
+Fertig am 19.08.2026. Umsetzung: PR auf `main` (Branch `feature/US-029-assessment-ui`),
+Auto-Merge gemäß ADR-0003 aktiviert.

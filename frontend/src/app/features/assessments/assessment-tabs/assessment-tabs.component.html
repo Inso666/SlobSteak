@@ -1,0 +1,45 @@
+<section class="assessment-tabs">
+  <div class="tab-bar">
+    @for (roleTab of roleTabs; track roleTab) {
+      <button type="button" [class.active]="activeTab === roleTab" (click)="onSelectTab(roleTab)">{{ roleTab }}-Sicht</button>
+    }
+  </div>
+
+  @if (activeRole; as role) {
+    @if (role.status === 'NO_ROLE_ASSIGNED') {
+      <p class="hint">Keine Rolle zugewiesen.</p>
+    } @else if (role.status === 'NOT_ASSESSED' && !assessing) {
+      <p class="hint">Noch nicht bewertet.</p>
+      @if (isOwnRole) {
+        <button type="button" (click)="onStartAssessing()">Jetzt bewerten</button>
+      }
+    } @else {
+      @if (role.status === 'ASSESSED') {
+        <p class="last-modified">Zuletzt geändert von {{ role.updatedByName }} am {{ role.updatedAt | date: 'medium' }}</p>
+      }
+
+      <form [formGroup]="form" (ngSubmit)="onSave()">
+        <label for="assessment-influence">Einfluss ({{ form.controls.influence.value }})</label>
+        <input id="assessment-influence" type="range" min="0" max="100" formControlName="influence" />
+
+        <label for="assessment-interest">Interesse ({{ form.controls.interest.value }})</label>
+        <input id="assessment-interest" type="range" min="0" max="100" formControlName="interest" />
+
+        <label for="assessment-notes">Notizen</label>
+        <textarea id="assessment-notes" formControlName="notes"></textarea>
+
+        @if (errorMessage) {
+          <p class="field-error">{{ errorMessage }}</p>
+        }
+
+        @if (isOwnRole) {
+          <button type="submit">Speichern</button>
+        }
+      </form>
+    }
+
+    @if (conflict) {
+      <app-assessment-conflict-dialog [modifiedBy]="conflict.modifiedBy" [modifiedAt]="conflict.modifiedAt" (overwrite)="onConflictOverwrite()" (cancelled)="onConflictCancelled()" />
+    }
+  }
+</section>
