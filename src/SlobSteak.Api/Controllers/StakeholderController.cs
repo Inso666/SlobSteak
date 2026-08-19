@@ -2,7 +2,9 @@ using System.ComponentModel.DataAnnotations;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using SlobSteak.Api.Authorization;
+using SlobSteak.Application.Shared;
 using SlobSteak.Application.Stakeholders;
+using SlobSteak.Domain.Projects;
 using SlobSteak.Domain.Shared.Enums;
 using SlobSteak.Domain.Shared.Exceptions;
 using SlobSteak.Domain.Stakeholders;
@@ -49,10 +51,12 @@ public sealed record SimilarStakeholderWarningResponse(Guid Id, string Name)
         new(warning.Id, warning.Name);
 }
 
-/// <summary>Response-DTO für einen Stakeholder (Anlegen US-021, Bearbeiten US-022). Wire-Contract
-/// camelCase gemäß CLAUDE.md Abschnitt 3.1. <c>updatedByName</c>/<c>updatedAt</c> speisen die
-/// künftige „Zuletzt geändert von [Name] am [Datum/Uhrzeit]“-Anzeige (US-022 Akzeptanzkriterium 4,
-/// Stakeholder-Detailseite folgt erst mit US-026).</summary>
+/// <summary>Response-DTO für einen Stakeholder (Anlegen US-021, Bearbeiten US-022, Papierkorb
+/// US-024). Wire-Contract camelCase gemäß CLAUDE.md Abschnitt 3.1. <c>updatedByName</c>/
+/// <c>updatedAt</c> speisen die künftige „Zuletzt geändert von [Name] am [Datum/Uhrzeit]“-Anzeige
+/// (US-022 Akzeptanzkriterium 4, Stakeholder-Detailseite folgt erst mit US-026). <c>deletedAt</c>/
+/// <c>deletedByName</c> sind bei aktiven Stakeholdern stets <c>null</c> und ausschließlich in der
+/// Papierkorb-Ansicht befüllt (US-024 Akzeptanzkriterium 1).</summary>
 public sealed record StakeholderResponse(
     Guid Id,
     Guid ProjectId,
@@ -66,20 +70,31 @@ public sealed record StakeholderResponse(
     string? Description,
     string UpdatedByName,
     DateTimeOffset UpdatedAt,
-    SimilarStakeholderWarningResponse? SimilarStakeholderWarning)
+    SimilarStakeholderWarningResponse? SimilarStakeholderWarning,
+    DateTimeOffset? DeletedAt,
+    string? DeletedByName)
 {
     public static StakeholderResponse FromCreateResult(CreateStakeholderResult result) =>
-        FromDomain(result.Stakeholder, result.CreatedByName, result.SimilarStakeholderWarning);
+        FromDomain(result.Stakeholder, result.CreatedByName, result.SimilarStakeholderWarning, deletedByName: null);
 
     public static StakeholderResponse FromUpdateResult(UpdateStakeholderDetailsResult result) =>
-        FromDomain(result.Stakeholder, result.UpdatedByName, similarStakeholderWarning: null);
+        FromDomain(result.Stakeholder, result.UpdatedByName, similarStakeholderWarning: null, deletedByName: null);
 
     /// <summary>US-025: Eintrag der Stakeholderliste — derselbe Response-Contract wie Anlegen/
     /// Bearbeiten (nie ein <c>similarStakeholderWarning</c>, das ist ein reines Anlege-Konzept).</summary>
     public static StakeholderResponse FromListItem(StakeholderListItem item) =>
-        FromDomain(item.Stakeholder, item.UpdatedByName, similarStakeholderWarning: null);
+        FromDomain(item.Stakeholder, item.UpdatedByName, similarStakeholderWarning: null, deletedByName: null);
 
-    private static StakeholderResponse FromDomain(Stakeholder stakeholder, string updatedByName, SimilarStakeholderWarning? similarStakeholderWarning) =>
+    /// <summary>US-024: Eintrag der Papierkorb-Ansicht — derselbe Response-Contract, zusätzlich mit
+    /// aufgelöstem <c>deletedByName</c> (Akzeptanzkriterium 1).</summary>
+    public static StakeholderResponse FromDeletedItem(DeletedStakeholderItem item) =>
+        FromDomain(item.Stakeholder, item.UpdatedByName, similarStakeholderWarning: null, item.DeletedByName);
+
+    private static StakeholderResponse FromDomain(
+        Stakeholder stakeholder,
+        string updatedByName,
+        SimilarStakeholderWarning? similarStakeholderWarning,
+        string? deletedByName) =>
         new(
             stakeholder.Id,
             stakeholder.ProjectId,
@@ -93,7 +108,9 @@ public sealed record StakeholderResponse(
             stakeholder.Description,
             updatedByName,
             stakeholder.UpdatedAt,
-            similarStakeholderWarning is null ? null : SimilarStakeholderWarningResponse.FromDomain(similarStakeholderWarning));
+            similarStakeholderWarning is null ? null : SimilarStakeholderWarningResponse.FromDomain(similarStakeholderWarning),
+            stakeholder.DeletedAt,
+            deletedByName);
 }
 
 /// <summary>Response-DTO für die Lösch-Auswirkung eines Stakeholders (US-023 Akzeptanzkriterium 2).</summary>
@@ -118,24 +135,47 @@ public sealed class StakeholderController : ControllerBase
     private readonly UpdateStakeholderDetailsService _updateStakeholderDetailsService;
     private readonly SoftDeleteStakeholderService _softDeleteStakeholderService;
     private readonly ListStakeholdersService _listStakeholdersService;
+    private readonly DeletedStakeholdersQuery _deletedStakeholdersQuery;
+    private readonly RestoreStakeholderService _restoreStakeholderService;
+    private readonly IProjectRepository _projectRepository;
 
     public StakeholderController(
         CreateStakeholderService createStakeholderService,
         UpdateStakeholderDetailsService updateStakeholderDetailsService,
         SoftDeleteStakeholderService softDeleteStakeholderService,
-        ListStakeholdersService listStakeholdersService)
+        ListStakeholdersService listStakeholdersService,
+        DeletedStakeholdersQuery deletedStakeholdersQuery,
+        RestoreStakeholderService restoreStakeholderService,
+        IProjectRepository projectRepository)
     {
         _createStakeholderService = createStakeholderService;
         _updateStakeholderDetailsService = updateStakeholderDetailsService;
         _softDeleteStakeholderService = softDeleteStakeholderService;
         _listStakeholdersService = listStakeholdersService;
+        _deletedStakeholdersQuery = deletedStakeholdersQuery;
+        _restoreStakeholderService = restoreStakeholderService;
+        _projectRepository = projectRepository;
     }
+
+    /// <summary>Rollen, die ausschließlich für die Papierkorb-Ansicht zulässig sind (US-024
+    /// Akzeptanzkriterium 1: <c>PL</c>/Admin mit eigener PL-Zuweisung — ein Systemadmin ohne
+    /// eigene PL-Zuweisung im Projekt erhält ebenfalls <c>403</c>, analog zu
+    /// <see cref="DeleteStakeholder"/>, PRD Abschnitt 2.3).</summary>
+    private static readonly ProjectRole[] DeletedViewRoles = { ProjectRole.PL };
 
     /// <summary>Listet die aktiven (nicht soft-gelöschten) Stakeholder eines Projekts, optional
     /// durchsuchbar/filterbar (US-023 Akzeptanzkriterium 4, US-025 Akzeptanzkriterium 1/2). Für
     /// alle vier Projektrollen erreichbar (PRD Berechtigungsmatrix: „Stammdaten lesen“).
     /// <paramref name="type"/> ist ein ungültiger Wert, wird der Filter ignoriert statt mit
-    /// <c>400</c> abgelehnt — eine fehlerhafte Filter-Query soll die Liste nicht blockieren.</summary>
+    /// <c>400</c> abgelehnt — eine fehlerhafte Filter-Query soll die Liste nicht blockieren.
+    /// Mit <paramref name="deleted"/><c>=true</c> liefert derselbe Endpoint stattdessen
+    /// ausschließlich soft-gelöschte Stakeholder (Papierkorb-Ansicht, US-024 Akzeptanzkriterium 1) —
+    /// dafür ausschließlich für Rolle <c>PL</c> erreichbar, unabhängig vom deklarativen
+    /// <see cref="RequireProjectRoleAttribute"/> auf dieser Action (das die für den Normalfall
+    /// erlaubten vier Rollen abdeckt): eine query-parameterabhängige Rolleneinschränkung kann die
+    /// attributbasierte Policy nicht ausdrücken, daher die zusätzliche manuelle Prüfung hier,
+    /// analog zur framework-freien <see cref="ProjectRolePolicy"/>, die auch
+    /// <c>ProjectRoleAuthorizationHandler</c> nutzt.</summary>
     [HttpGet]
     [RequireProjectRole(ProjectRole.PL, ProjectRole.Coreteam, ProjectRole.Architect, ProjectRole.User)]
     [ProducesResponseType(typeof(IReadOnlyList<StakeholderResponse>), StatusCodes.Status200OK)]
@@ -146,8 +186,27 @@ public sealed class StakeholderController : ControllerBase
         [FromQuery] string? search,
         [FromQuery] string? type,
         [FromQuery] Guid? communicationTypeId,
+        [FromQuery] bool deleted,
         CancellationToken cancellationToken)
     {
+        if (deleted)
+        {
+            var userIdClaim = User.FindFirst("sub")?.Value;
+            if (!Guid.TryParse(userIdClaim, out var userId))
+            {
+                return Unauthorized();
+            }
+
+            var project = await _projectRepository.FindByIdAsync(projectId, cancellationToken);
+            if (project is null || !ProjectRolePolicy.IsAllowed(project.Memberships, userId, DeletedViewRoles))
+            {
+                return StatusCode(StatusCodes.Status403Forbidden, new { error = "FORBIDDEN" });
+            }
+
+            var deletedItems = await _deletedStakeholdersQuery.ListDeletedStakeholdersAsync(projectId, cancellationToken);
+            return Ok(deletedItems.Select(StakeholderResponse.FromDeletedItem));
+        }
+
         StakeholderType? parsedType = Enum.TryParse<StakeholderType>(type, ignoreCase: true, out var typeValue) ? typeValue : null;
 
         var items = await _listStakeholdersService.ListActiveStakeholdersAsync(
@@ -286,6 +345,33 @@ public sealed class StakeholderController : ControllerBase
         }
 
         var success = await _softDeleteStakeholderService.SoftDeleteAsync(id, userId, cancellationToken);
+        if (!success)
+        {
+            return NotFound();
+        }
+
+        return Ok();
+    }
+
+    /// <summary>Macht ein Soft-Delete rückgängig (US-024 Akzeptanzkriterium 2). Ausschließlich für
+    /// Rolle <c>PL</c> erreichbar, analog zu <see cref="DeleteStakeholder"/> — Route ohne
+    /// <c>projectId</c>-Segment, die Rollenprüfung erfolgt über
+    /// <see cref="StakeholderProjectRoleAuthorizationHandler"/> (ADR-0007), der den Stakeholder
+    /// bewusst inklusive soft-gelöschter Datensätze auflöst. Idempotent: ein bereits aktiver
+    /// Stakeholder liefert erneut <c>200 OK</c>. Der <c>404</c>-Zweig greift praktisch nur bei
+    /// einem parallelen physischen Löschen zwischen Autorisierung und Ausführung — ein Aufruf mit
+    /// einer global unbekannten Id scheitert bereits vorher an derselben Autorisierung (die den
+    /// Stakeholder ebenfalls nicht auflösen kann) mit <c>403</c>, analog zu
+    /// <see cref="DeleteStakeholder"/>.</summary>
+    [HttpPost("/api/v1/stakeholders/{id:guid}/restore")]
+    [RequireProjectRole(ProjectRole.PL)]
+    [ProducesResponseType(typeof(StakeholderResponse), StatusCodes.Status200OK)]
+    [ProducesResponseType(StatusCodes.Status401Unauthorized)]
+    [ProducesResponseType(StatusCodes.Status403Forbidden)]
+    [ProducesResponseType(StatusCodes.Status404NotFound)]
+    public async Task<IActionResult> RestoreStakeholder(Guid id, CancellationToken cancellationToken)
+    {
+        var success = await _restoreStakeholderService.RestoreAsync(id, cancellationToken);
         if (!success)
         {
             return NotFound();

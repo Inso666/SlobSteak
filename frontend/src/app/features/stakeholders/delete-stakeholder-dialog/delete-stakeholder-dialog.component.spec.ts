@@ -20,6 +20,8 @@ describe('DeleteStakeholderDialogComponent', () => {
     updatedByName: 'Anna Admin',
     updatedAt: '2026-08-19T10:00:00Z',
     similarStakeholderWarning: null,
+    deletedAt: null,
+    deletedByName: null,
   };
 
   const impact: StakeholderDeletionImpact = { assessmentCount: 2, communicationAssignmentCount: 1 };
