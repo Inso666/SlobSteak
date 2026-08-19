@@ -42,4 +42,11 @@ public interface IStakeholderRepository
         string name,
         Guid? excludeStakeholderId = null,
         CancellationToken cancellationToken = default);
+
+    /// <summary>Zählt die <c>stakeholder_assessments</c>- und
+    /// <c>stakeholder_communication_assignments</c>-Zeilen eines Stakeholders (US-023
+    /// Akzeptanzkriterium 2) — reines Read-Modell für den Lösch-Bestätigungsdialog, keine
+    /// Aggregate-Rekonstruktion der jeweils eigenen Aggregate (die existieren erst ab US-027/
+    /// US-039, siehe <c>docs/adr/0001-domain-entity-skeletons-vor-aggregate-stories.md</c>).</summary>
+    Task<StakeholderDeletionImpact> GetDeletionImpactAsync(Guid stakeholderId, CancellationToken cancellationToken = default);
 }

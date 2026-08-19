@@ -35,10 +35,16 @@ export interface StakeholderDetailsPayload {
   description?: string | null;
 }
 
+/** US-023 Akzeptanzkriterium 2: Anzahl betroffener Datensätze für den Lösch-Bestätigungsdialog. */
+export interface StakeholderDeletionImpact {
+  assessmentCount: number;
+  communicationAssignmentCount: number;
+}
+
 /**
- * Injizierbarer Service für Stakeholder-Stammdaten (US-021 Anlegen, US-022 Bearbeiten). Alle
- * HTTP-Zugriffe laufen ausschließlich über diese Klasse, nie direkt aus einer Komponente
- * (CLAUDE.md Abschnitt 3.1).
+ * Injizierbarer Service für Stakeholder-Stammdaten (US-021 Anlegen, US-022 Bearbeiten, US-023
+ * Soft-Delete). Alle HTTP-Zugriffe laufen ausschließlich über diese Klasse, nie direkt aus einer
+ * Komponente (CLAUDE.md Abschnitt 3.1).
  */
 @Injectable({ providedIn: 'root' })
 export class StakeholdersService {
@@ -50,5 +56,13 @@ export class StakeholdersService {
 
   updateStakeholder(id: string, payload: StakeholderDetailsPayload): Observable<Stakeholder> {
     return this.http.patch<Stakeholder>(`/api/v1/stakeholders/${id}`, payload);
+  }
+
+  getDeletionImpact(id: string): Observable<StakeholderDeletionImpact> {
+    return this.http.get<StakeholderDeletionImpact>(`/api/v1/stakeholders/${id}/deletion-impact`);
+  }
+
+  deleteStakeholder(id: string): Observable<void> {
+    return this.http.delete<void>(`/api/v1/stakeholders/${id}`);
   }
 }

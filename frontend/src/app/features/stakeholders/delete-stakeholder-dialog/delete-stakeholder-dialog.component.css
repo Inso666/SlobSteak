@@ -1,0 +1,21 @@
+.delete-dialog {
+  padding: 1rem;
+  margin: 0.5rem 0;
+  border: 1px solid #b00020;
+}
+
+.impact {
+  color: #666;
+  font-size: 0.875rem;
+}
+
+.actions {
+  display: flex;
+  gap: 0.5rem;
+  margin-top: 0.5rem;
+}
+
+.field-error {
+  color: #b00020;
+  font-size: 0.875rem;
+}

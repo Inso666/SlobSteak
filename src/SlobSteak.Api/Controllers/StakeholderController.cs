@@ -91,11 +91,29 @@ public sealed record StakeholderResponse(
             similarStakeholderWarning is null ? null : SimilarStakeholderWarningResponse.FromDomain(similarStakeholderWarning));
 }
 
-/// <summary>API für Stakeholder-Stammdaten (US-021: Anlegen, US-022: Bearbeiten). Ausschließlich
-/// für Projektmitglieder mit einer der erlaubten Rollen erreichbar (PRD Berechtigungsmatrix,
-/// Abschnitt 2.3) — durchgesetzt über <see cref="RequireProjectRoleAttribute"/> (US-007), für
-/// <see cref="UpdateStakeholder"/> aufgelöst über die Stakeholder-Id statt eines
-/// <c>projectId</c>-Routensegments (siehe <see cref="StakeholderProjectRoleAuthorizationHandler"/>).</summary>
+/// <summary>Response-DTO für einen Eintrag der Standard-Stakeholderliste eines Projekts (US-023
+/// Akzeptanzkriterium 4). Bewusst schlank (kein aufgelöster <c>updatedByName</c>, um pro Zeile
+/// keinen zusätzlichen Nutzer-Lookup auszulösen) — die vollständige Liste mit Suche/Filter folgt
+/// erst mit US-025.</summary>
+public sealed record StakeholderListItemResponse(Guid Id, string Type, string Name, string? Organization)
+{
+    public static StakeholderListItemResponse FromDomain(Stakeholder stakeholder) =>
+        new(stakeholder.Id, stakeholder.Type.ToString(), stakeholder.Name, stakeholder.Organization);
+}
+
+/// <summary>Response-DTO für die Lösch-Auswirkung eines Stakeholders (US-023 Akzeptanzkriterium 2).</summary>
+public sealed record StakeholderDeletionImpactResponse(int AssessmentCount, int CommunicationAssignmentCount)
+{
+    public static StakeholderDeletionImpactResponse FromDomain(StakeholderDeletionImpact impact) =>
+        new(impact.AssessmentCount, impact.CommunicationAssignmentCount);
+}
+
+/// <summary>API für Stakeholder-Stammdaten (US-021: Anlegen, US-022: Bearbeiten, US-023:
+/// Soft-Delete). Ausschließlich für Projektmitglieder mit einer der erlaubten Rollen erreichbar
+/// (PRD Berechtigungsmatrix, Abschnitt 2.3) — durchgesetzt über
+/// <see cref="RequireProjectRoleAttribute"/> (US-007), für Routen ohne <c>projectId</c>-Segment
+/// aufgelöst über die Stakeholder-Id (siehe <see cref="StakeholderProjectRoleAuthorizationHandler"/>,
+/// ADR-0007).</summary>
 [ApiController]
 [Route("api/v1/projects/{projectId:guid}/stakeholders")]
 [Authorize]
@@ -103,13 +121,33 @@ public sealed class StakeholderController : ControllerBase
 {
     private readonly CreateStakeholderService _createStakeholderService;
     private readonly UpdateStakeholderDetailsService _updateStakeholderDetailsService;
+    private readonly SoftDeleteStakeholderService _softDeleteStakeholderService;
+    private readonly ListStakeholdersService _listStakeholdersService;
 
     public StakeholderController(
         CreateStakeholderService createStakeholderService,
-        UpdateStakeholderDetailsService updateStakeholderDetailsService)
+        UpdateStakeholderDetailsService updateStakeholderDetailsService,
+        SoftDeleteStakeholderService softDeleteStakeholderService,
+        ListStakeholdersService listStakeholdersService)
     {
         _createStakeholderService = createStakeholderService;
         _updateStakeholderDetailsService = updateStakeholderDetailsService;
+        _softDeleteStakeholderService = softDeleteStakeholderService;
+        _listStakeholdersService = listStakeholdersService;
+    }
+
+    /// <summary>Listet die aktiven (nicht soft-gelöschten) Stakeholder eines Projekts (US-023
+    /// Akzeptanzkriterium 4 — Standardliste; Suche/Filter folgen erst mit US-025). Für alle vier
+    /// Projektrollen erreichbar (PRD Berechtigungsmatrix: „Stammdaten lesen“).</summary>
+    [HttpGet]
+    [RequireProjectRole(ProjectRole.PL, ProjectRole.Coreteam, ProjectRole.Architect, ProjectRole.User)]
+    [ProducesResponseType(typeof(IReadOnlyList<StakeholderListItemResponse>), StatusCodes.Status200OK)]
+    [ProducesResponseType(StatusCodes.Status401Unauthorized)]
+    [ProducesResponseType(StatusCodes.Status403Forbidden)]
+    public async Task<IActionResult> ListStakeholders(Guid projectId, CancellationToken cancellationToken)
+    {
+        var stakeholders = await _listStakeholdersService.ListActiveStakeholdersAsync(projectId, cancellationToken);
+        return Ok(stakeholders.Select(StakeholderListItemResponse.FromDomain));
     }
 
     /// <summary>Legt einen neuen Stakeholder im Projekt an. Ein Namensduplikat blockiert das
@@ -199,5 +237,55 @@ public sealed class StakeholderController : ControllerBase
         {
             return BadRequest(new { error = "INVALID_EMAIL_FORMAT" });
         }
+    }
+
+    /// <summary>Liefert die Anzahl betroffener Assessments/Kommunikationszuordnungen für den
+    /// Lösch-Bestätigungsdialog (US-023 Akzeptanzkriterium 2) — vor dem eigentlichen <c>DELETE</c>
+    /// aufzurufen. Dieselbe Rollenbeschränkung wie <see cref="DeleteStakeholder"/>: nur wer löschen
+    /// darf, braucht auch die Impact-Zahlen dafür.</summary>
+    [HttpGet("/api/v1/stakeholders/{id:guid}/deletion-impact")]
+    [RequireProjectRole(ProjectRole.PL)]
+    [ProducesResponseType(typeof(StakeholderDeletionImpactResponse), StatusCodes.Status200OK)]
+    [ProducesResponseType(StatusCodes.Status401Unauthorized)]
+    [ProducesResponseType(StatusCodes.Status403Forbidden)]
+    [ProducesResponseType(StatusCodes.Status404NotFound)]
+    public async Task<IActionResult> GetDeletionImpact(Guid id, CancellationToken cancellationToken)
+    {
+        var impact = await _softDeleteStakeholderService.GetDeletionImpactAsync(id, cancellationToken);
+        if (impact is null)
+        {
+            return NotFound();
+        }
+
+        return Ok(StakeholderDeletionImpactResponse.FromDomain(impact));
+    }
+
+    /// <summary>Markiert einen Stakeholder als gelöscht (Soft-Delete, US-023). Ausschließlich für
+    /// Rolle <c>PL</c> erreichbar (Akzeptanzkriterium 1 — ein Systemadmin ohne eigene
+    /// PL-Zuweisung im Projekt erhält ebenfalls <c>403</c>, PRD Abschnitt 2.3). Idempotent: ein
+    /// bereits gelöschter Stakeholder liefert erneut <c>200 OK</c>, ohne <c>deleted_at</c> zu
+    /// ändern (Akzeptanzkriterium 5); nur ein tatsächlich nicht existierender Stakeholder liefert
+    /// <c>404</c>.</summary>
+    [HttpDelete("/api/v1/stakeholders/{id:guid}")]
+    [RequireProjectRole(ProjectRole.PL)]
+    [ProducesResponseType(StatusCodes.Status200OK)]
+    [ProducesResponseType(StatusCodes.Status401Unauthorized)]
+    [ProducesResponseType(StatusCodes.Status403Forbidden)]
+    [ProducesResponseType(StatusCodes.Status404NotFound)]
+    public async Task<IActionResult> DeleteStakeholder(Guid id, CancellationToken cancellationToken)
+    {
+        var userIdClaim = User.FindFirst("sub")?.Value;
+        if (!Guid.TryParse(userIdClaim, out var userId))
+        {
+            return Unauthorized();
+        }
+
+        var success = await _softDeleteStakeholderService.SoftDeleteAsync(id, userId, cancellationToken);
+        if (!success)
+        {
+            return NotFound();
+        }
+
+        return Ok();
     }
 }

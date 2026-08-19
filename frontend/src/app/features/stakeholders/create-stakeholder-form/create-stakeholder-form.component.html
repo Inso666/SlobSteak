@@ -62,12 +62,20 @@
           <td>{{ stakeholder.organization }}</td>
           <td>
             <button type="button" (click)="onEdit(stakeholder)">Bearbeiten</button>
+            <button type="button" (click)="onDeleteClick(stakeholder)">Löschen</button>
           </td>
         </tr>
         @if (editingStakeholder?.id === stakeholder.id) {
           <tr>
             <td colspan="4">
               <app-edit-stakeholder-form [stakeholder]="stakeholder" (updated)="onEditUpdated($event)" (cancelled)="onEditCancelled()" />
+            </td>
+          </tr>
+        }
+        @if (deletingStakeholder?.id === stakeholder.id) {
+          <tr>
+            <td colspan="4">
+              <app-delete-stakeholder-dialog [stakeholder]="stakeholder" (deleted)="onDeleted($event)" (cancelled)="onDeleteCancelled()" />
             </td>
           </tr>
         }

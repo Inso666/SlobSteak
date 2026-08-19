@@ -4,6 +4,7 @@ import { FormBuilder, ReactiveFormsModule, Validators } from '@angular/forms';
 import { HttpErrorResponse } from '@angular/common/http';
 import { Stakeholder, StakeholdersService } from '../stakeholders.service';
 import { EditStakeholderFormComponent } from '../edit-stakeholder-form/edit-stakeholder-form.component';
+import { DeleteStakeholderDialogComponent } from '../delete-stakeholder-dialog/delete-stakeholder-dialog.component';
 
 /**
  * Formular „Stakeholder anlegen“ (US-021, im Standard-Landingtab „Stakeholder-Liste“ der
@@ -20,11 +21,15 @@ import { EditStakeholderFormComponent } from '../edit-stakeholder-form/edit-stak
  * US-022: jede Zeile der Liste erhält zusätzlich eine „Bearbeiten“-Aktion, die
  * {@link EditStakeholderFormComponent} inline einblendet (dieselbe minimale-Scope-Begründung wie
  * bei US-021 Akzeptanzkriterium 6 — keine eigene Detailseite vor US-026).
+ *
+ * US-023: jede Zeile erhält zusätzlich eine „Löschen“-Aktion, die
+ * {@link DeleteStakeholderDialogComponent} inline einblendet (Soft-Delete mit
+ * Bestätigungsdialog inkl. Impact-Zahlen).
  */
 @Component({
   selector: 'app-create-stakeholder-form',
   standalone: true,
-  imports: [ReactiveFormsModule, EditStakeholderFormComponent],
+  imports: [ReactiveFormsModule, EditStakeholderFormComponent, DeleteStakeholderDialogComponent],
   templateUrl: './create-stakeholder-form.component.html',
   styleUrl: './create-stakeholder-form.component.css',
 })
@@ -39,6 +44,7 @@ export class CreateStakeholderFormComponent implements OnInit {
   protected errorMessage: string | null = null;
   protected lastSimilarWarning: string | null = null;
   protected editingStakeholder: Stakeholder | null = null;
+  protected deletingStakeholder: Stakeholder | null = null;
 
   protected readonly form = this.formBuilder.nonNullable.group({
     name: ['', Validators.required],
@@ -100,6 +106,7 @@ export class CreateStakeholderFormComponent implements OnInit {
 
   protected onEdit(stakeholder: Stakeholder): void {
     this.editingStakeholder = stakeholder;
+    this.deletingStakeholder = null;
   }
 
   protected onEditCancelled(): void {
@@ -109,5 +116,19 @@ export class CreateStakeholderFormComponent implements OnInit {
   protected onEditUpdated(updated: Stakeholder): void {
     this.createdStakeholders = this.createdStakeholders.map((s) => (s.id === updated.id ? updated : s));
     this.editingStakeholder = null;
+  }
+
+  protected onDeleteClick(stakeholder: Stakeholder): void {
+    this.deletingStakeholder = stakeholder;
+    this.editingStakeholder = null;
+  }
+
+  protected onDeleteCancelled(): void {
+    this.deletingStakeholder = null;
+  }
+
+  protected onDeleted(deletedId: string): void {
+    this.createdStakeholders = this.createdStakeholders.filter((s) => s.id !== deletedId);
+    this.deletingStakeholder = null;
   }
 }

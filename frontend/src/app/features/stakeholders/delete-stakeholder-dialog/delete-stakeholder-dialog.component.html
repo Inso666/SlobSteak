@@ -1,0 +1,19 @@
+<div class="delete-dialog">
+  <p>„{{ stakeholder.name }}“ wirklich löschen?</p>
+
+  @if (impact) {
+    <p class="impact">
+      Betroffen: {{ impact.assessmentCount }} Assessment(s), {{ impact.communicationAssignmentCount }}
+      Kommunikationszuordnung(en). Diese bleiben beim Löschen unverändert erhalten.
+    </p>
+  }
+
+  @if (errorMessage) {
+    <p class="field-error">{{ errorMessage }}</p>
+  }
+
+  <div class="actions">
+    <button type="button" (click)="onConfirm()">Löschen bestätigen</button>
+    <button type="button" (click)="onCancel()">Abbrechen</button>
+  </div>
+</div>

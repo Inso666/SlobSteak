@@ -4,6 +4,36 @@ Alle nennenswerten Änderungen an diesem Projekt werden hier je User Story dokum
 
 ## [Unreleased]
 
+### US-023 — Stakeholder Soft-Delete: API + UI
+
+- Neue Endpunkte `DELETE /api/v1/stakeholders/{id}` (nur Rolle `PL`, idempotent — erneutes
+  `DELETE` auf einen bereits gelöschten Stakeholder liefert weiterhin `200 OK` ohne
+  `deleted_at` zu ändern) und `GET /api/v1/stakeholders/{id}/deletion-impact` (Anzahl betroffener
+  Assessments/Kommunikationszuordnungen für den Bestätigungsdialog).
+- Neue Endpoint `GET /api/v1/projects/{projectId}/stakeholders` (Standardliste, alle vier
+  Projektrollen) — bisher fehlte diese Liste; notwendige Infrastruktur, damit AC4 (gelöschte
+  Stakeholder verschwinden aus Standardansichten) prüfbar ist. Map-Query (US-031) und
+  Verteilerlisten-Filter (US-041) existieren noch nicht und werden dort nachgezogen (siehe
+  Anmerkungen der Story-Datei).
+- Neue `SoftDeleteStakeholderService`/`ListStakeholdersService`; `IStakeholderRepository` um
+  `GetDeletionImpactAsync` ergänzt (zählt `stakeholder_assessments`/
+  `stakeholder_communication_assignments`, reines Read-Modell wie bei früheren
+  Skeleton-Tabellen-Zugriffen).
+- `DELETE`/`deletion-impact` nutzen denselben `StakeholderProjectRoleAuthorizationHandler` aus
+  US-022 — keine neue Authorization-Infrastruktur nötig.
+- Neue Angular-Komponente `DeleteStakeholderDialogComponent` — „Löschen“-Aktion je Zeile der
+  session-lokalen Liste, lädt beim Öffnen die Impact-Zahlen und zeigt sie im
+  Bestätigungsdialog an.
+- Tests: `SoftDeleteStakeholderServiceTests`/`ListStakeholdersServiceTests` (Application.Tests,
+  9 Fälle), dedizierter Story-Test `US023_StakeholderSoftDeleteTests` (8 Facts/Theories über
+  echte Testcontainers-PostgreSQL, inkl. physischer Integritätsprüfung der Assessment-/
+  Kommunikationszuordnungs-Zeilen), ergänzend `StakeholderController_DeleteTests` (4 Fälle),
+  `delete-stakeholder-dialog.component.spec.ts` (6 Fälle), 3 ergänzende Fälle in
+  `create-stakeholder-form.component.spec.ts`.
+- Smoke-Test: isolierter `docker compose up --build` — Stakeholder anlegen, Impact-Check (`200`,
+  Zählwerte), Löschen (`200`), Standardliste zeigt ihn danach nicht mehr, erneutes Löschen
+  bleibt idempotent (`200`).
+
 ### US-022 — Stakeholder-Stammdaten bearbeiten: API + UI inkl. Änderungsverlauf
 
 - Neuer Endpoint `PATCH /api/v1/stakeholders/{id}` — nur für `PL`/`Coreteam`/`Architect`, `403`

@@ -1,0 +1,51 @@
+import { Component, EventEmitter, Input, OnChanges, Output, inject } from '@angular/core';
+import { Stakeholder, StakeholderDeletionImpact, StakeholdersService } from '../stakeholders.service';
+
+/**
+ * Lösch-Bestätigungsdialog (US-023 Akzeptanzkriterium 6): lädt beim Öffnen die Impact-Zahlen über
+ * `GET /api/v1/stakeholders/{id}/deletion-impact` (Akzeptanzkriterium 2) und zeigt sie vor der
+ * eigentlichen Bestätigung an. Löschen ist ein Soft-Delete — Assessments und
+ * Kommunikationszuordnungen bleiben unverändert bestehen (Akzeptanzkriterium 3), die Zahlen dienen
+ * rein der Information, nicht einer Blockade.
+ */
+@Component({
+  selector: 'app-delete-stakeholder-dialog',
+  standalone: true,
+  imports: [],
+  templateUrl: './delete-stakeholder-dialog.component.html',
+  styleUrl: './delete-stakeholder-dialog.component.css',
+})
+export class DeleteStakeholderDialogComponent implements OnChanges {
+  @Input({ required: true }) stakeholder!: Stakeholder;
+  @Output() deleted = new EventEmitter<string>();
+  @Output() cancelled = new EventEmitter<void>();
+
+  private readonly stakeholdersService = inject(StakeholdersService);
+
+  protected impact: StakeholderDeletionImpact | null = null;
+  protected errorMessage: string | null = null;
+
+  ngOnChanges(): void {
+    this.impact = null;
+    this.errorMessage = null;
+    this.stakeholdersService.getDeletionImpact(this.stakeholder.id).subscribe({
+      next: (impact) => (this.impact = impact),
+      error: () => {
+        this.errorMessage = 'Löschauswirkung konnte nicht ermittelt werden.';
+      },
+    });
+  }
+
+  protected onConfirm(): void {
+    this.stakeholdersService.deleteStakeholder(this.stakeholder.id).subscribe({
+      next: () => this.deleted.emit(this.stakeholder.id),
+      error: () => {
+        this.errorMessage = 'Stakeholder konnte nicht gelöscht werden.';
+      },
+    });
+  }
+
+  protected onCancel(): void {
+    this.cancelled.emit();
+  }
+}

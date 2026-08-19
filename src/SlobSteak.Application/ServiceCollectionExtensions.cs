@@ -25,6 +25,8 @@ public static class ServiceCollectionExtensions
         services.AddScoped<ListProjectMembershipsService>();
         services.AddScoped<CreateStakeholderService>();
         services.AddScoped<UpdateStakeholderDetailsService>();
+        services.AddScoped<SoftDeleteStakeholderService>();
+        services.AddScoped<ListStakeholdersService>();
 
         return services;
     }

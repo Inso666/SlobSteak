@@ -37,3 +37,34 @@ Als **PL** möchte ich **einen Stakeholder als gelöscht markieren, ohne dass zu
 - Löschen ist Soft-Delete — kein physisches Entfernen (F1.3).
 - Löschaktion ist idempotent (F1.3 Edge Case).
 - Alle Standardabfragen filtern `deleted_at IS NULL` serverseitig (Abschnitt 4.3 Punkt 5).
+
+### Anmerkungen des Dev-Agenten
+
+- Akzeptanzkriterium 4 nennt drei Abfragen: die Standard-Stakeholderliste, Map-Query (US-031) und
+  Verteilerlisten-Filter (US-041). Map-Query und Verteilerlisten-Filter existieren als eigene
+  Abfragen schlicht noch nicht — beide sind eigenständige, deutlich spätere Stories (Phase 5 bzw.
+  6) mit erheblichem eigenem Umfang (Quadranten-Visualisierung bzw. Verteilerlisten-Erstellung).
+  Sie jetzt vorwegzunehmen wäre ein erheblicher Vorgriff (CLAUDE.md Abschnitt 3.3). Umgesetzt und
+  getestet wird daher nur der Teil, der bereits existiert bzw. für diese Story notwendig ist: die
+  Standard-Stakeholderliste `GET /api/v1/projects/{projectId}/stakeholders` — bisher gab es dafür
+  noch keinen Endpoint (notwendige Infrastruktur, kein Vorgriff). Map-Query/Verteilerlisten-Filter
+  werden in ihren jeweiligen Stories (US-031/US-041) dieselbe `deleted_at IS NULL`-Filterung
+  erhalten, sobald sie entstehen — der Story-Test dokumentiert diese Abgrenzung explizit.
+- Die neue Standardliste ist bewusst schlank (`StakeholderListItemResponse` ohne aufgelösten
+  `updatedByName`, um keinen Nutzer-Lookup pro Zeile auszulösen) — Suche/Filter und die
+  vollständige Darstellung folgen erst mit US-025.
+- `GET .../deletion-impact` trägt dieselbe Rollenbeschränkung (`PL`) wie `DELETE` selbst — die
+  Story schreibt für diesen Endpoint keine eigene Autorisierung vor, aber die Impact-Zahlen sind
+  ohne Löschrecht ohne fachlichen Nutzen; die restriktivere Auslegung wurde gewählt (CLAUDE.md
+  Abschnitt 4).
+- `DELETE`/`GET .../deletion-impact` nutzen denselben `StakeholderProjectRoleAuthorizationHandler`
+  aus US-022/ADR-0007 (Rollenauflösung über die Stakeholder-Id) — keine neue Authorization-
+  Infrastruktur nötig.
+- `SoftDeleteStakeholderService.SoftDeleteAsync` lädt den Stakeholder mit `includeDeleted: true`
+  (nicht `false`), damit ein wiederholter Aufruf auf einen bereits gelöschten Stakeholder ihn
+  weiterhin findet (Idempotenz, Akzeptanzkriterium 5) statt fälschlich `404` zu liefern.
+
+### Status
+
+Fertig am 19.08.2026. Umsetzung: PR auf `main` (Branch `feature/US-023-stakeholder-soft-delete`),
+Auto-Merge gemäß ADR-0003 aktiviert.
