@@ -1,0 +1,61 @@
+@if (notFound) {
+  <section class="not-found">
+    <p>Stakeholder nicht gefunden.</p>
+    <a [routerLink]="['/projects', projectId, 'stakeholders']">Zurück zur Liste</a>
+  </section>
+} @else if (stakeholder) {
+  <section class="stakeholder-detail">
+    <a class="back-link" [routerLink]="['/projects', projectId, 'stakeholders']">← Zurück zur Liste</a>
+
+    <header>
+      <h1>{{ stakeholder.name }}</h1>
+      <p class="meta">
+        {{ stakeholder.type }}
+        @if (stakeholder.organization) {
+          · {{ stakeholder.organization }}
+        }
+      </p>
+      <p class="last-modified">Zuletzt geändert von {{ stakeholder.updatedByName }} am {{ stakeholder.updatedAt | date: 'medium' }}</p>
+
+      <div class="actions">
+        @if (canEdit && !editing) {
+          <button type="button" (click)="onEditClick()">Bearbeiten</button>
+        }
+        @if (canDelete) {
+          <button type="button" (click)="onDeleteClick()">Löschen</button>
+        }
+      </div>
+    </header>
+
+    @if (editing) {
+      <app-edit-stakeholder-form [stakeholder]="stakeholder" (updated)="onEditUpdated($event)" (cancelled)="onEditCancelled()" />
+    } @else {
+      <dl class="master-data">
+        <dt>Position/Funktion</dt>
+        <dd>{{ stakeholder.position || '–' }}</dd>
+        <dt>E-Mail</dt>
+        <dd>{{ stakeholder.email || '–' }}</dd>
+        <dt>Telefon</dt>
+        <dd>{{ stakeholder.phone || '–' }}</dd>
+        <dt>Standort/Abteilung</dt>
+        <dd>{{ stakeholder.locationDepartment || '–' }}</dd>
+        <dt>Beschreibung</dt>
+        <dd>{{ stakeholder.description || '–' }}</dd>
+      </dl>
+    }
+
+    @if (deleting) {
+      <app-delete-stakeholder-dialog [stakeholder]="stakeholder" (deleted)="onDeleted()" (cancelled)="onDeleteCancelled()" />
+    }
+
+    <section class="placeholder-slot">
+      <h2>Kommunikationszuordnungen</h2>
+      <p class="placeholder">Kommunikationszuordnungen folgen (US-040).</p>
+    </section>
+
+    <section class="placeholder-slot">
+      <h2>Assessment</h2>
+      <p class="placeholder">Assessment-Tabs folgen (US-029).</p>
+    </section>
+  </section>
+}

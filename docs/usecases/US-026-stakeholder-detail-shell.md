@@ -32,3 +32,32 @@ Als **beliebiger Projekt-Nutzer** möchte ich **eine Stakeholder-Detailseite mit
 **Wichtige Invarianten & Validierungsregeln:**
 
 - Detailansicht respektiert dieselbe Sichtbarkeits-/Schreibregel wie Liste und Bearbeiten (Berechtigungsmatrix Abschnitt 2.3).
+
+### Anmerkungen des Dev-Agenten
+
+- `GetStakeholderService` liefert dasselbe `StakeholderListItem`-Record wie `ListStakeholdersService`
+  (US-025) — kein eigenes DTO, da der aufgelöste `UpdatedByName` identisch funktioniert; der
+  Controller mappt beide über denselben `StakeholderResponse.FromListItem`.
+- Der neue `GET /api/v1/stakeholders/{id}`-Endpoint ist für alle vier Projektrollen erreichbar
+  (Lesezugriff laut Akzeptanzkriterium 2 ausdrücklich nicht auf `PL`/`Coreteam`/`Architect`
+  beschränkt — nur das Bearbeiten ist es). Die Rollenprüfung läuft über die bereits bestehende
+  `StakeholderProjectRoleAuthorizationHandler`-Route-ohne-`projectId`-Logik (ADR-0007), keine neue
+  Autorisierungsinfrastruktur nötig.
+- Bearbeiten/Löschen auf der Detailseite nutzen unverändert die bestehenden Komponenten
+  `EditStakeholderFormComponent` (US-022) und `DeleteStakeholderDialogComponent` (US-023) sowie
+  deren bereits rollen-beschränkte Backend-Endpunkte — die Detailseite fügt nur die
+  komponenteninterne Sichtbarkeitslogik (`canEdit`/`canDelete`, rein UX-Ebene) hinzu, keine neue
+  Berechtigungsprüfung.
+- Die Platzhalter-Slots „Kommunikationszuordnungen“ (US-040) und „Assessment“ (US-029) sind reine
+  statische Text-Sections ohne Datenanbindung, analog zu den bestehenden Tab-Platzhaltern
+  `MapPlaceholderComponent`/`DistributionPlaceholderComponent` aus US-019.
+- Nach erfolgreichem Löschen über die Detailseite navigiert die Seite zurück zur Stakeholder-Liste
+  des Projekts (kein „Nicht gefunden“-Zustand innerhalb der Detailseite selbst) — konsistenter mit
+  der Erwartung, dass ein aktiv ausgeführtes Löschen den Nutzer nicht auf einer toten Seite
+  zurücklässt; die 404-Ansicht bleibt reserviert für den Fall aus Akzeptanzkriterium 5 (Aufruf
+  einer bereits zuvor gelöschten Stakeholder-Id).
+
+### Status
+
+Fertig am 19.08.2026. Umsetzung: PR auf `main` (Branch `feature/US-026-stakeholder-detail-shell`),
+Auto-Merge gemäß ADR-0003 aktiviert.

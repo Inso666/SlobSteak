@@ -1,5 +1,5 @@
 import { TestBed } from '@angular/core/testing';
-import { ActivatedRoute, convertToParamMap } from '@angular/router';
+import { ActivatedRoute, convertToParamMap, provideRouter } from '@angular/router';
 import { of } from 'rxjs';
 import { Stakeholder, StakeholdersService } from '../stakeholders.service';
 import { ProjectOverviewItem, ProjectsService } from '../../projects/projects.service';
@@ -52,6 +52,7 @@ describe('StakeholderListComponent', () => {
     TestBed.configureTestingModule({
       imports: [StakeholderListComponent],
       providers: [
+        provideRouter([]),
         { provide: StakeholdersService, useValue: stakeholdersServiceSpy },
         { provide: ProjectsService, useValue: projectsServiceSpy },
         {

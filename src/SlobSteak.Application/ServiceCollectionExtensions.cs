@@ -29,6 +29,7 @@ public static class ServiceCollectionExtensions
         services.AddScoped<ListStakeholdersService>();
         services.AddScoped<RestoreStakeholderService>();
         services.AddScoped<DeletedStakeholdersQuery>();
+        services.AddScoped<GetStakeholderService>();
 
         return services;
     }

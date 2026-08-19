@@ -1,0 +1,60 @@
+.not-found {
+  padding: 1.5rem;
+  color: #666;
+}
+
+.stakeholder-detail {
+  padding: 1rem 0;
+}
+
+.back-link {
+  display: inline-block;
+  margin-bottom: 1rem;
+  color: #666;
+  text-decoration: none;
+}
+
+header {
+  margin-bottom: 1.5rem;
+}
+
+.meta {
+  color: #666;
+}
+
+.last-modified {
+  color: #666;
+  font-size: 0.875rem;
+}
+
+.actions {
+  display: flex;
+  gap: 0.5rem;
+  margin-top: 0.75rem;
+}
+
+.master-data {
+  display: grid;
+  grid-template-columns: 10rem 1fr;
+  row-gap: 0.5rem;
+  margin-bottom: 1.5rem;
+}
+
+.master-data dt {
+  font-weight: 600;
+}
+
+.master-data dd {
+  margin: 0;
+}
+
+.placeholder-slot {
+  margin-top: 1.5rem;
+  padding: 1rem;
+  border: 1px dashed #ccc;
+}
+
+.placeholder-slot .placeholder {
+  color: #666;
+  margin: 0;
+}
