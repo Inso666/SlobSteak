@@ -1,4 +1,5 @@
 using Microsoft.Extensions.DependencyInjection;
+using SlobSteak.Application.Assessments;
 using SlobSteak.Application.Identity;
 using SlobSteak.Application.Projects;
 using SlobSteak.Application.Stakeholders;
@@ -30,6 +31,8 @@ public static class ServiceCollectionExtensions
         services.AddScoped<RestoreStakeholderService>();
         services.AddScoped<DeletedStakeholdersQuery>();
         services.AddScoped<GetStakeholderService>();
+        services.AddScoped<UpsertStakeholderAssessmentService>();
+        services.AddScoped<GetStakeholderAssessmentsQuery>();
 
         return services;
     }
