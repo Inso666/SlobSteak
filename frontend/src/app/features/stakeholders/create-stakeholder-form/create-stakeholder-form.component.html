@@ -43,47 +43,4 @@
 
     <button type="submit" [disabled]="form.invalid">Anlegen</button>
   </form>
-
-  <h3>Angelegte Stakeholder (diese Sitzung)</h3>
-  <table>
-    <thead>
-      <tr>
-        <th>Name</th>
-        <th>Typ</th>
-        <th>Organisation</th>
-        <th></th>
-      </tr>
-    </thead>
-    <tbody>
-      @for (stakeholder of createdStakeholders; track stakeholder.id) {
-        <tr>
-          <td>{{ stakeholder.name }}</td>
-          <td>{{ stakeholder.type }}</td>
-          <td>{{ stakeholder.organization }}</td>
-          <td>
-            <button type="button" (click)="onEdit(stakeholder)">Bearbeiten</button>
-            <button type="button" (click)="onDeleteClick(stakeholder)">Löschen</button>
-          </td>
-        </tr>
-        @if (editingStakeholder?.id === stakeholder.id) {
-          <tr>
-            <td colspan="4">
-              <app-edit-stakeholder-form [stakeholder]="stakeholder" (updated)="onEditUpdated($event)" (cancelled)="onEditCancelled()" />
-            </td>
-          </tr>
-        }
-        @if (deletingStakeholder?.id === stakeholder.id) {
-          <tr>
-            <td colspan="4">
-              <app-delete-stakeholder-dialog [stakeholder]="stakeholder" (deleted)="onDeleted($event)" (cancelled)="onDeleteCancelled()" />
-            </td>
-          </tr>
-        }
-      } @empty {
-        <tr>
-          <td colspan="4">Noch keine Stakeholder angelegt.</td>
-        </tr>
-      }
-    </tbody>
-  </table>
 </section>

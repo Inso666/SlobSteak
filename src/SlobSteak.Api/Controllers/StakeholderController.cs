@@ -74,6 +74,11 @@ public sealed record StakeholderResponse(
     public static StakeholderResponse FromUpdateResult(UpdateStakeholderDetailsResult result) =>
         FromDomain(result.Stakeholder, result.UpdatedByName, similarStakeholderWarning: null);
 
+    /// <summary>US-025: Eintrag der Stakeholderliste — derselbe Response-Contract wie Anlegen/
+    /// Bearbeiten (nie ein <c>similarStakeholderWarning</c>, das ist ein reines Anlege-Konzept).</summary>
+    public static StakeholderResponse FromListItem(StakeholderListItem item) =>
+        FromDomain(item.Stakeholder, item.UpdatedByName, similarStakeholderWarning: null);
+
     private static StakeholderResponse FromDomain(Stakeholder stakeholder, string updatedByName, SimilarStakeholderWarning? similarStakeholderWarning) =>
         new(
             stakeholder.Id,
@@ -89,16 +94,6 @@ public sealed record StakeholderResponse(
             updatedByName,
             stakeholder.UpdatedAt,
             similarStakeholderWarning is null ? null : SimilarStakeholderWarningResponse.FromDomain(similarStakeholderWarning));
-}
-
-/// <summary>Response-DTO für einen Eintrag der Standard-Stakeholderliste eines Projekts (US-023
-/// Akzeptanzkriterium 4). Bewusst schlank (kein aufgelöster <c>updatedByName</c>, um pro Zeile
-/// keinen zusätzlichen Nutzer-Lookup auszulösen) — die vollständige Liste mit Suche/Filter folgt
-/// erst mit US-025.</summary>
-public sealed record StakeholderListItemResponse(Guid Id, string Type, string Name, string? Organization)
-{
-    public static StakeholderListItemResponse FromDomain(Stakeholder stakeholder) =>
-        new(stakeholder.Id, stakeholder.Type.ToString(), stakeholder.Name, stakeholder.Organization);
 }
 
 /// <summary>Response-DTO für die Lösch-Auswirkung eines Stakeholders (US-023 Akzeptanzkriterium 2).</summary>
@@ -136,18 +131,28 @@ public sealed class StakeholderController : ControllerBase
         _listStakeholdersService = listStakeholdersService;
     }
 
-    /// <summary>Listet die aktiven (nicht soft-gelöschten) Stakeholder eines Projekts (US-023
-    /// Akzeptanzkriterium 4 — Standardliste; Suche/Filter folgen erst mit US-025). Für alle vier
-    /// Projektrollen erreichbar (PRD Berechtigungsmatrix: „Stammdaten lesen“).</summary>
+    /// <summary>Listet die aktiven (nicht soft-gelöschten) Stakeholder eines Projekts, optional
+    /// durchsuchbar/filterbar (US-023 Akzeptanzkriterium 4, US-025 Akzeptanzkriterium 1/2). Für
+    /// alle vier Projektrollen erreichbar (PRD Berechtigungsmatrix: „Stammdaten lesen“).
+    /// <paramref name="type"/> ist ein ungültiger Wert, wird der Filter ignoriert statt mit
+    /// <c>400</c> abgelehnt — eine fehlerhafte Filter-Query soll die Liste nicht blockieren.</summary>
     [HttpGet]
     [RequireProjectRole(ProjectRole.PL, ProjectRole.Coreteam, ProjectRole.Architect, ProjectRole.User)]
-    [ProducesResponseType(typeof(IReadOnlyList<StakeholderListItemResponse>), StatusCodes.Status200OK)]
+    [ProducesResponseType(typeof(IReadOnlyList<StakeholderResponse>), StatusCodes.Status200OK)]
     [ProducesResponseType(StatusCodes.Status401Unauthorized)]
     [ProducesResponseType(StatusCodes.Status403Forbidden)]
-    public async Task<IActionResult> ListStakeholders(Guid projectId, CancellationToken cancellationToken)
+    public async Task<IActionResult> ListStakeholders(
+        Guid projectId,
+        [FromQuery] string? search,
+        [FromQuery] string? type,
+        [FromQuery] Guid? communicationTypeId,
+        CancellationToken cancellationToken)
     {
-        var stakeholders = await _listStakeholdersService.ListActiveStakeholdersAsync(projectId, cancellationToken);
-        return Ok(stakeholders.Select(StakeholderListItemResponse.FromDomain));
+        StakeholderType? parsedType = Enum.TryParse<StakeholderType>(type, ignoreCase: true, out var typeValue) ? typeValue : null;
+
+        var items = await _listStakeholdersService.ListActiveStakeholdersAsync(
+            projectId, search, parsedType, communicationTypeId, cancellationToken);
+        return Ok(items.Select(StakeholderResponse.FromListItem));
     }
 
     /// <summary>Legt einen neuen Stakeholder im Projekt an. Ein Namensduplikat blockiert das
