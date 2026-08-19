@@ -58,3 +58,13 @@ header {
   color: #666;
   margin: 0;
 }
+
+.assessment-slot {
+  margin-top: 1.5rem;
+  padding: 1rem;
+  border: 1px solid #ddd;
+}
+
+.assessment-slot h2 {
+  margin-top: 0;
+}

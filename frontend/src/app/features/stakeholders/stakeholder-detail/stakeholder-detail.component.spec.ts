@@ -4,11 +4,13 @@ import { of, throwError } from 'rxjs';
 import { HttpErrorResponse } from '@angular/common/http';
 import { Stakeholder, StakeholdersService } from '../stakeholders.service';
 import { ProjectOverviewItem, ProjectsService } from '../../projects/projects.service';
+import { AssessmentsService } from '../../assessments/assessments.service';
 import { StakeholderDetailComponent } from './stakeholder-detail.component';
 
 describe('StakeholderDetailComponent', () => {
   let stakeholdersServiceSpy: jasmine.SpyObj<StakeholdersService>;
   let projectsServiceSpy: jasmine.SpyObj<ProjectsService>;
+  let assessmentsServiceSpy: jasmine.SpyObj<AssessmentsService>;
 
   const stakeholder: Stakeholder = {
     id: 'stakeholder-1',
@@ -41,12 +43,16 @@ describe('StakeholderDetailComponent', () => {
     projectsServiceSpy = jasmine.createSpyObj('ProjectsService', ['listMyProjects', 'getProject']);
     projectsServiceSpy.getProject.and.returnValue(of({ id: 'project-1', name: 'Projekt', role, stakeholderCount: 1 } as ProjectOverviewItem));
 
+    assessmentsServiceSpy = jasmine.createSpyObj('AssessmentsService', ['getAssessments', 'upsertAssessment']);
+    assessmentsServiceSpy.getAssessments.and.returnValue(of([]));
+
     TestBed.configureTestingModule({
       imports: [StakeholderDetailComponent],
       providers: [
         provideRouter([]),
         { provide: StakeholdersService, useValue: stakeholdersServiceSpy },
         { provide: ProjectsService, useValue: projectsServiceSpy },
+        { provide: AssessmentsService, useValue: assessmentsServiceSpy },
         {
           provide: ActivatedRoute,
           useValue: {

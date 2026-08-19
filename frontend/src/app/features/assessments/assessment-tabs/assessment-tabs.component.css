@@ -1,0 +1,43 @@
+.assessment-tabs {
+  padding: 0.5rem 0;
+}
+
+.tab-bar {
+  display: flex;
+  gap: 0.5rem;
+  margin-bottom: 1rem;
+  border-bottom: 1px solid #ddd;
+}
+
+.tab-bar button {
+  padding: 0.5rem 1rem;
+  border: none;
+  background: none;
+  cursor: pointer;
+}
+
+.tab-bar button.active {
+  border-bottom: 2px solid #333;
+  font-weight: 600;
+}
+
+.hint {
+  color: #666;
+}
+
+.last-modified {
+  color: #666;
+  font-size: 0.875rem;
+}
+
+form {
+  display: flex;
+  flex-direction: column;
+  gap: 0.25rem;
+  max-width: 24rem;
+}
+
+.field-error {
+  color: #b00020;
+  font-size: 0.875rem;
+}
