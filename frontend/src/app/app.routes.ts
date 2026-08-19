@@ -11,6 +11,7 @@ import { DistributionPlaceholderComponent } from './features/workspace/distribut
 import { MapPlaceholderComponent } from './features/workspace/map-placeholder/map-placeholder.component';
 import { ProjectWorkspaceLayoutComponent } from './features/workspace/project-workspace-layout/project-workspace-layout.component';
 import { StakeholderListComponent } from './features/stakeholders/stakeholder-list/stakeholder-list.component';
+import { StakeholderDetailComponent } from './features/stakeholders/stakeholder-detail/stakeholder-detail.component';
 
 /** Alle vier projektbezogenen Rollen (kein `Admin` — das ist eine instanzweite Systemrolle). */
 const ALL_PROJECT_ROLES = ['PL', 'Coreteam', 'Architect', 'User'] as const;
@@ -30,6 +31,11 @@ const ALL_PROJECT_ROLES = ['PL', 'Coreteam', 'Architect', 'User'] as const;
  * US-025: `stakeholders` rendert seit dieser Story `StakeholderListComponent` (löst den
  * bisherigen `CreateStakeholderFormComponent`-Platzhalter aus US-021 ab) — serverseitig geladene
  * Liste mit Suche/Filter, inkl. eingebettetem Anlage-Formular.
+ *
+ * US-026: `stakeholders/:stakeholderId` (Screen S4) ist für dieselben vier Rollen erreichbar wie
+ * die Liste (kein zusätzlicher `roleGuard` — die Detailseite ist für jedes Projektmitglied lesbar,
+ * Akzeptanzkriterium 2; Bearbeiten-/Löschen-Sichtbarkeit ist komponenteninterne Rollenlogik,
+ * serverseitig ohnehin weiterhin über die bestehenden `PATCH`/`DELETE`-Endpunkte abgesichert).
  */
 export const routes: Routes = [
   { path: 'login', component: LoginPageComponent },
@@ -41,6 +47,7 @@ export const routes: Routes = [
     children: [
       { path: '', redirectTo: 'stakeholders', pathMatch: 'full' },
       { path: 'stakeholders', component: StakeholderListComponent },
+      { path: 'stakeholders/:stakeholderId', component: StakeholderDetailComponent },
       { path: 'map', component: MapPlaceholderComponent, canActivate: [roleGuard(['PL', 'Coreteam', 'Architect'])] },
       { path: 'distribution', component: DistributionPlaceholderComponent, canActivate: [roleGuard(['PL', 'Coreteam'])] },
       { path: 'access-denied', component: AccessDeniedComponent },

@@ -4,6 +4,26 @@ Alle nennenswerten Änderungen an diesem Projekt werden hier je User Story dokum
 
 ## [Unreleased]
 
+### US-026 — Stakeholder-Detailseite Shell (S4)
+
+- `GET /api/v1/stakeholders/{id}` (neu) liefert einen einzelnen Stakeholder für alle vier
+  Projektrollen (Lesezugriff, Bearbeiten bleibt unverändert über den seit US-022 rollen-
+  beschränkten `PATCH`-Endpoint) — `404`, wenn nicht vorhanden oder soft-gelöscht (konsistent mit
+  US-022/US-023).
+- Neuer Application Service `GetStakeholderService`.
+- **Frontend**: neue Route `/projects/:id/stakeholders/:stakeholderId` mit
+  `StakeholderDetailComponent` — Kopfbereich (Name, Typ, Organisation, „zuletzt geändert von/am“),
+  Stammdaten-Bereich mit allen F1.1-Feldern (editierbar nur für `PL`/`Coreteam`/`Architect` über
+  die bestehende `EditStakeholderFormComponent` aus US-022, sonst read-only), CTA „Löschen“ nur
+  für `PL` über die bestehende `DeleteStakeholderDialogComponent` aus US-023 (navigiert nach
+  Erfolg zurück zur Liste), sowie Platzhalter-Slots für „Kommunikationszuordnungen“ (US-040) und
+  „Assessment“ (US-029). Ein `404` zeigt eine „Nicht gefunden“-Ansicht. `StakeholderListComponent`
+  verlinkt den Namen jedes aktiven Eintrags auf die Detailseite.
+- Tests: dedizierter Story-Test `US026_StakeholderDetailShellTests` (Testcontainers-PostgreSQL),
+  `GetStakeholderServiceTests` (Application), neue `stakeholder-detail.component.spec.ts`.
+- Smoke-Test: isolierter `docker compose up --build` — Stakeholder anlegen, Detailseite laden,
+  soft-löschen, erneuter Aufruf liefert `404` — End-to-End über die REST-API verifiziert.
+
 ### US-024 — Stakeholder Wiederherstellen & Papierkorb-Ansicht: API + UI (S3.x)
 
 - `GET /api/v1/projects/{projectId}/stakeholders?deleted=true` liefert ausschließlich

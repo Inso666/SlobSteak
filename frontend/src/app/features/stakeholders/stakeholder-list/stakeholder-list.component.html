@@ -36,7 +36,13 @@
     <tbody>
       @for (stakeholder of stakeholders; track stakeholder.id) {
         <tr [class.deleted]="showDeleted">
-          <td>{{ stakeholder.name }}</td>
+          <td>
+            @if (showDeleted) {
+              {{ stakeholder.name }}
+            } @else {
+              <a [routerLink]="[stakeholder.id]">{{ stakeholder.name }}</a>
+            }
+          </td>
           <td>{{ stakeholder.type }}</td>
           <td>{{ stakeholder.organization }}</td>
           <td>{{ stakeholder.position }}</td>

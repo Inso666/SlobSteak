@@ -1,5 +1,5 @@
 import { Component, OnInit, inject } from '@angular/core';
-import { ActivatedRoute } from '@angular/router';
+import { ActivatedRoute, RouterLink } from '@angular/router';
 import { FormBuilder, ReactiveFormsModule } from '@angular/forms';
 import { DatePipe } from '@angular/common';
 import { debounceTime } from 'rxjs';
@@ -35,7 +35,7 @@ import { DeleteStakeholderDialogComponent } from '../delete-stakeholder-dialog/d
 @Component({
   selector: 'app-stakeholder-list',
   standalone: true,
-  imports: [ReactiveFormsModule, DatePipe, CreateStakeholderFormComponent, EditStakeholderFormComponent, DeleteStakeholderDialogComponent],
+  imports: [ReactiveFormsModule, RouterLink, DatePipe, CreateStakeholderFormComponent, EditStakeholderFormComponent, DeleteStakeholderDialogComponent],
   templateUrl: './stakeholder-list.component.html',
   styleUrl: './stakeholder-list.component.css',
 })

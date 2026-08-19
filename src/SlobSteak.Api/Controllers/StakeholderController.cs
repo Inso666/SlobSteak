@@ -137,6 +137,7 @@ public sealed class StakeholderController : ControllerBase
     private readonly ListStakeholdersService _listStakeholdersService;
     private readonly DeletedStakeholdersQuery _deletedStakeholdersQuery;
     private readonly RestoreStakeholderService _restoreStakeholderService;
+    private readonly GetStakeholderService _getStakeholderService;
     private readonly IProjectRepository _projectRepository;
 
     public StakeholderController(
@@ -146,6 +147,7 @@ public sealed class StakeholderController : ControllerBase
         ListStakeholdersService listStakeholdersService,
         DeletedStakeholdersQuery deletedStakeholdersQuery,
         RestoreStakeholderService restoreStakeholderService,
+        GetStakeholderService getStakeholderService,
         IProjectRepository projectRepository)
     {
         _createStakeholderService = createStakeholderService;
@@ -154,6 +156,7 @@ public sealed class StakeholderController : ControllerBase
         _listStakeholdersService = listStakeholdersService;
         _deletedStakeholdersQuery = deletedStakeholdersQuery;
         _restoreStakeholderService = restoreStakeholderService;
+        _getStakeholderService = getStakeholderService;
         _projectRepository = projectRepository;
     }
 
@@ -212,6 +215,31 @@ public sealed class StakeholderController : ControllerBase
         var items = await _listStakeholdersService.ListActiveStakeholdersAsync(
             projectId, search, parsedType, communicationTypeId, cancellationToken);
         return Ok(items.Select(StakeholderResponse.FromListItem));
+    }
+
+    /// <summary>Liefert einen einzelnen Stakeholder für die Detailseite (US-026, Screen S4).
+    /// Route ohne <c>projectId</c>-Segment, die Rollenprüfung erfolgt über
+    /// <see cref="StakeholderProjectRoleAuthorizationHandler"/> (ADR-0007). Für alle vier
+    /// Projektrollen erreichbar (Akzeptanzkriterium 1/2 — Bearbeiten bleibt über
+    /// <see cref="UpdateStakeholder"/> weiterhin auf <c>PL</c>/<c>Coreteam</c>/<c>Architect</c>
+    /// beschränkt, das ist eine reine UI-Ausblendung für Rolle <c>User</c> auf dieser Seite).
+    /// Liefert <c>404</c>, wenn der Stakeholder nicht existiert oder bereits soft-gelöscht ist
+    /// (Akzeptanzkriterium 5 „Nicht gefunden“-Ansicht, konsistent mit US-022/US-023).</summary>
+    [HttpGet("/api/v1/stakeholders/{id:guid}")]
+    [RequireProjectRole(ProjectRole.PL, ProjectRole.Coreteam, ProjectRole.Architect, ProjectRole.User)]
+    [ProducesResponseType(typeof(StakeholderResponse), StatusCodes.Status200OK)]
+    [ProducesResponseType(StatusCodes.Status401Unauthorized)]
+    [ProducesResponseType(StatusCodes.Status403Forbidden)]
+    [ProducesResponseType(StatusCodes.Status404NotFound)]
+    public async Task<IActionResult> GetStakeholder(Guid id, CancellationToken cancellationToken)
+    {
+        var item = await _getStakeholderService.GetByIdAsync(id, cancellationToken);
+        if (item is null)
+        {
+            return NotFound();
+        }
+
+        return Ok(StakeholderResponse.FromListItem(item));
     }
 
     /// <summary>Legt einen neuen Stakeholder im Projekt an. Ein Namensduplikat blockiert das

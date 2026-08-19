@@ -86,6 +86,12 @@ export class StakeholdersService {
     return this.http.post<Stakeholder>(`/api/v1/projects/${projectId}/stakeholders`, payload);
   }
 
+  /** US-026 Akzeptanzkriterium 1: Detailseite (Screen S4). 404, wenn nicht vorhanden oder
+   * soft-gelöscht (Akzeptanzkriterium 5). */
+  getStakeholder(id: string): Observable<Stakeholder> {
+    return this.http.get<Stakeholder>(`/api/v1/stakeholders/${id}`);
+  }
+
   updateStakeholder(id: string, payload: StakeholderDetailsPayload): Observable<Stakeholder> {
     return this.http.patch<Stakeholder>(`/api/v1/stakeholders/${id}`, payload);
   }
