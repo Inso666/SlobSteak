@@ -1,8 +1,9 @@
-import { Component, inject } from '@angular/core';
+import { Component, OnInit, inject } from '@angular/core';
 import { FormBuilder, ReactiveFormsModule, Validators } from '@angular/forms';
 import { Router } from '@angular/router';
 import { AuthService } from '../auth.service';
 import { PasswordChangeModalComponent } from '../password-change-modal/password-change-modal.component';
+import { SessionNoticeService } from '../../../core/services/session-notice.service';
 import { ProcessingButtonComponent } from '../../../shared/processing-button/processing-button.component';
 
 /**
@@ -11,6 +12,10 @@ import { ProcessingButtonComponent } from '../../../shared/processing-button/pro
  * sofort bei `mustChangePassword = false`) navigiert die Anwendung weiter zur Projektübersicht
  * (S2). `/projects` existiert als Ziel-Route erst mit US-018 — die Navigation dorthin ist bereits
  * jetzt korrekt verdrahtet, siehe Anmerkungen in der Story-Datei.
+ *
+ * US-044: zeigt zusätzlich den einmaligen Hinweistext an, den `httpErrorInterceptor` bei einem
+ * automatischen Redirect wegen abgelaufener Sitzung (`401`) über {@link SessionNoticeService}
+ * hinterlegt (Akzeptanzkriterium 2).
  */
 @Component({
   selector: 'app-login-page',
@@ -19,12 +24,14 @@ import { ProcessingButtonComponent } from '../../../shared/processing-button/pro
   templateUrl: './login-page.component.html',
   styleUrl: './login-page.component.css',
 })
-export class LoginPageComponent {
+export class LoginPageComponent implements OnInit {
   private readonly formBuilder = inject(FormBuilder);
   private readonly authService = inject(AuthService);
   private readonly router = inject(Router);
+  private readonly sessionNotice = inject(SessionNoticeService);
 
   protected errorMessage: string | null = null;
+  protected sessionExpiredMessage: string | null = null;
   protected isSubmitting = false;
   protected mustChangePassword = false;
 
@@ -32,6 +39,10 @@ export class LoginPageComponent {
     email: ['', Validators.required],
     password: ['', Validators.required],
   });
+
+  ngOnInit(): void {
+    this.sessionExpiredMessage = this.sessionNotice.consume();
+  }
 
   protected onSubmit(): void {
     // US-043 Akzeptanzkriterium 3/5: ein zweiter Trigger während eines laufenden Requests löst

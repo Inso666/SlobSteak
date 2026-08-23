@@ -8,3 +8,13 @@
   color: #b00020;
   font-size: 0.875rem;
 }
+
+.session-expired-notice {
+  color: #8a5300;
+  background: #fff4e0;
+  border: 1px solid #f0c47a;
+  border-radius: 0.25rem;
+  padding: 0.5rem 0.75rem;
+  font-size: 0.875rem;
+  margin-bottom: 1rem;
+}

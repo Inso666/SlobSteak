@@ -1,9 +1,11 @@
+import { HttpErrorResponse } from '@angular/common/http';
 import { TestBed } from '@angular/core/testing';
 import { provideRouter, Router } from '@angular/router';
-import { of } from 'rxjs';
+import { of, throwError } from 'rxjs';
 import { ProjectOverviewItem, ProjectsService } from '../projects.service';
 import { AdminProject, AdminProjectsService } from '../../admin/admin-projects.service';
 import { TokenStorageService } from '../../auth/token-storage.service';
+import { LOAD_ERROR_MESSAGE } from '../../../core/messages/http-error-messages';
 import { ProjectOverviewComponent } from './project-overview.component';
 
 describe('ProjectOverviewComponent', () => {
@@ -62,6 +64,24 @@ describe('ProjectOverviewComponent', () => {
     expect(adminProjectsServiceSpy.listProjects).toHaveBeenCalled();
     expect(fixture.componentInstance['allProjects']).toEqual(allProjects);
     expect(fixture.componentInstance['isSystemAdmin']).toBeTrue();
+  });
+
+  it('should show a consistent load-error message when own projects fail to load (US-044 Akzeptanzkriterium 4)', () => {
+    configure(false);
+    projectsServiceSpy.listMyProjects.and.returnValue(throwError(() => new HttpErrorResponse({ status: 500 })));
+    const fixture = TestBed.createComponent(ProjectOverviewComponent);
+    fixture.detectChanges();
+
+    expect(fixture.componentInstance['loadError']).toBe(LOAD_ERROR_MESSAGE);
+  });
+
+  it('should show a consistent load-error message when all projects fail to load for a system admin', () => {
+    configure(true);
+    adminProjectsServiceSpy.listProjects.and.returnValue(throwError(() => new HttpErrorResponse({ status: 500 })));
+    const fixture = TestBed.createComponent(ProjectOverviewComponent);
+    fixture.detectChanges();
+
+    expect(fixture.componentInstance['loadError']).toBe(LOAD_ERROR_MESSAGE);
   });
 
   it('should switch the active tab on selection', () => {

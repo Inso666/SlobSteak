@@ -8,6 +8,7 @@ import { ProjectsService } from '../../projects/projects.service';
 import { CreateStakeholderFormComponent } from '../create-stakeholder-form/create-stakeholder-form.component';
 import { EditStakeholderFormComponent } from '../edit-stakeholder-form/edit-stakeholder-form.component';
 import { DeleteStakeholderDialogComponent } from '../delete-stakeholder-dialog/delete-stakeholder-dialog.component';
+import { LOAD_ERROR_MESSAGE } from '../../../core/messages/http-error-messages';
 import { ProcessingButtonComponent } from '../../../shared/processing-button/processing-button.component';
 
 /**
@@ -60,6 +61,7 @@ export class StakeholderListComponent implements OnInit {
   protected editingStakeholder: Stakeholder | null = null;
   protected deletingStakeholder: Stakeholder | null = null;
   protected showDeleted = false;
+  protected loadError: string | null = null;
   /** US-043 Akzeptanzkriterium 1/2/3/4: IDs der Stakeholder, deren Wiederherstellung gerade läuft. */
   protected readonly restoringStakeholderIds = new Set<string>();
 
@@ -140,21 +142,27 @@ export class StakeholderListComponent implements OnInit {
     });
   }
 
+  /** US-044 Akzeptanzkriterium 4: konsistente Fehlermeldung statt stumm leerer Liste bei
+   * fehlgeschlagenem Laden. */
   private loadStakeholders(): void {
     if (!this.projectId) {
       return;
     }
 
+    this.loadError = null;
+
     if (this.showDeleted) {
-      this.stakeholdersService.listStakeholders(this.projectId, { deleted: true }).subscribe((stakeholders) => {
-        this.stakeholders = stakeholders;
+      this.stakeholdersService.listStakeholders(this.projectId, { deleted: true }).subscribe({
+        next: (stakeholders) => (this.stakeholders = stakeholders),
+        error: () => (this.loadError = LOAD_ERROR_MESSAGE),
       });
       return;
     }
 
     const { search, type } = this.filterForm.getRawValue();
-    this.stakeholdersService.listStakeholders(this.projectId, { search: search || undefined, type: type || undefined }).subscribe((stakeholders) => {
-      this.stakeholders = stakeholders;
+    this.stakeholdersService.listStakeholders(this.projectId, { search: search || undefined, type: type || undefined }).subscribe({
+      next: (stakeholders) => (this.stakeholders = stakeholders),
+      error: () => (this.loadError = LOAD_ERROR_MESSAGE),
     });
   }
 }

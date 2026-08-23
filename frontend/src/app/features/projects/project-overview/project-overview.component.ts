@@ -3,6 +3,7 @@ import { Router } from '@angular/router';
 import { ProjectOverviewItem, ProjectsService } from '../projects.service';
 import { AdminProject, AdminProjectsService } from '../../admin/admin-projects.service';
 import { TokenStorageService } from '../../auth/token-storage.service';
+import { LOAD_ERROR_MESSAGE } from '../../../core/messages/http-error-messages';
 
 /**
  * Projektübersicht (US-018, Screen S2): Kartenübersicht der dem Nutzer zugewiesenen Projekte mit
@@ -28,14 +29,23 @@ export class ProjectOverviewComponent implements OnInit {
   protected myProjects: ProjectOverviewItem[] = [];
   protected allProjects: AdminProject[] = [];
   protected activeTab: 'mine' | 'all' = 'mine';
+  protected loadError: string | null = null;
 
   protected readonly isSystemAdmin = this.tokenStorage.getClaims()?.isSystemAdmin ?? false;
 
+  /** US-044 Akzeptanzkriterium 4: konsistente Fehlermeldung statt stumm leerer Ansicht bei
+   * fehlgeschlagenem Laden. */
   ngOnInit(): void {
-    this.projectsService.listMyProjects().subscribe((projects) => (this.myProjects = projects));
+    this.projectsService.listMyProjects().subscribe({
+      next: (projects) => (this.myProjects = projects),
+      error: () => (this.loadError = LOAD_ERROR_MESSAGE),
+    });
 
     if (this.isSystemAdmin) {
-      this.adminProjectsService.listProjects().subscribe((projects) => (this.allProjects = projects));
+      this.adminProjectsService.listProjects().subscribe({
+        next: (projects) => (this.allProjects = projects),
+        error: () => (this.loadError = LOAD_ERROR_MESSAGE),
+      });
     }
   }
 

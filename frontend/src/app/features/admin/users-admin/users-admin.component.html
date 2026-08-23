@@ -1,6 +1,10 @@
 <section class="admin-users">
   <h1>Nutzerverwaltung</h1>
 
+  @if (loadError) {
+    <p class="load-error" role="alert">{{ loadError }}</p>
+  }
+
   <table>
     <thead>
       <tr>

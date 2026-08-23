@@ -1,6 +1,10 @@
 <section class="project-overview">
   <h1>Projektübersicht</h1>
 
+  @if (loadError) {
+    <p class="load-error" role="alert">{{ loadError }}</p>
+  }
+
   @if (isSystemAdmin) {
     <div class="tabs">
       <button type="button" [class.active]="activeTab === 'mine'" (click)="onSelectTab('mine')">
