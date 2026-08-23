@@ -191,7 +191,10 @@ describe('US-043 Einheitliches Verarbeitungs-Feedback & Doppel-Submit-Schutz', (
       const resetSubject = new Subject<void>();
       spy.resetPassword.and.returnValue(resetSubject.asObservable());
 
-      TestBed.configureTestingModule({ imports: [UsersAdminComponent], providers: [{ provide: AdminUsersService, useValue: spy }] });
+      TestBed.configureTestingModule({
+        imports: [UsersAdminComponent],
+        providers: [provideRouter([]), { provide: AdminUsersService, useValue: spy }],
+      });
       const fixture = TestBed.createComponent(UsersAdminComponent);
       fixture.detectChanges();
       const component = fixture.componentInstance;
@@ -216,7 +219,10 @@ describe('US-043 Einheitliches Verarbeitungs-Feedback & Doppel-Submit-Schutz', (
       const subject = new Subject<AdminProject>();
       spy.createProject.and.returnValue(subject.asObservable());
 
-      TestBed.configureTestingModule({ imports: [ProjectsAdminComponent], providers: [{ provide: AdminProjectsService, useValue: spy }] });
+      TestBed.configureTestingModule({
+        imports: [ProjectsAdminComponent],
+        providers: [provideRouter([]), { provide: AdminProjectsService, useValue: spy }],
+      });
       const fixture = TestBed.createComponent(ProjectsAdminComponent);
       fixture.detectChanges();
       const component = fixture.componentInstance;

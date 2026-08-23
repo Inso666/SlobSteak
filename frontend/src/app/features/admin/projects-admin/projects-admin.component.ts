@@ -1,5 +1,6 @@
 import { Component, OnInit, inject } from '@angular/core';
 import { FormBuilder, ReactiveFormsModule, Validators } from '@angular/forms';
+import { AdminSubNavComponent } from '../admin-sub-nav/admin-sub-nav.component';
 import { AdminProject, AdminProjectsService } from '../admin-projects.service';
 import { ProjectMembershipManagerComponent } from './project-membership-manager.component';
 import { LOAD_ERROR_MESSAGE } from '../../../core/messages/http-error-messages';
@@ -11,11 +12,19 @@ import { ProcessingButtonComponent } from '../../../shared/processing-button/pro
  * Formular zum Anlegen neuer Projekte (Akzeptanzkriterium 2). Die Mitgliederverwaltung je Projekt
  * (Akzeptanzkriterium 3/4) übernimmt die ausgelagerte
  * {@link ProjectMembershipManagerComponent}, sichtbar für das per Klick ausgewählte Projekt.
+ *
+ * US-046: Zeigt zusätzlich {@link AdminSubNavComponent}, damit ein Systemadmin von hier zum
+ * Sub-Bereich „Nutzer“ wechseln kann (Akzeptanzkriterium 4).
  */
 @Component({
   selector: 'app-projects-admin',
   standalone: true,
-  imports: [ReactiveFormsModule, ProjectMembershipManagerComponent, ProcessingButtonComponent],
+  imports: [
+    ReactiveFormsModule,
+    ProjectMembershipManagerComponent,
+    AdminSubNavComponent,
+    ProcessingButtonComponent,
+  ],
   templateUrl: './projects-admin.component.html',
   styleUrl: './projects-admin.component.css',
 })

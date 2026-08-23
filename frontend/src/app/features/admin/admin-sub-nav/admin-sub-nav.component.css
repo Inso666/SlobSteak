@@ -1,0 +1,20 @@
+.admin-sub-nav ul {
+  display: flex;
+  gap: 1rem;
+  list-style: none;
+  margin: 0 0 1.5rem;
+  padding: 0;
+  border-bottom: 1px solid #ddd;
+}
+
+.admin-sub-nav a {
+  display: inline-block;
+  padding: 0.5rem 0;
+  text-decoration: none;
+  color: inherit;
+}
+
+.admin-sub-nav a.active {
+  font-weight: bold;
+  border-bottom: 2px solid #333;
+}

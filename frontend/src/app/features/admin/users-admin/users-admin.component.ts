@@ -1,6 +1,7 @@
 import { Component, OnInit, inject } from '@angular/core';
 import { HttpErrorResponse } from '@angular/common/http';
 import { FormBuilder, ReactiveFormsModule, Validators } from '@angular/forms';
+import { AdminSubNavComponent } from '../admin-sub-nav/admin-sub-nav.component';
 import { AdminUser, AdminUsersService } from '../admin-users.service';
 import { LOAD_ERROR_MESSAGE } from '../../../core/messages/http-error-messages';
 import { ProcessingButtonComponent } from '../../../shared/processing-button/processing-button.component';
@@ -8,11 +9,14 @@ import { ProcessingButtonComponent } from '../../../shared/processing-button/pro
 /**
  * Admin-Bereich „Nutzerverwaltung“ (US-016, Screen S5 Sub-Bereich Nutzer): Liste aller Nutzer,
  * Formular zum Anlegen neuer Nutzer, Aktion zum Zurücksetzen eines Passworts je Zeile.
+ *
+ * US-046: Zeigt zusätzlich {@link AdminSubNavComponent}, damit ein Systemadmin von hier zum
+ * Sub-Bereich „Projekte“ wechseln kann (Akzeptanzkriterium 4).
  */
 @Component({
   selector: 'app-users-admin',
   standalone: true,
-  imports: [ReactiveFormsModule, ProcessingButtonComponent],
+  imports: [ReactiveFormsModule, AdminSubNavComponent, ProcessingButtonComponent],
   templateUrl: './users-admin.component.html',
   styleUrl: './users-admin.component.css',
 })

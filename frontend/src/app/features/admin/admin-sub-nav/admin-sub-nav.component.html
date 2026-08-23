@@ -1,0 +1,9 @@
+<nav class="admin-sub-nav" aria-label="Admin-Bereiche">
+  <ul>
+    @for (link of links; track link.route) {
+      <li>
+        <a [routerLink]="link.route" routerLinkActive="active">{{ link.label }}</a>
+      </li>
+    }
+  </ul>
+</nav>

@@ -1,4 +1,6 @@
 <section class="admin-projects">
+  <app-admin-sub-nav />
+
   <h1>Projektverwaltung</h1>
 
   @if (loadError) {
@@ -22,7 +24,9 @@
           <td>{{ project.memberCount }}</td>
           <td>
             <button type="button" (click)="onSelectProject(project)">
-              {{ selectedProjectId === project.id ? 'Mitglieder ausblenden' : 'Mitglieder verwalten' }}
+              {{
+                selectedProjectId === project.id ? 'Mitglieder ausblenden' : 'Mitglieder verwalten'
+              }}
             </button>
           </td>
         </tr>

@@ -2,6 +2,7 @@
 **Titel:** Admin-Bereich über globale Navigation erreichbar machen
 **Bounded Context / Domain:** Frontend-Shell
 **Abhängigkeiten:** US-016, US-017, US-045
+**Status:** fertig am 23.08.2026, PR feature/US-046-admin-nav-eintrag → main (Auto-Merge aktiviert)
 
 ---
 
@@ -38,5 +39,25 @@ Als **Systemadmin** möchte ich den Admin-Bereich (Nutzerverwaltung, Projektverw
 ### Anmerkungen des Dev-Agenten
 
 - Der PRD-seitig unter Screen S5 genannte dritte Sub-Bereich „Kommunikationsarten-Katalog“ existiert im Frontend noch nicht (folgt erst mit US-038) — die hier eingeführte Sub-Navigation zwischen „Nutzer“ und „Projekte“ ist so zu bauen, dass ein dritter Eintrag später ohne strukturellen Umbau ergänzt werden kann (z. B. einfache Liste von `routerLink`-Einträgen, kein hartcodiertes Zwei-Elemente-Layout).
+
+**Umsetzung (23.08.2026):**
+
+- `nav-items.ts` um `APP_NAV_ADMIN_LINK` (Label „Admin“, Route `/admin/users`) ergänzt, getrennt von
+  `APP_NAV_LINKS` — genau wie vom Vorgänger-Agenten vorbereitet. `AppNavigationComponent` erhält
+  ein zweites Signal `isAdmin` (analog zu `isVisible`, ebenfalls bei jedem `NavigationEnd` neu
+  berechnet aus `TokenStorageService.getClaims()?.isSystemAdmin`); das Template rendert den
+  Admin-Link nur innerhalb eines `@if (isAdmin())`-Blocks, sodass er bei fehlender Berechtigung
+  vollständig aus dem DOM entfernt wird (Akzeptanzkriterium 2).
+- Neue, wiederverwendbare `AdminSubNavComponent`
+  (`frontend/src/app/features/admin/admin-sub-nav/`), gespeist aus einer neuen Konfigurationsliste
+  `admin-nav-items.ts` (`ADMIN_SUB_NAV_LINKS`, Einträge „Nutzer“/„Projekte“) — bewusst als Liste
+  statt hartkodiertem Zwei-Elemente-Markup, damit ein dritter Eintrag „Kommunikationsarten-Katalog“
+  (US-038) später ohne strukturellen Umbau ergänzt werden kann. Eingebunden in
+  `UsersAdminComponent` und `ProjectsAdminComponent`; aktiver Sub-Bereich wird per
+  `routerLinkActive="active"` hervorgehoben (Akzeptanzkriterium 5), analog zu
+  `project-workspace-layout.component.html`.
+- `adminGuard`/`app.routes.ts` unverändert — Regressionstest (Akzeptanzkriterium 6) im Story-Test
+  erneut geführt, bestehender `admin.guard.spec.ts` bleibt unverändert grün.
+- Keine Abweichung vom PRD/der Story; keine Rückfrage nötig.
 
 _(Weitere Anmerkungen vom Dev-Agenten bei Umsetzung zu ergänzen, falls Abweichungen vom PRD/dieser Story nötig werden.)_

@@ -6,9 +6,10 @@ import { APP_NAV_LINKS } from './nav-items';
 
 /**
  * Generische Komponententests für {@link AppNavigationComponent} — technische Details, die über
- * die in der Story-Datei gelisteten Akzeptanzkriterien hinausgehen (z. B. Erweiterbarkeit der
- * Nav-Item-Konfiguration für US-046). Der dedizierte, AC-für-AC-Nachweis liegt getrennt in
- * `us-045-app-navigation.spec.ts` (Konvention siehe .claude/agents/qa.md Abschnitt 1).
+ * die in den Story-Dateien gelisteten Akzeptanzkriterien hinausgehen. Der dedizierte,
+ * AC-für-AC-Nachweis liegt getrennt in `us-045-app-navigation.spec.ts` (Sichtbarkeit/Abmelden) und
+ * `../../../features/admin/us-046-admin-navigation.spec.ts` (Admin-Eintrag) — Konvention siehe
+ * .claude/agents/qa.md Abschnitt 1.
  */
 describe('AppNavigationComponent', () => {
   let tokenStorage: TokenStorageService;
@@ -28,7 +29,7 @@ describe('AppNavigationComponent', () => {
     expect(fixture.componentInstance).toBeTruthy();
   });
 
-  it('should render exactly the configured nav links from nav-items.ts (Erweiterbarkeit für US-046)', () => {
+  it('should render exactly the configured static nav links from nav-items.ts for a non-admin session (no Admin entry)', () => {
     tokenStorage.setToken('token-123');
     const fixture = TestBed.createComponent(AppNavigationComponent);
     fixture.detectChanges();

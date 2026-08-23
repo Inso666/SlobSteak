@@ -188,7 +188,7 @@ describe('US-044: Globales HTTP-Error-Handling inkl. automatischer Weiterleitung
 
       TestBed.configureTestingModule({
         imports: [UsersAdminComponent],
-        providers: [{ provide: AdminUsersService, useValue: adminUsersServiceSpy }],
+        providers: [provideRouter([]), { provide: AdminUsersService, useValue: adminUsersServiceSpy }],
       });
       const fixture = TestBed.createComponent(UsersAdminComponent);
       fixture.detectChanges();
@@ -202,7 +202,10 @@ describe('US-044: Globales HTTP-Error-Handling inkl. automatischer Weiterleitung
 
       TestBed.configureTestingModule({
         imports: [ProjectsAdminComponent],
-        providers: [{ provide: AdminProjectsService, useValue: adminProjectsServiceSpy }],
+        providers: [
+          provideRouter([]),
+          { provide: AdminProjectsService, useValue: adminProjectsServiceSpy },
+        ],
       });
       const fixture = TestBed.createComponent(ProjectsAdminComponent);
       fixture.detectChanges();

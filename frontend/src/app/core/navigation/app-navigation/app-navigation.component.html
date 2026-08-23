@@ -8,6 +8,11 @@
           <a [routerLink]="link.route" routerLinkActive="active">{{ link.label }}</a>
         </li>
       }
+      @if (isAdmin()) {
+        <li>
+          <a [routerLink]="adminLink.route" routerLinkActive="active">{{ adminLink.label }}</a>
+        </li>
+      }
     </ul>
 
     <button type="button" class="app-navigation__logout" (click)="onLogout()">

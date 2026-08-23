@@ -1,5 +1,6 @@
 import { HttpErrorResponse } from '@angular/common/http';
 import { TestBed } from '@angular/core/testing';
+import { provideRouter } from '@angular/router';
 import { of, throwError } from 'rxjs';
 import { AdminProject, AdminProjectsService } from '../admin-projects.service';
 import { LOAD_ERROR_MESSAGE } from '../../../core/messages/http-error-messages';
@@ -33,7 +34,10 @@ describe('ProjectsAdminComponent', () => {
 
     await TestBed.configureTestingModule({
       imports: [ProjectsAdminComponent],
-      providers: [{ provide: AdminProjectsService, useValue: adminProjectsServiceSpy }],
+      providers: [
+        provideRouter([]),
+        { provide: AdminProjectsService, useValue: adminProjectsServiceSpy },
+      ],
     }).compileComponents();
   });
 
@@ -64,7 +68,10 @@ describe('ProjectsAdminComponent', () => {
     component['createForm'].setValue({ name: 'Neues Projekt', description: 'Beschreibung' });
     component['onCreateProject']();
 
-    expect(adminProjectsServiceSpy.createProject).toHaveBeenCalledWith('Neues Projekt', 'Beschreibung');
+    expect(adminProjectsServiceSpy.createProject).toHaveBeenCalledWith(
+      'Neues Projekt',
+      'Beschreibung',
+    );
     expect(adminProjectsServiceSpy.listProjects).toHaveBeenCalledTimes(2);
   });
 
