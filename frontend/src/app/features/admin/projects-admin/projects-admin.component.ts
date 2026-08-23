@@ -2,6 +2,7 @@ import { Component, OnInit, inject } from '@angular/core';
 import { FormBuilder, ReactiveFormsModule, Validators } from '@angular/forms';
 import { AdminProject, AdminProjectsService } from '../admin-projects.service';
 import { ProjectMembershipManagerComponent } from './project-membership-manager.component';
+import { ProcessingButtonComponent } from '../../../shared/processing-button/processing-button.component';
 
 /**
  * Admin-Bereich „Projektverwaltung & Mitgliederzuweisung“ (US-017, Screen S5 Sub-Bereich
@@ -13,7 +14,7 @@ import { ProjectMembershipManagerComponent } from './project-membership-manager.
 @Component({
   selector: 'app-projects-admin',
   standalone: true,
-  imports: [ReactiveFormsModule, ProjectMembershipManagerComponent],
+  imports: [ReactiveFormsModule, ProjectMembershipManagerComponent, ProcessingButtonComponent],
   templateUrl: './projects-admin.component.html',
   styleUrl: './projects-admin.component.css',
 })
@@ -24,6 +25,8 @@ export class ProjectsAdminComponent implements OnInit {
   protected projects: AdminProject[] = [];
   protected createErrorMessage: string | null = null;
   protected selectedProjectId: string | null = null;
+  /** US-043 Akzeptanzkriterium 1/2/3/4: Verarbeitungs-Feedback + Doppel-Submit-Schutz. */
+  protected isCreatingProject = false;
 
   protected readonly createForm = this.formBuilder.nonNullable.group({
     name: ['', Validators.required],
@@ -35,19 +38,24 @@ export class ProjectsAdminComponent implements OnInit {
   }
 
   protected onCreateProject(): void {
-    if (this.createForm.invalid) {
+    // US-043 Akzeptanzkriterium 3: ein zweiter Trigger während eines laufenden Requests löst
+    // nachweislich keinen zweiten HTTP-Request aus.
+    if (this.createForm.invalid || this.isCreatingProject) {
       return;
     }
 
     this.createErrorMessage = null;
+    this.isCreatingProject = true;
     const { name, description } = this.createForm.getRawValue();
 
     this.adminProjectsService.createProject(name, description || null).subscribe({
       next: () => {
+        this.isCreatingProject = false;
         this.createForm.reset();
         this.loadProjects();
       },
       error: () => {
+        this.isCreatingProject = false;
         this.createErrorMessage = 'Projekt konnte nicht angelegt werden.';
       },
     });

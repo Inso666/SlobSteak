@@ -1,6 +1,7 @@
 import { Component, EventEmitter, Output, inject } from '@angular/core';
 import { FormBuilder, ReactiveFormsModule, Validators } from '@angular/forms';
 import { AuthService } from '../auth.service';
+import { ProcessingButtonComponent } from '../../../shared/processing-button/processing-button.component';
 
 /**
  * Blockierendes Passwort-Änderungs-Modal (US-008, Screen S1). Wird nach einem Login mit
@@ -13,7 +14,7 @@ import { AuthService } from '../auth.service';
 @Component({
   selector: 'app-password-change-modal',
   standalone: true,
-  imports: [ReactiveFormsModule],
+  imports: [ReactiveFormsModule, ProcessingButtonComponent],
   templateUrl: './password-change-modal.component.html',
   styleUrl: './password-change-modal.component.css',
 })
@@ -31,8 +32,13 @@ export class PasswordChangeModalComponent {
   });
 
   protected onSubmit(): void {
+    // US-043 Akzeptanzkriterium 3/5: ein zweiter Trigger während eines laufenden Requests löst
+    // nachweislich keinen zweiten HTTP-Request aus.
     if (this.form.invalid) {
       this.form.markAllAsTouched();
+      return;
+    }
+    if (this.isSubmitting) {
       return;
     }
 

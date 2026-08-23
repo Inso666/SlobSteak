@@ -15,7 +15,13 @@
           <td>{{ user.name }}</td>
           <td>{{ user.email }}</td>
           <td>
-            <button type="button" (click)="onResetPassword(user)">Passwort zurücksetzen</button>
+            <app-processing-button
+              type="button"
+              [isSubmitting]="resettingUserIds.has(user.id)"
+              label="Passwort zurücksetzen"
+              submittingLabel="Wird zurückgesetzt…"
+              (click)="onResetPassword(user)"
+            />
           </td>
         </tr>
       }
@@ -40,6 +46,6 @@
     <label for="initialPassword">Initiales Passwort</label>
     <input id="initialPassword" type="password" formControlName="initialPassword" />
 
-    <button type="submit" [disabled]="createForm.invalid">Nutzer anlegen</button>
+    <app-processing-button type="submit" [disabled]="createForm.invalid" [isSubmitting]="isCreatingUser" label="Nutzer anlegen" submittingLabel="Wird angelegt…" />
   </form>
 </section>
