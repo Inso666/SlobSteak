@@ -40,8 +40,8 @@
     }
 
     <div class="actions">
-      <button type="submit" [disabled]="form.invalid">Speichern</button>
-      <button type="button" (click)="onCancel()">Abbrechen</button>
+      <app-processing-button type="submit" [disabled]="form.invalid" [isSubmitting]="isSubmitting" label="Speichern" submittingLabel="Wird gespeichert…" />
+      <button type="button" [disabled]="isSubmitting" (click)="onCancel()">Abbrechen</button>
     </div>
   </form>
 </section>

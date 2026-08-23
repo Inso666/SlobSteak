@@ -9,6 +9,7 @@ import { CreateStakeholderFormComponent } from '../create-stakeholder-form/creat
 import { EditStakeholderFormComponent } from '../edit-stakeholder-form/edit-stakeholder-form.component';
 import { DeleteStakeholderDialogComponent } from '../delete-stakeholder-dialog/delete-stakeholder-dialog.component';
 import { LOAD_ERROR_MESSAGE } from '../../../core/messages/http-error-messages';
+import { ProcessingButtonComponent } from '../../../shared/processing-button/processing-button.component';
 
 /**
  * Stakeholder-Liste mit Suche/Filter (US-025, Standard-Landingtab „Stakeholder-Liste“ der
@@ -36,7 +37,15 @@ import { LOAD_ERROR_MESSAGE } from '../../../core/messages/http-error-messages';
 @Component({
   selector: 'app-stakeholder-list',
   standalone: true,
-  imports: [ReactiveFormsModule, RouterLink, DatePipe, CreateStakeholderFormComponent, EditStakeholderFormComponent, DeleteStakeholderDialogComponent],
+  imports: [
+    ReactiveFormsModule,
+    RouterLink,
+    DatePipe,
+    CreateStakeholderFormComponent,
+    EditStakeholderFormComponent,
+    DeleteStakeholderDialogComponent,
+    ProcessingButtonComponent,
+  ],
   templateUrl: './stakeholder-list.component.html',
   styleUrl: './stakeholder-list.component.css',
 })
@@ -53,6 +62,8 @@ export class StakeholderListComponent implements OnInit {
   protected deletingStakeholder: Stakeholder | null = null;
   protected showDeleted = false;
   protected loadError: string | null = null;
+  /** US-043 Akzeptanzkriterium 1/2/3/4: IDs der Stakeholder, deren Wiederherstellung gerade läuft. */
+  protected readonly restoringStakeholderIds = new Set<string>();
 
   protected readonly filterForm = this.formBuilder.nonNullable.group({
     search: [''],
@@ -111,9 +122,24 @@ export class StakeholderListComponent implements OnInit {
     this.loadStakeholders();
   }
 
-  /** US-024 Akzeptanzkriterium 4: aktualisiert die Papierkorb-Ansicht ohne vollständigen Reload. */
+  /** US-024 Akzeptanzkriterium 4: aktualisiert die Papierkorb-Ansicht ohne vollständigen Reload.
+   * US-043 Akzeptanzkriterium 3: ein zweiter Trigger während eines laufenden Requests löst
+   * nachweislich keinen zweiten HTTP-Request aus. */
   protected onRestore(stakeholder: Stakeholder): void {
-    this.stakeholdersService.restoreStakeholder(stakeholder.id).subscribe(() => this.loadStakeholders());
+    if (this.restoringStakeholderIds.has(stakeholder.id)) {
+      return;
+    }
+
+    this.restoringStakeholderIds.add(stakeholder.id);
+    this.stakeholdersService.restoreStakeholder(stakeholder.id).subscribe({
+      next: () => {
+        this.restoringStakeholderIds.delete(stakeholder.id);
+        this.loadStakeholders();
+      },
+      error: () => {
+        this.restoringStakeholderIds.delete(stakeholder.id);
+      },
+    });
   }
 
   /** US-044 Akzeptanzkriterium 4: konsistente Fehlermeldung statt stumm leerer Liste bei

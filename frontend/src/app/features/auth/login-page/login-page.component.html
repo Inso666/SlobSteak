@@ -17,7 +17,7 @@
         <p class="form-error">{{ errorMessage }}</p>
       }
 
-      <button type="submit" [disabled]="form.invalid || isSubmitting">Anmelden</button>
+      <app-processing-button type="submit" [disabled]="form.invalid" [isSubmitting]="isSubmitting" label="Anmelden" submittingLabel="Wird angemeldet…" />
     </form>
   </main>
 } @else {

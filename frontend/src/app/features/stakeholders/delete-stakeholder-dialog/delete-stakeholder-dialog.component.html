@@ -13,7 +13,7 @@
   }
 
   <div class="actions">
-    <button type="button" (click)="onConfirm()">Löschen bestätigen</button>
-    <button type="button" (click)="onCancel()">Abbrechen</button>
+    <app-processing-button type="button" [isSubmitting]="isSubmitting" label="Löschen bestätigen" submittingLabel="Wird gelöscht…" (click)="onConfirm()" />
+    <button type="button" [disabled]="isSubmitting" (click)="onCancel()">Abbrechen</button>
   </div>
 </div>

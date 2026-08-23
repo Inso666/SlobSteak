@@ -1,9 +1,2 @@
-.placeholder {
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  justify-content: center;
-  min-height: 100vh;
-  text-align: center;
-  font-family: sans-serif;
-}
+/* Layout ist an die Navigations-Shell (app-navigation) bzw. die jeweiligen Feature-Komponenten
+   delegiert (US-045) — der Composition Root selbst benötigt kein eigenes Styling. */

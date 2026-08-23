@@ -16,10 +16,10 @@ describe('App', () => {
     expect(app).toBeTruthy();
   });
 
-  it('should render the app header title', async () => {
+  it('should render the global navigation shell instead of a static title (US-045)', async () => {
     const fixture = TestBed.createComponent(App);
     await fixture.whenStable();
     const compiled = fixture.nativeElement as HTMLElement;
-    expect(compiled.querySelector('h1')?.textContent).toContain('SlobSteak');
+    expect(compiled.querySelector('app-navigation')).not.toBeNull();
   });
 });

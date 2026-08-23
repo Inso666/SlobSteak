@@ -48,6 +48,6 @@
       <p class="field-error">{{ createErrorMessage }}</p>
     }
 
-    <button type="submit" [disabled]="createForm.invalid">Projekt anlegen</button>
+    <app-processing-button type="submit" [disabled]="createForm.invalid" [isSubmitting]="isCreatingProject" label="Projekt anlegen" submittingLabel="Wird angelegt…" />
   </form>
 </section>
