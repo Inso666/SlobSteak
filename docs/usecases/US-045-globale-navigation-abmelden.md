@@ -2,6 +2,7 @@
 **Titel:** Globale Navigation (Shell) inkl. Abmelden-Funktion
 **Bounded Context / Domain:** Frontend-Shell
 **Abhängigkeiten:** US-006, US-009, US-018
+**Status:** fertig (23.08.2026), PR #40
 
 ---
 
@@ -41,4 +42,26 @@ Als **angemeldeter Nutzer** möchte ich über eine app-weit sichtbare Navigation
 - Diese Story liefert bewusst nur die Navigations-Shell + „Projektübersicht“ + „Abmelden“; der PRD-seitig ebenfalls in der Sidebar vorgesehene Eintrag „Admin (nur `is_system_admin`)“ ist Gegenstand von US-046, die auf dieser Story aufbaut, damit beide unabhängig überprüfbar bleiben.
 - Eine Namensanzeige des angemeldeten Nutzers ist **kein** Akzeptanzkriterium dieser Story: Das JWT führt laut `TokenClaims` (`token-storage.service.ts`) aktuell nur `sub` (User-ID) und `isSystemAdmin`, keinen Namen — eine Namensanzeige würde entweder eine JWT-Claim-Erweiterung (Backend-Änderung, außerhalb des hier beschriebenen Frontend-Scopes) oder einen zusätzlichen `GET /api/v1/users/me`-Aufruf erfordern. Beides ist bewusst nicht Teil dieser Story, um sie klein und PRD-treu zu halten; bei Bedarf als Folge-Story anlegen.
 
-_(Weitere Anmerkungen vom Dev-Agenten bei Umsetzung zu ergänzen, falls Abweichungen vom PRD/dieser Story nötig werden.)_
+- Beim manuellen Smoke-Test gegen `docker-compose up` fiel auf, dass ein im Browser noch
+  vorhandenes Session-Token die Navigation auch auf `/login` einblendete, wenn ein bereits
+  angemeldeter Nutzer diese Route manuell erneut aufruft (kein Guard verhindert das — `authGuard`
+  greift nur bei fehlendem Token, nicht bei vorhandenem). Das widerspräche Akzeptanzkriterium 1
+  („auf /login bleibt sie ausgeblendet“). Behoben, indem die Sichtbarkeit zusätzlich zur
+  Token-Prüfung explizit die aktuelle Route ausschließt (`AppNavigationComponent.computeVisibility`)
+  — ein eigener Testfall deckt diesen Randfall jetzt ab (`us-045-app-navigation.spec.ts`).
+- „Admin“-Eintrag bewusst nicht Teil dieser Story (siehe oben, folgt in US-046); Nav-Items sind als
+  Konfigurationsliste (`nav-items.ts`) modelliert, damit US-046 dort ergänzen kann, ohne das
+  Template der Navigationskomponente anzufassen.
+
+### Lokale Verifizierbarkeit
+
+- **Story-Tests isoliert ausführen:** `ng test --include='**/us-045*.spec.ts'` (in `frontend/`).
+- **Gesamte Frontend-Suite:** `ng test` (112/112 grün zum Zeitpunkt des Abschlusses).
+- **Manueller Smoke-Test** (gegen `docker-compose up --build`, `http://localhost:4200`):
+  1. `http://localhost:4200/login` ohne gespeichertes Token öffnen → keine Navigation sichtbar.
+  2. Mit `admin@example.com` / dem in `docker-compose.yml` konfigurierten `SEED_ADMIN_PASSWORD`
+     anmelden (bei Erstanmeldung folgt der erzwungene Passwortwechsel aus US-008) → Navigation
+     erscheint mit „SlobSteak“, „Projektübersicht“ (aktiv markiert) und „Abmelden“.
+  3. Auf „Abmelden“ klicken → Redirect zu `/login`, Navigation verschwindet, Token ist aus
+     `localStorage` entfernt.
+  4. `/projects` erneut manuell aufrufen → `authGuard` leitet wieder auf `/login` um.

@@ -1,0 +1,50 @@
+.app-navigation {
+  display: flex;
+  align-items: center;
+  gap: 1.5rem;
+  padding: 0.75rem 1.5rem;
+  border-bottom: 1px solid #ddd;
+  font-family: sans-serif;
+}
+
+.app-navigation__brand {
+  font-weight: bold;
+  margin-right: auto;
+}
+
+.app-navigation__links {
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+  list-style: none;
+  margin: 0;
+  padding: 0;
+}
+
+.app-navigation__links a {
+  text-decoration: none;
+  color: inherit;
+}
+
+.app-navigation__links a.active {
+  font-weight: bold;
+  border-bottom: 2px solid #333;
+}
+
+.app-navigation__logout {
+  padding: 0.4rem 0.9rem;
+  border: 1px solid #ccc;
+  border-radius: 0.25rem;
+  background: #fff;
+  cursor: pointer;
+  font: inherit;
+}
+
+.app-navigation__logout:hover {
+  background: #f5f5f5;
+}
+
+.app-navigation__logout:focus-visible {
+  outline: 2px solid #333;
+  outline-offset: 2px;
+}
