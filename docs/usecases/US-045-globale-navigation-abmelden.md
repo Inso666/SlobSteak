@@ -2,7 +2,7 @@
 **Titel:** Globale Navigation (Shell) inkl. Abmelden-Funktion
 **Bounded Context / Domain:** Frontend-Shell
 **Abhängigkeiten:** US-006, US-009, US-018
-**Status:** fertig (23.08.2026), PR #39
+**Status:** fertig (23.08.2026), PR #40
 
 ---
 
