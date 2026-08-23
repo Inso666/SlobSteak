@@ -1,0 +1,17 @@
+@if (isVisible()) {
+  <nav class="app-navigation" aria-label="Hauptnavigation">
+    <span class="app-navigation__brand">SlobSteak</span>
+
+    <ul class="app-navigation__links">
+      @for (link of navLinks; track link.route) {
+        <li>
+          <a [routerLink]="link.route" routerLinkActive="active">{{ link.label }}</a>
+        </li>
+      }
+    </ul>
+
+    <button type="button" class="app-navigation__logout" (click)="onLogout()">
+      {{ logoutLabel }}
+    </button>
+  </nav>
+}

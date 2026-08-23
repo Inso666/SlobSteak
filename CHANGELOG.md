@@ -29,6 +29,32 @@ Alle nennenswerten Änderungen an diesem Projekt werden hier je User Story dokum
 - Reiner Frontend-Anteil, keine Domain-/API-Änderung — `dotnet test` unverändert grün, `ng test`
   (gesamter Workspace, 119 Tests) grün, `ng lint` fehlerfrei.
 
+### US-045 — Globale Navigation (Shell) inkl. Abmelden-Funktion
+
+- Neue standalone `AppNavigationComponent` (`frontend/src/app/core/navigation/app-navigation/`)
+  ersetzt den bisherigen statischen `<h1>SlobSteak</h1>`-Titel in `app.html` (PRD Abschnitt 6.3).
+  Sichtbarkeit folgt zwei Bedingungen: ein gültiges Session-Token liegt in `localStorage` vor UND
+  die aktuelle Route ist nicht `/login` — Letzteres verhindert, dass ein noch nicht gelöschtes
+  Token die Navigation auf der Login-Seite einblendet, falls ein bereits angemeldeter Nutzer
+  `/login` manuell erneut aufruft (kein Guard verhindert das); reagiert auf `NavigationEnd`, damit
+  Login/Logout ohne Seiten-Reload sofort berücksichtigt werden.
+- Enthält „Projektübersicht“ (Link zu `/projects`) und „Abmelden“ (nativer `<button>`, kein Link).
+  Klick auf „Abmelden“ ruft `TokenStorageService.clearToken()` auf und navigiert zu `/login`; ein
+  anschließender Aufruf einer geschützten Route greift danach wieder über `authGuard`. Bewusst kein
+  neuer Backend-Logout-Endpunkt — rein clientseitige Aktion (siehe Story-Datei „Wichtige
+  Invarianten“, kein serverseitiger Token-Widerruf vorhanden).
+- Navigationseinträge als Konfigurationsliste (`nav-items.ts`, `APP_NAV_LINKS`) statt
+  hartkodiertem Markup modelliert, damit US-046 („Admin“-Eintrag) das Template nicht anfassen muss.
+- Tests: dedizierter Story-Test `us-045-app-navigation.spec.ts` (ein Testfall je Akzeptanzkriterium
+  in Story-Reihenfolge, inkl. Guard-Verifikation nach Logout über `authGuard`), generische
+  `app-navigation.component.spec.ts`; `app.spec.ts` angepasst (prüft `<app-navigation>` statt des
+  entfernten `<h1>`).
+- Smoke-Test: isolierter `docker compose up --build` — Login (Token über direkten API-Aufruf
+  gesetzt), Navigation auf `/projects` sichtbar, Klick „Abmelden“ leert Token + Redirect zu
+  `/login`, erneuter Aufruf von `/projects` wird per `authGuard` wieder auf `/login`
+  zurückgeleitet. Dabei den oben beschriebenen Sichtbarkeits-Randfall auf `/login` mit
+  vorhandenem Alt-Token entdeckt und vor Abschluss der Story behoben (siehe Commit-Historie).
+
 ### US-029 — Assessment-Tabs UI auf Stakeholder-Detailseite inkl. „zuletzt geändert von/am“
 
 - Neue `AssessmentTabsComponent` (Frontend) — drei Tabs „PL-Sicht“/„Coreteam-Sicht“/
