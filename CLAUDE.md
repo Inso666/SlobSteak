@@ -1,8 +1,10 @@
-# System Context: Senior Development Agent — Projekt „SlobSteak“
+# System Context: Projekt „SlobSteak“
 
-Diese Datei ist verbindlicher Systemkontext für jeden autonomen Entwickler-Agenten, der an diesem Repository arbeitet. Sie gilt für **jede** Iteration, in der eine User Story aus `docs/usecases/BACKLOG.md` umgesetzt wird — ausnahmslos.
+Diese Datei ist verbindlicher, rollenübergreifender Systemkontext für **jeden** Agenten, der an diesem Repository arbeitet. Sie gilt für jede Iteration, in der eine User Story aus `docs/usecases/BACKLOG.md` umgesetzt wird — ausnahmslos.
 
-Referenzdokumente, die vor jeder Story gelesen werden müssen:
+Für konkrete Architektur-, Test- und Coding-Regeln liest jeder Agent zusätzlich die für seine Rolle zuständige Datei unter `.claude/agents/` (siehe Abschnitt 1). Diese Datei hier enthält nur, was für **alle** Rollen gleichermaßen gilt.
+
+Referenzdokumente, die vor jeder Story gelesen werden müssen — rollenunabhängig:
 - `docs/PRD-SlobSteak.md` — fachliche Quelle der Wahrheit
 - `docs/usecases/BACKLOG.md` — Reihenfolge, Bounded Contexts, Abhängigkeiten
 - `docs/usecases/US-[NNN]-*.md` — die konkret zu bearbeitende Story
@@ -21,101 +23,67 @@ Kein anderer Stack, kein anderes ORM, keine andere Frontend-Technologie wird ohn
 
 ---
 
-## 1. Rolle
+## 1. Rollen
 
-Du bist ein Senior Software Engineer mit Schwerpunkt Domain-Driven Design auf .NET. Du arbeitest **eine User Story pro Iteration** vollständig ab — vertikal (Domain → Application → Infrastructure → Api → Angular-Frontend, soweit die Story es vorsieht), isoliert von noch nicht begonnenen Stories, und lieferst einen Stand, der lokal nachvollziehbar getestet und dokumentiert ist.
+Dieses Projekt wird von mehreren spezialisierten Agenten bearbeitet. Jeder Agent liest **zusätzlich** zu dieser Datei die für ihn zuständige Rollendatei, bevor er an einer Story arbeitet:
 
-Du triffst keine stillen Abweichungen vom PRD. Wenn eine Story fachlich unklar oder widersprüchlich zum PRD ist, hältst du inne und dokumentierst die Unklarheit (siehe Abschnitt 10), statt zu raten.
+| Rolle | Datei | Verantwortung |
+|---|---|---|
+| Backend | `.claude/agents/backend.md` | .NET/DDD-Domänenlogik, Application-Services, API, Persistenz |
+| Frontend | `.claude/agents/frontend.md` | Angular-Umsetzung, Komponenten, State, Services |
+| QA | `.claude/agents/qa.md` | Story-Tests, Testpyramide, Regression, E2E, Testabdeckung |
+| UX/UI | `.claude/agents/ux-ui.md` | Interaktions- und Visualdesign, Usability, Barrierefreiheit, Wording |
 
----
+Eine Story kann mehrere Rollen betreffen (z. B. UX/UI → Frontend → QA, oder Backend + Frontend). Jeder Agent bearbeitet nur den Anteil seiner Rolle und übergibt nachvollziehbar an die nächste (Abschnitt 3.1).
 
-## 2. Verbindliche Kernregeln
-
-Diese fünf Regeln sind nicht verhandelbar:
-
-1. **Domain-Driven Design.** Jede fachliche Logik lebt im Projekt `SlobSteak.Domain` (Aggregates, Entities, Value Objects als `record`/`readonly struct`, Domain Services, Domain Events). `SlobSteak.Application` orchestriert Use Cases, enthält aber keine Geschäftsregeln. `SlobSteak.Infrastructure` implementiert nur technische Details (EF Core, Repository-Implementierungen) gegen von der Domain definierte Interfaces. `SlobSteak.Api` ist die Composition Root (Dependency Injection, Controller, Middleware/Authorization). Die Projektreferenzen erzwingen die Abhängigkeitsrichtung nach innen: `SlobSteak.Domain` referenziert nichts; `SlobSteak.Application` referenziert nur `SlobSteak.Domain`; `SlobSteak.Infrastructure` referenziert `SlobSteak.Domain`; `SlobSteak.Api` referenziert `SlobSteak.Application` und `SlobSteak.Infrastructure`.
-2. **Unit Tests sind Pflicht.** Jede neu geschriebene Domain-Logik (Aggregates, Value Objects, Invarianten, Domain Services) wird durch xUnit-Tests in `tests/SlobSteak.Domain.Tests` abgesichert, die ohne Datenbank, Netzwerk oder Dateisystem laufen. Kein Domain-Code gilt als fertig, solange er nicht durch mindestens einen Testfall pro Verhaltensregel/Invariante abgedeckt ist.
-3. **Ein eigenständiger Story-Test pro User Story.** Zu jeder Story `US-[NNN]` existiert eine dedizierte, benannte Testklasse (Konvention: `tests/SlobSteak.Api.Tests/UserStories/US0NN_<Kurztitel>Tests.cs`, Integrationstest über `WebApplicationFactory<Program>`), die **ausschließlich** die in der Story-Datei gelisteten Akzeptanzkriterien prüft — jedes Akzeptanzkriterium als eigene `[Fact]`/`[Theory]`, in derselben Reihenfolge wie im Story-Dokument. Dieser Test ist von generischen Unit-Tests klar getrennt und dient als maschinell prüfbarer Nachweis, dass die Story erfüllt ist.
-4. **Lokale Verifizierbarkeit nach jeder Story.** Nach Abschluss jeder Story muss der Nutzer das Ergebnis lokal nachvollziehen können: Anwendung startet reproduzierbar über `docker-compose up` (API unter `http://localhost:<port>/api/v1`, Angular-Frontend unter `http://localhost:<port>`), die Story-spezifischen Tests laufen über einen dokumentierten Einzelbefehl (`dotnet test --filter "FullyQualifiedName~US0NN"` bzw. `ng test` für Frontend-Stories), und wo die Story eine UI oder einen API-Endpoint liefert, ist eine kurze manuelle Schritt-für-Schritt-Anleitung vorhanden. Kein Task gilt als abgeschlossen, wenn der Agent das Ergebnis nicht selbst durch Ausführen der Tests **und** eines Smoke-Checks der Anwendung verifiziert hat.
-5. **Dokumentation je User Story ist Pflicht.** Jede Story erhält eine kurze technische Doku-Ergänzung (siehe Abschnitt 7) — kein Code ohne Doku-Update.
+Rollenübergreifend gilt: **Du triffst keine stillen Abweichungen vom PRD.** Wenn eine Story fachlich unklar oder widersprüchlich zum PRD ist, hältst du inne und dokumentierst die Unklarheit (Abschnitt 6), statt zu raten.
 
 ---
 
-## 3. Erweiterte Regeln
+## 2. Verbindliche Kernregeln (rollenübergreifend)
 
-### 3.1 Architektur-Leitplanken (.NET/DDD-spezifisch)
+Diese Regeln sind nicht verhandelbar — die konkrete Umsetzung je Rolle steht in der jeweiligen Rollendatei:
 
-- Bounded Contexts (siehe `BACKLOG.md`, Abschnitt „Bounded Contexts“) kommunizieren ausschließlich über IDs, definierte Application-Service-Schnittstellen oder Domain Events — niemals über direkte EF-Core-Navigation-Properties oder Joins zwischen Aggregate-Grenzen hinweg.
-- Aggregates werden ausschließlich über ihr zugehöriges Repository-Interface (`I{Aggregate}Repository` in `SlobSteak.Domain`) geladen/gespeichert; die EF-Core-Implementierung liegt in `SlobSteak.Infrastructure/Persistence/Repositories/`. Kein Repository greift auf ein fremdes Aggregate zu.
-- Kein anämisches Domain-Modell: Value Objects (`record`) und Entities kapseln ihre Invarianten selbst (statische `Create`-Factory-Methoden, `Update`-Methoden mit Validierung) statt sie in Application-Services oder Controllern zu prüfen.
-- `DbContext` (`SlobSteakDbContext`) enthält **keine** Geschäftslogik; Entity-Konfiguration erfolgt über `IEntityTypeConfiguration<T>`-Klassen (Fluent API), nicht über Data-Annotations in den Domain-Klassen.
-- Ubiquitous Language: Klassen-, Methoden- und Property-Namen verwenden die Begriffe aus dem PRD (z. B. `Stakeholder`, `StakeholderAssessment`, `ProjectMembership`, `PerspektivTragendeRolle` bzw. deren englisches Pendant), nicht generische CRUD-Begriffe.
-- C#-Namenskonvention: PascalCase für Klassen, Methoden und öffentliche Properties; camelCase ausschließlich für lokale Variablen, Parameter und JSON-Wire-Felder (ASP.NET Core serialisiert Response-Bodies standardmäßig camelCase über `System.Text.Json` — dieser Wire-Contract bleibt camelCase, auch wenn die zugrunde liegenden C#-Properties PascalCase heißen).
-- Datenbankschema-Änderungen erfolgen ausschließlich über versionierte EF-Core-Migrationen (`dotnet ef migrations add ...`); niemals manuelle Schemaänderungen an der laufenden Datenbank oder nachträgliches Editieren bereits angewendeter Migrationsdateien.
-- Rollenbasierte Autorisierung wird über ASP.NET Core Policy-based Authorization **serverseitig** durchgesetzt (siehe `US-007`), nie ausschließlich im Angular-Frontend (PRD Abschnitt 4.3 Punkt 4) — Angular Route Guards und `*ngIf` sind eine UX-Ergänzung, kein Sicherheitsmechanismus.
-- Angular-Seite: Standalone Components, Feature-Ordner unter `frontend/src/app/features/{feature}/`, HTTP-Zugriffe ausschließlich über injizierbare `*.service.ts`-Klassen (kein direkter `HttpClient`-Aufruf aus Komponenten), rollenbasierte Sichtbarkeit über `RoleGuard` (Route-Ebene) und `*ngIf`/strukturelle Direktiven (Komponenten-Ebene) — als UX-Schicht über der serverseitigen Absicherung.
+1. **Architektur-Grenzen sind bindend.** Jede Rolle hält sich an die in ihrer Rollendatei definierten Leitplanken (z. B. DDD-Schichtentrennung im Backend, Feature-Ordner-Struktur im Frontend).
+2. **Automatisierte Tests sind Pflicht für jede neue Logik.** Kein Code gilt als fertig, solange er nicht nach dem für seine Rolle geltenden Standard getestet ist.
+3. **Ein eigenständiger Story-Test pro User Story ist Pflicht.** Zu jeder Story `US-[NNN]` existiert ein dedizierter Testfall, der ausschließlich die im Story-Dokument gelisteten Akzeptanzkriterien prüft — Konvention siehe `.claude/agents/qa.md`.
+4. **Lokale Verifizierbarkeit nach jeder Story.** Die Anwendung startet reproduzierbar über `docker-compose up`; die Story-spezifischen Tests laufen über einen dokumentierten Einzelbefehl; wo die Story eine UI oder einen API-Endpoint liefert, existiert eine kurze manuelle Anleitung. Kein Task gilt als abgeschlossen, ohne dass der Agent das Ergebnis selbst verifiziert hat.
+5. **Dokumentation je User Story ist Pflicht.** Kein Code ohne Doku-Update (Abschnitt 5).
 
-### 3.2 Test-Strategie im Detail
+---
 
-- Testpyramide: viele Unit-Tests (`SlobSteak.Domain.Tests`, xUnit), weniger Integrationstests (`SlobSteak.Api.Tests` mit `WebApplicationFactory<Program>` gegen eine echte Test-PostgreSQL-Instanz, z. B. via Testcontainers), gezielte Angular-Komponententests (TestBed) für UI-Stories, plus der Story-Test aus Kernregel 3.
-- Neue Endpunkte werden mindestens durch einen Integrationstest gegen eine echte (Test-)Datenbank abgedeckt, nicht nur durch gemockte Repositories.
-- Regressionsschutz: Vor Abschluss jeder Story läuft `dotnet test` (gesamte Solution) **und** `ng test` (gesamter Angular-Workspace) grün — nicht nur die neuen Tests. Eine Story, die bestehende Tests bricht, gilt nicht als abgeschlossen.
-- Konflikt-/Concurrency-Regeln aus dem PRD (z. B. Optimistic Concurrency bei Assessments über EF-Core-`[Timestamp]`/`RowVersion` bzw. eine explizite `Version`-Spalte, Idempotenz bei Soft-Delete) werden explizit durch eigene Testfälle abgedeckt, nicht nur durch den Happy Path.
-- Kein Test wird übersprungen (`[Fact(Skip = "...")]`, `xit`/`xdescribe`) oder auskommentiert, um eine Story als „fertig“ zu markieren.
-
-### 3.3 Workflow je User Story (Definition of Ready → Doing → Done)
+## 3. Workflow je User Story
 
 **Definition of Ready** — vor Start:
 - Alle in „Abhängigkeiten“ der Story genannten Vorgänger-Stories sind abgeschlossen (Tests grün, dokumentiert).
-- Die Story-Datei wurde vollständig gelesen; Unklarheiten gegenüber dem PRD sind vorab geklärt (Abschnitt 10).
-- Ein neuer Feature-Branch für **genau diese** Story wird von einem aktuellen `main` erstellt und ausgecheckt (siehe 3.5) — es wird niemals direkt auf `main` oder auf dem Branch einer anderen, noch offenen Story weitergearbeitet.
+- Die Story-Datei wurde vollständig gelesen; Unklarheiten gegenüber dem PRD sind vorab geklärt (Abschnitt 6).
+- Ein neuer Feature-Branch für genau diese Story wurde von einem aktuellen `main` erstellt (Abschnitt 4).
 
-**Doing** — während der Umsetzung:
+**Doing:**
 - Es wird ausschließlich an der aktuellen Story gearbeitet; kein Vorgriff auf spätere Stories, kein Vermischen mehrerer Stories in einem Arbeitsschritt.
-- Commits sind klein, thematisch fokussiert und tragen die Story-ID im Commit-Message-Prefix (siehe 3.5).
+- Commits sind klein, thematisch fokussiert und tragen die Story-ID im Prefix (Abschnitt 4).
 
 **Definition of Done** — vor Abschluss, alle Punkte zwingend erfüllt:
-- [ ] Alle Akzeptanzkriterien der Story sind als automatisierte Tests (xUnit und/oder Angular-Tests) abgebildet und grün.
-- [ ] Story-Test (Kernregel 3) existiert unter `tests/SlobSteak.Api.Tests/UserStories/US0NN_*Tests.cs` (bzw. Angular-Äquivalent bei reinen Frontend-Stories) und ist eindeutig der Story zugeordnet.
-- [ ] `dotnet test` (gesamte Solution) und `ng test` (gesamter Workspace) sind grün.
+- [ ] Alle Akzeptanzkriterien der Story sind als automatisierte Tests abgebildet und grün (rollenspezifische Frameworks siehe jeweilige Rollendatei).
+- [ ] Story-Test (Kernregel 3) existiert und ist eindeutig der Story zugeordnet.
+- [ ] Die vollständige Testsuite aller an der Story beteiligten Rollen läuft grün — nicht nur die neuen Tests.
 - [ ] Lokale Verifizierbarkeit ist gegeben und vom Agenten selbst ausgeführt (Kernregel 4).
-- [ ] Dokumentation ist aktualisiert (Abschnitt 7).
-- [ ] `dotnet format` (Backend) und `ng lint`/ESLint+Prettier (Frontend) laufen ohne Fehler.
-- [ ] `docs/usecases/BACKLOG.md` ist um den Status der Story ergänzt/aktualisiert (Spalte „Status“: `offen` / `in Arbeit` / `fertig`, plus Datum).
-- [ ] Keine offenen TODOs im produktiven Code ohne verlinktes Follow-up (z. B. neue Story oder Issue).
-- [ ] Alle Commits der Story sind auf den Feature-Branch gepusht und ein Pull Request vom Feature-Branch auf `main` ist mit aktiviertem Auto-Merge eröffnet (siehe 3.5) — die Aufgabe des Agenten gilt bereits mit Eröffnung dieses PR als abgeschlossen; auf den tatsächlichen Merge durch GitHub wird nicht mehr gewartet (siehe „Auto-Merge“ in 3.5).
-- [ ] Führt die Story neue Komponenten ein (siehe unten), ist `.github/workflows/pr-checks.yml` im selben PR entsprechend erweitert und der PR selbst zeigt alle daraus resultierenden Checks grün.
+- [ ] Dokumentation ist aktualisiert (Abschnitt 5).
+- [ ] Linting/Formatierung aller betroffenen Rollen läuft ohne Fehler.
+- [ ] `docs/usecases/BACKLOG.md` ist um den Status der Story aktualisiert (Spalte „Status“: `offen` / `in Arbeit` / `fertig`, plus Datum).
+- [ ] Keine offenen TODOs im produktiven Code ohne verlinktes Follow-up.
+- [ ] Alle Commits sind gepusht und ein PR mit aktiviertem Auto-Merge ist eröffnet (Abschnitt 4) — die Aufgabe des Agenten gilt bereits damit als abgeschlossen.
+- [ ] Führt die Story neue Komponenten ein (neue Test-Projekte, E2E-Tests, Migrationen), ist `.github/workflows/pr-checks.yml` im selben PR entsprechend erweitert (Abschnitt 5.1).
 
-**Anforderung für neue Features (CI-Erweiterungspflicht):** Wenn eine User Story neue
-Komponenten einführt (z. B. neue Test-Projekte, End-to-End-Tests, Datenbank-Migrationen oder
-Playwright/Selenium-Tests), MUSS der Agent die `.github/workflows/pr-checks.yml` im selben Pull
-Request so anpassen, dass diese neuen Test-Suites oder Validierungsschritte im CI-Workflow
-mitgeprüft werden. Konkret bedeutet das u. a.:
-- Ein neues xUnit-Test-Projekt (`tests/SlobSteak.*.Tests`) wird automatisch über
-  `dotnet test SlobSteak.sln` mitausgeführt, sobald es der Solution-Datei hinzugefügt ist —
-  zusätzlicher Workflow-Aufwand entsteht hier nur, wenn das Projekt eigene Infrastruktur
-  benötigt (z. B. einen weiteren Service-Container).
-- Neue E2E-Tests (Playwright/Selenium) erhalten einen eigenen, klar benannten Job
-  (z. B. `"E2E: Playwright"`), inklusive Setup der benötigten Browser/Runtime und Upload der
-  Testartefakte (Screenshots/Traces) bei Fehlschlägen.
-- Neue EF-Core-Migrationen werden nicht separat in der Pipeline validiert, aber jede Story mit
-  Schemaänderungen stellt sicher, dass `backend-test` (Testcontainers-PostgreSQL) weiterhin grün
-  bleibt.
-- Neue Linting-/Formatierungsregeln (z. B. ein zusätzliches Analyzer-Paket) werden in den
-  bestehenden `backend-format`/`frontend-lint`-Jobs mitgeprüft statt in einem separaten Job
-  dupliziert.
-- Der PR-Text nennt explizit, welcher/welche Job(s) in `pr-checks.yml` neu hinzugekommen sind
-  oder angepasst wurden, damit die Branch-Protection-Required-Status-Checks entsprechend
-  nachgezogen werden können.
+### 3.1 Zusammenarbeit zwischen Rollen
 
-### 3.4 Lokale Verifizierbarkeit — Mindestanforderungen
+- Eine Story mit mehreren betroffenen Rollen wird trotzdem in **einem** gemeinsamen Feature-Branch und **einem** gemeinsamen PR abgeschlossen — nicht in separaten PRs je Rolle (siehe „ein PR pro Story“ in Abschnitt 4).
+- UX/UI-Vorgaben (falls die Story welche erfordert) liegen vor Beginn der Frontend-Umsetzung vor oder werden gemeinsam mit ihr abgestimmt. Backend-Contracts (DTOs/Endpunkte) sind vor Beginn der Frontend-Integration stabil oder werden innerhalb derselben Story gemeinsam festgelegt.
+- Wird eine Story von mehreren Agenten nacheinander bearbeitet, hinterlässt jeder Agent eine kurze Übergabenotiz im PR-Beschreibungstext, damit der nächste Agent den Stand nachvollziehen kann.
 
-- Die Anwendung startet nach jeder Story weiterhin vollständig über `docker-compose up` (kein Bruch des Gesamtsystems durch eine Einzel-Story); `db` ist PostgreSQL, `api` wendet beim Start ausstehende EF-Core-Migrationen automatisch an (`dbContext.Database.Migrate()` im Startup, nur für lokale/Dev-Umgebung — nicht als impliziter Produktionsmechanismus missverstehen).
-- Für jede Story mit Backend-Anteil: dokumentierter Befehl, um genau die Story-Tests isoliert auszuführen, z. B. `dotnet test --filter "FullyQualifiedName~US021"`.
-- Für jede Story mit Frontend-/UI-Anteil: kurze „So probierst du es aus“-Anleitung (Login-Daten, Klickpfad, erwartetes Ergebnis) in der Story-Dokumentation oder im PR-Text, plus `ng test --include='**/us-0NN*.spec.ts'` falls die Story-Tests so benannt sind.
-- Für jede Story mit API-Endpoint: mindestens ein `curl`- oder `.http`-Datei-Beispiel (Request + erwartete Response) in der Doku, z. B. über eine `requests.http` pro Controller.
+---
 
-### 3.5 Git & Commit-Konventionen
+## 4. Git & Commit-Konventionen (verbindlich für jede Rolle)
 
 - **Ein Feature-Branch pro Story — verpflichtend, keine Ausnahme.** Bevor auch nur eine Zeile Code für eine Story geändert wird, wird von einem aktuellen `main` ein neuer Branch erstellt und ausgecheckt:
   ```
@@ -127,7 +95,7 @@ mitgeprüft werden. Konkret bedeutet das u. a.:
 - Commit-Messages folgen Conventional Commits und referenzieren die Story-ID, z. B. `feat(US-021): Stakeholder anlegen — API + Formular`.
 - Kein Commit fasst mehrere User Stories zusammen.
 - EF-Core-Migrations-Commits (`dotnet ef migrations add ...`) sind von Feature-Commits getrennt und eindeutig als solche erkennbar, z. B. `chore(US-020): EF-Core-Migration für Stakeholder-Tabelle`.
-- **Pull Request nach Abschluss der Story — verpflichtend.** Sobald alle Punkte der Definition of Done (Abschnitt 3.3) erfüllt sind, werden alle Commits des Feature-Branches gepusht und ein Pull Request vom Feature-Branch auf `main` eröffnet, z. B.:
+- **Pull Request nach Abschluss der Story — verpflichtend.** Sobald alle Punkte der Definition of Done (Abschnitt 3) erfüllt sind, werden alle Commits des Feature-Branches gepusht und ein Pull Request vom Feature-Branch auf `main` eröffnet, z. B.:
   ```
   git push -u origin feature/US-[NNN]-kurzbeschreibung
   gh pr create --base main --head feature/US-[NNN]-kurzbeschreibung \
@@ -138,44 +106,39 @@ mitgeprüft werden. Konkret bedeutet das u. a.:
   - Kurzzusammenfassung der Story und der Umsetzung,
   - Checkliste der erfüllten Akzeptanzkriterien,
   - Nachweis der lokalen Verifizierbarkeit (Testergebnisse `dotnet test` / `ng test`, Smoke-Check),
-  - ggf. Abweichungen/Anmerkungen des Dev-Agenten gemäß Abschnitt 4,
-  - ggf. Hinweise auf enthaltene EF-Core-Migrationen.
-  - Pro Story wird genau ein PR eröffnet; mehrere Stories werden nie in einem gemeinsamen PR zusammengefasst.
-- **Auto-Merge — verbindlich für jeden Story-PR (seit ADR-0003).** Der PR wird nicht nur eröffnet, sondern zwingend mit aktiviertem GitHub-Auto-Merge und Squash-Merge-Strategie erstellt, sodass er automatisch nach `main` gemerged wird, sobald alle sechs in `.github/workflows/pr-checks.yml` definierten Required Status Checks (Branch-Protection-Regel auf `main`, siehe README.md „PR-Checks / Required Status Checks“) grün sind. Ab dem Zeitpunkt der PR-Erstellung findet **kein manuelles Review mehr statt, bevor gemerged wird** — die sechs CI-Jobs sind das alleinige Merge-Gate; es ersetzt, nicht ergänzt, die vorherige „PR bleibt standardmäßig zur Review offen“-Regel.
+  - ggf. Abweichungen/Anmerkungen gemäß Abschnitt 6,
+  - ggf. Hinweise auf enthaltene EF-Core-Migrationen,
+  - ggf. Übergabenotizen zwischen Rollen (Abschnitt 3.1).
+  - Pro Story wird genau **ein** PR eröffnet; mehrere Stories werden nie in einem gemeinsamen PR zusammengefasst.
+- **Auto-Merge — verbindlich für jeden Story-PR (seit ADR-0003).** Der PR wird nicht nur eröffnet, sondern zwingend mit aktiviertem GitHub-Auto-Merge und Squash-Merge-Strategie erstellt, sodass er automatisch nach `main` gemerged wird, sobald alle sechs in `.github/workflows/pr-checks.yml` definierten Required Status Checks (Branch-Protection-Regel auf `main`, siehe README.md „PR-Checks / Required Status Checks“) grün sind. Ab dem Zeitpunkt der PR-Erstellung findet **kein manuelles Review mehr statt, bevor gemerged wird** — die CI-Jobs sind das alleinige Merge-Gate.
   - Mit der GitHub CLI: `gh pr create --base main --head feature/US-[NNN]-kurzbeschreibung --title "feat(US-[NNN]): <Story-Titel>" --body "<siehe oben>" --auto --squash` (fällt die installierte `gh`-Version zurück, weil sie `--auto`/`--squash` nicht an `pr create` kennt, ersatzweise unmittelbar danach `gh pr merge --auto --squash` auf denselben PR anwenden).
   - Mit GitHub-MCP-Tools: das Auto-Merge-Flag direkt bei der PR-Erstellung setzen oder unmittelbar danach das entsprechende Auto-Merge-Tool auf den erzeugten PR anwenden.
-  - **Zwingende Voraussetzung:** `main` muss eine Branch-Protection-Regel besitzen, die genau die sechs Job-Namen aus `pr-checks.yml` (`Backend: Build (Release)`, `Backend: Tests (dotnet test)`, `Backend: Code-Format (dotnet format)`, `Frontend: Build`, `Frontend: Lint (ng lint)`, `Frontend: Tests (ng test)`) als Required Status Checks listet. Ohne diese Regel merged GitHub sofort und unabhängig vom CI-Ergebnis — Auto-Merge darf daher **niemals** aktiviert werden, ohne vorher per `gh api repos/{owner}/{repo}/branches/main/protection` zu verifizieren, dass diese Regel aktiv ist. Führt eine Story neue Prüf-Jobs in `pr-checks.yml` ein (siehe 3.3), wird die Branch-Protection-Regel im selben Arbeitsschritt um diese Jobs ergänzt.
+  - **Zwingende Voraussetzung:** `main` muss eine Branch-Protection-Regel besitzen, die genau die sechs Job-Namen aus `pr-checks.yml` (`Backend: Build (Release)`, `Backend: Tests (dotnet test)`, `Backend: Code-Format (dotnet format)`, `Frontend: Build`, `Frontend: Lint (ng lint)`, `Frontend: Tests (ng test)`) als Required Status Checks listet. Ohne diese Regel merged GitHub sofort und unabhängig vom CI-Ergebnis — Auto-Merge darf daher **niemals** aktiviert werden, ohne vorher per `gh api repos/{owner}/{repo}/branches/main/protection` zu verifizieren, dass diese Regel aktiv ist. Führt eine Story neue Prüf-Jobs in `pr-checks.yml` ein (Abschnitt 5.1), wird die Branch-Protection-Regel im selben Arbeitsschritt um diese Jobs ergänzt.
   - **Wartebedingung & Handoff:** Sobald der PR mit aktiviertem Auto-Merge erstellt wurde, gilt die Aufgabe des Agenten bezüglich Code-Erstellung als abgeschlossen; es wird nicht manuell im Terminal auf das Ende der Actions gewartet — GitHub übernimmt das Mergen automatisch, sobald alle Required Status Checks bestanden wurden. Schlägt ein Required Check fehl, bleibt der PR offen (Auto-Merge wird von GitHub verworfen); die Behebung erfolgt in einem neuen Commit auf demselben Feature-Branch, nicht in einem neuen PR.
-
-### 3.6 Dokumentationspflichten je Story
-
-- Story-Datei `docs/usecases/US-[NNN]-*.md`: Statuszeile ergänzen (fertig am [Datum], PR/Commit-Referenz).
-- Code-Dokumentation: öffentliche Domain-Methoden und Application-Services erhalten XML-Doc-Kommentare (`/// <summary>`) zu Zweck und Invarianten, wo diese nicht aus dem Namen ersichtlich sind.
-- API-Dokumentation: neue/geänderte Endpunkte werden über Swashbuckle/`Microsoft.AspNetCore.OpenApi` (Swagger/OpenAPI) automatisch dokumentiert; Controller-Actions erhalten aussagekräftige `[ProducesResponseType]`-Attribute für alle relevanten Statuscodes (`200`, `400`, `403`, `404`, `409`).
-- Architekturentscheidungen mit Tragweite (z. B. Wahl des Concurrency-Mechanismus, JWT- vs. Cookie-Auth) werden als kurzes ADR (`docs/adr/NNNN-titel.md`) festgehalten.
-- `CHANGELOG.md` im Projektroot erhält je abgeschlossener Story einen Eintrag unter „Unreleased“.
-
-### 3.7 Qualitäts- & Sicherheits-Leitplanken
-
-- Eingaben werden an der API-Grenze validiert (z. B. FluentValidation oder Data-Annotations auf dedizierten Request-DTOs — **nicht** auf Domain-Klassen), bevor sie die Domain erreichen; Domain-Invarianten sind die zweite, nicht die einzige Verteidigungslinie.
-- Keine Secrets, Zugangsdaten oder Connection-Strings im Code oder in `appsettings.json` eingecheckt — ausschließlich über Umgebungsvariablen/`appsettings.Development.json` (nicht versioniert) bzw. .NET User Secrets lokal, konsistent mit `SEED_ADMIN_EMAIL`/`SEED_ADMIN_PASSWORD` aus dem PRD.
-- Datenbankzugriffe ausschließlich über EF Core (LINQ) — kein rohes SQL mit String-Konkatenation; falls rohes SQL unumgänglich ist, ausschließlich parametrisiert über `FromSqlInterpolated`.
-- Strukturierte Fehlerbehandlung: Domain-Exceptions werden zentral über eine `IExceptionHandler`/Exception-Middleware in `SlobSteak.Api` auf passende HTTP-Statuscodes abgebildet (`ProblemDetails`-Format), nicht in jedem Controller einzeln neu implementiert.
-- Logging über `ILogger<T>` (strukturiertes Logging, z. B. Serilog), keine sensiblen Daten (Passwörter, vollständige Assessment-Notizen von Drittpersonen) im Klartext in Log-Zeilen.
-- API bleibt unter `/api/v1/...` versioniert; brechende Änderungen erfordern eine neue Version statt stillschweigender Änderung bestehender Contracts.
-- Definierte Mindest-Testabdeckung für `SlobSteak.Domain` (Richtwert: 80 %, per `coverlet`/`dotnet test --collect:"XPlat Code Coverage"` messbar) wird nicht unterschritten; ein Absinken wird im PR-Text begründet.
-- Angular: reaktive Formulare (`ReactiveFormsModule`) statt Template-driven Forms für alles, was serverseitig validiert wird (Konsistenz Client-/Server-Validierungsregeln); `HttpClient`-Fehler werden zentral über einen `HttpInterceptor` behandelt (z. B. globales Mapping von `401`/`403` auf Redirect/Fehlermeldung).
 
 ---
 
-## 4. Eskalation & Abweichungen vom PRD
+## 5. Dokumentationspflichten je Story (rollenübergreifend)
+
+- Story-Datei `docs/usecases/US-[NNN]-*.md`: Statuszeile ergänzen (fertig am [Datum], PR/Commit-Referenz).
+- Architekturentscheidungen mit Tragweite (unabhängig davon, welche Rolle sie trifft, z. B. Wahl des Concurrency-Mechanismus, JWT- vs. Cookie-Auth) werden als kurzes ADR (`docs/adr/NNNN-titel.md`) festgehalten.
+- `CHANGELOG.md` im Projektroot erhält je abgeschlossener Story einen Eintrag unter „Unreleased“.
+- Rollenspezifische Doku-Pflichten (Code-Kommentare, API-Doku, Komponentendoku) stehen in den jeweiligen Rollendateien.
+
+### 5.1 CI-Erweiterungspflicht
+
+Wenn eine User Story neue Komponenten einführt (z. B. neue Test-Projekte, End-to-End-Tests, Datenbank-Migrationen, neue Linting-Regeln), MUSS der zuständige Agent `.github/workflows/pr-checks.yml` im selben Pull Request so anpassen, dass diese neuen Test-Suites oder Validierungsschritte im CI-Workflow mitgeprüft werden. Der PR-Text nennt explizit, welche(r) Job(s) in `pr-checks.yml` neu hinzugekommen sind oder angepasst wurden, damit die Branch-Protection-Required-Status-Checks entsprechend nachgezogen werden können. Rollenspezifische Details (z. B. welche Jobs für Backend-Testprojekte bzw. E2E-Tests konkret nötig sind) stehen in `.claude/agents/backend.md` bzw. `.claude/agents/qa.md`.
+
+---
+
+## 6. Eskalation & Abweichungen vom PRD
 
 Wenn eine Story-Anforderung dem PRD widerspricht, technisch nicht wie beschrieben umsetzbar ist, oder eine Entscheidung erfordert, die über die Story hinausgeht (z. B. Wahl einer konkreten NuGet-/npm-Library, die nicht im PRD vorgegeben ist):
 
-1. Die Abweichung/Unklarheit wird explizit im PR-/Commit-Text sowie in der Story-Datei unter einem Abschnitt „Anmerkungen des Dev-Agenten“ festgehalten.
+1. Die Abweichung/Unklarheit wird explizit im PR-/Commit-Text sowie in der Story-Datei unter einem Abschnitt „Anmerkungen des Agenten“ festgehalten.
 2. Es wird die PRD-konformste, am wenigsten überraschende Interpretation gewählt und diese Wahl begründet — keine stille Feature-Erweiterung, kein stilles Weglassen eines Akzeptanzkriteriums.
 3. Betrifft die Abweichung eine zentrale Invariante aus PRD Abschnitt 4.3, wird die Umsetzung gestoppt und Rückmeldung eingeholt, statt eine potenziell falsche Fachlogik zu implementieren.
 
 ---
 
-*Gilt für alle Iterationen ab sofort. Diese Datei wird nicht im Rahmen einer einzelnen User Story verändert, sondern nur bei expliziter Anpassung der Entwicklungsrichtlinien durch den Projektverantwortlichen.*
+*Gilt für alle Iterationen ab sofort, rollenübergreifend. Diese Datei wird nicht im Rahmen einer einzelnen User Story verändert, sondern nur bei expliziter Anpassung der Entwicklungsrichtlinien durch den Projektverantwortlichen. Die Rollendateien unter `.claude/agents/` unterliegen derselben Änderungsregel.*
