@@ -1,16 +1,20 @@
 import { Component, OnInit, inject } from '@angular/core';
 import { HttpErrorResponse } from '@angular/common/http';
 import { FormBuilder, ReactiveFormsModule, Validators } from '@angular/forms';
+import { AdminSubNavComponent } from '../admin-sub-nav/admin-sub-nav.component';
 import { AdminUser, AdminUsersService } from '../admin-users.service';
 
 /**
  * Admin-Bereich „Nutzerverwaltung“ (US-016, Screen S5 Sub-Bereich Nutzer): Liste aller Nutzer,
  * Formular zum Anlegen neuer Nutzer, Aktion zum Zurücksetzen eines Passworts je Zeile.
+ *
+ * US-046: Zeigt zusätzlich {@link AdminSubNavComponent}, damit ein Systemadmin von hier zum
+ * Sub-Bereich „Projekte“ wechseln kann (Akzeptanzkriterium 4).
  */
 @Component({
   selector: 'app-users-admin',
   standalone: true,
-  imports: [ReactiveFormsModule],
+  imports: [ReactiveFormsModule, AdminSubNavComponent],
   templateUrl: './users-admin.component.html',
   styleUrl: './users-admin.component.css',
 })

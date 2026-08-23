@@ -4,6 +4,32 @@ Alle nennenswerten Änderungen an diesem Projekt werden hier je User Story dokum
 
 ## [Unreleased]
 
+### US-046 — Admin-Bereich über globale Navigation erreichbar machen
+
+- Die globale Navigation (`AppNavigationComponent`, US-045) zeigt zusätzlich einen Eintrag „Admin“
+  (Ziel `/admin/users`), ausschließlich für Nutzer mit `isSystemAdmin = true`
+  (`TokenStorageService.getClaims()`). Analog zu `isVisible` steuert ein eigenes Signal `isAdmin`
+  die Sichtbarkeit und wird bei jedem `NavigationEnd` neu berechnet; der Eintrag steht hinter einem
+  `@if` im Template, ist bei fehlender Berechtigung also vollständig aus dem DOM entfernt statt nur
+  per CSS versteckt. Reine clientseitige UX-Schicht über dem bereits bestehenden `adminGuard` und
+  der serverseitigen `SystemAdmin`-Policy — beide bleiben unverändert.
+- Neue, wiederverwendbare `AdminSubNavComponent` (`features/admin/admin-sub-nav/`), gespeist aus
+  `admin-nav-items.ts` (`ADMIN_SUB_NAV_LINKS`: „Nutzer“ → `/admin/users`, „Projekte“ →
+  `/admin/projects`) — als Liste statt hartkodiertem Zwei-Elemente-Markup, damit der PRD-seitig
+  vorgesehene dritte Sub-Bereich „Kommunikationsarten-Katalog“ (folgt mit US-038) später ergänzt
+  werden kann. Eingebunden in `UsersAdminComponent` und `ProjectsAdminComponent`, damit ein
+  Systemadmin zwischen beiden wechselt, ohne zur globalen Navigation zurückzukehren; der aktive
+  Sub-Bereich wird per `routerLinkActive="active"` hervorgehoben.
+- Tests: dedizierter Story-Test `us-046-admin-navigation.spec.ts` (ein Testfall je
+  Akzeptanzkriterium in Story-Reihenfolge, inkl. Regressionstest für `adminGuard`), generischer
+  `admin-sub-nav.component.spec.ts`; bestehende `app-navigation.component.spec.ts`,
+  `users-admin.component.spec.ts` und `projects-admin.component.spec.ts` um `provideRouter([])`
+  ergänzt (neu benötigt durch `RouterLink`/`RouterLinkActive` in den eingebundenen Komponenten).
+- Smoke-Test: isolierter `docker compose up` (alternative Host-Ports, temporär) — Login als
+  Seed-Admin, Klick „Admin“ führt zu `/admin/users`, Wechsel „Nutzer“ ↔ „Projekte“ mit aktiver
+  Hervorhebung, kein „Admin“-Eintrag für einen Nicht-Admin-Claim, direkter Aufruf von
+  `/admin/users` als Nicht-Admin bleibt per `adminGuard` auf `/login` umgeleitet.
+
 ### US-045 — Globale Navigation (Shell) inkl. Abmelden-Funktion
 
 - Neue standalone `AppNavigationComponent` (`frontend/src/app/core/navigation/app-navigation/`)

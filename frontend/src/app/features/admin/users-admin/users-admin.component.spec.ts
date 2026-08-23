@@ -1,5 +1,6 @@
 import { HttpErrorResponse } from '@angular/common/http';
 import { TestBed } from '@angular/core/testing';
+import { provideRouter } from '@angular/router';
 import { of, throwError } from 'rxjs';
 import { AdminUser, AdminUsersService } from '../admin-users.service';
 import { UsersAdminComponent } from './users-admin.component';
@@ -19,12 +20,19 @@ describe('UsersAdminComponent', () => {
   ];
 
   beforeEach(async () => {
-    adminUsersServiceSpy = jasmine.createSpyObj('AdminUsersService', ['listUsers', 'createUser', 'resetPassword']);
+    adminUsersServiceSpy = jasmine.createSpyObj('AdminUsersService', [
+      'listUsers',
+      'createUser',
+      'resetPassword',
+    ]);
     adminUsersServiceSpy.listUsers.and.returnValue(of(existingUsers));
 
     await TestBed.configureTestingModule({
       imports: [UsersAdminComponent],
-      providers: [{ provide: AdminUsersService, useValue: adminUsersServiceSpy }],
+      providers: [
+        provideRouter([]),
+        { provide: AdminUsersService, useValue: adminUsersServiceSpy },
+      ],
     }).compileComponents();
   });
 
@@ -52,20 +60,34 @@ describe('UsersAdminComponent', () => {
     fixture.detectChanges();
     const component = fixture.componentInstance;
 
-    component['createForm'].setValue({ name: 'Neuer Nutzer', email: 'neu@example.com', initialPassword: 'initial-pass' });
+    component['createForm'].setValue({
+      name: 'Neuer Nutzer',
+      email: 'neu@example.com',
+      initialPassword: 'initial-pass',
+    });
     component['onCreateUser']();
 
-    expect(adminUsersServiceSpy.createUser).toHaveBeenCalledWith('Neuer Nutzer', 'neu@example.com', 'initial-pass');
+    expect(adminUsersServiceSpy.createUser).toHaveBeenCalledWith(
+      'Neuer Nutzer',
+      'neu@example.com',
+      'initial-pass',
+    );
     expect(adminUsersServiceSpy.listUsers).toHaveBeenCalledTimes(2);
   });
 
   it('should show an inline error on the email field when the email is already in use (409)', () => {
-    adminUsersServiceSpy.createUser.and.returnValue(throwError(() => new HttpErrorResponse({ status: 409 })));
+    adminUsersServiceSpy.createUser.and.returnValue(
+      throwError(() => new HttpErrorResponse({ status: 409 })),
+    );
     const fixture = TestBed.createComponent(UsersAdminComponent);
     fixture.detectChanges();
     const component = fixture.componentInstance;
 
-    component['createForm'].setValue({ name: 'Neuer Nutzer', email: 'neu@example.com', initialPassword: 'initial-pass' });
+    component['createForm'].setValue({
+      name: 'Neuer Nutzer',
+      email: 'neu@example.com',
+      initialPassword: 'initial-pass',
+    });
     component['onCreateUser']();
 
     expect(component['createErrorMessage']).toBe('Diese E-Mail-Adresse wird bereits verwendet.');

@@ -1,4 +1,5 @@
 import { TestBed } from '@angular/core/testing';
+import { provideRouter } from '@angular/router';
 import { of } from 'rxjs';
 import { AdminProject, AdminProjectsService } from '../admin-projects.service';
 import { ProjectsAdminComponent } from './projects-admin.component';
@@ -31,7 +32,10 @@ describe('ProjectsAdminComponent', () => {
 
     await TestBed.configureTestingModule({
       imports: [ProjectsAdminComponent],
-      providers: [{ provide: AdminProjectsService, useValue: adminProjectsServiceSpy }],
+      providers: [
+        provideRouter([]),
+        { provide: AdminProjectsService, useValue: adminProjectsServiceSpy },
+      ],
     }).compileComponents();
   });
 
@@ -62,7 +66,10 @@ describe('ProjectsAdminComponent', () => {
     component['createForm'].setValue({ name: 'Neues Projekt', description: 'Beschreibung' });
     component['onCreateProject']();
 
-    expect(adminProjectsServiceSpy.createProject).toHaveBeenCalledWith('Neues Projekt', 'Beschreibung');
+    expect(adminProjectsServiceSpy.createProject).toHaveBeenCalledWith(
+      'Neues Projekt',
+      'Beschreibung',
+    );
     expect(adminProjectsServiceSpy.listProjects).toHaveBeenCalledTimes(2);
   });
 

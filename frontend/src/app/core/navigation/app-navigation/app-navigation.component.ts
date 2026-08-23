@@ -3,7 +3,7 @@ import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { NavigationEnd, Router, RouterLink, RouterLinkActive } from '@angular/router';
 import { filter } from 'rxjs';
 import { TokenStorageService } from '../../../features/auth/token-storage.service';
-import { APP_NAV_LINKS, APP_NAV_LOGOUT_LABEL } from './nav-items';
+import { APP_NAV_ADMIN_LINK, APP_NAV_LINKS, APP_NAV_LOGOUT_LABEL } from './nav-items';
 
 /** Route der Login-Seite — die Navigation bleibt hier immer ausgeblendet (Akzeptanzkriterium 1), siehe {@link AppNavigationComponent.computeVisibility}. */
 const LOGIN_ROUTE = '/login';
@@ -22,6 +22,14 @@ const LOGIN_ROUTE = '/login';
  * berücksichtigt wird (Akzeptanzkriterium 3) — `isVisible` ist bewusst ein Signal statt eines
  * einfachen Felds, damit die Aktualisierung trotz `OnPush` zuverlässig ins Template durchschlägt,
  * auch wenn sie aus einem Router-Subscriber statt einem Template-Event stammt.
+ *
+ * US-046: Zusätzlich zu `isVisible` steuert das Signal `isAdmin`, ob der „Admin“-Eintrag gerendert
+ * wird (Akzeptanzkriterium 1) — reine clientseitige UX-Schicht über der serverseitigen
+ * `SystemAdmin`-Policy und dem clientseitigen `adminGuard` (CLAUDE.md Abschnitt 3.1, Story-Datei
+ * „Wichtige Invarianten“), nicht deren Ersatz. Wie `isVisible` wird es bei jedem `NavigationEnd`
+ * neu berechnet, damit ein Login als Systemadmin den Eintrag ohne Reload einblendet
+ * (Akzeptanzkriterium 2 verlangt zudem, dass der Eintrag bei fehlender Berechtigung vollständig aus
+ * dem DOM entfernt wird — nicht nur per CSS versteckt — daher `@if` statt `[hidden]` im Template).
  */
 @Component({
   selector: 'app-navigation',
@@ -37,8 +45,10 @@ export class AppNavigationComponent {
 
   /** Konfigurierte Navigationseinträge (US-045/US-046, siehe `nav-items.ts`). */
   protected readonly navLinks = APP_NAV_LINKS;
+  protected readonly adminLink = APP_NAV_ADMIN_LINK;
   protected readonly logoutLabel = APP_NAV_LOGOUT_LABEL;
   protected readonly isVisible = signal(this.computeVisibility());
+  protected readonly isAdmin = signal(this.computeIsAdmin());
 
   constructor() {
     this.router.events
@@ -46,7 +56,10 @@ export class AppNavigationComponent {
         filter((event): event is NavigationEnd => event instanceof NavigationEnd),
         takeUntilDestroyed(),
       )
-      .subscribe(() => this.isVisible.set(this.computeVisibility()));
+      .subscribe(() => {
+        this.isVisible.set(this.computeVisibility());
+        this.isAdmin.set(this.computeIsAdmin());
+      });
   }
 
   /**
@@ -58,11 +71,16 @@ export class AppNavigationComponent {
   protected onLogout(): void {
     this.tokenStorage.clearToken();
     this.isVisible.set(false);
+    this.isAdmin.set(false);
     void this.router.navigate([LOGIN_ROUTE]);
   }
 
   private computeVisibility(): boolean {
     return this.hasToken() && !this.router.url.startsWith(LOGIN_ROUTE);
+  }
+
+  private computeIsAdmin(): boolean {
+    return this.tokenStorage.getClaims()?.isSystemAdmin === true;
   }
 
   private hasToken(): boolean {
