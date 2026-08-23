@@ -1,6 +1,7 @@
 import { Component, OnInit, inject } from '@angular/core';
 import { ActivatedRoute, RouterLink, RouterLinkActive, RouterOutlet } from '@angular/router';
 import { ProjectOverviewItem, ProjectsService } from '../../projects/projects.service';
+import { LOAD_ERROR_MESSAGE } from '../../../core/messages/http-error-messages';
 
 /**
  * Projekt-Workspace-Shell (US-019, Screen S3): Header mit Projektname und Rollen-Badge
@@ -21,14 +22,20 @@ export class ProjectWorkspaceLayoutComponent implements OnInit {
   private readonly projectsService = inject(ProjectsService);
 
   protected project: ProjectOverviewItem | null = null;
+  protected loadError: string | null = null;
 
+  /** US-044 Akzeptanzkriterium 4: konsistente Fehlermeldung statt einer dauerhaft leeren Shell bei
+   * fehlgeschlagenem Laden. */
   ngOnInit(): void {
     const projectId = this.route.snapshot.paramMap.get('id');
     if (!projectId) {
       return;
     }
 
-    this.projectsService.getProject(projectId).subscribe((project) => (this.project = project));
+    this.projectsService.getProject(projectId).subscribe({
+      next: (project) => (this.project = project),
+      error: () => (this.loadError = LOAD_ERROR_MESSAGE),
+    });
   }
 
   /** Map-Tab ist für Rolle `User` ausgeblendet (Akzeptanzkriterium 3). */

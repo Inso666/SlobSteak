@@ -1,6 +1,10 @@
 <section class="stakeholder-list">
   <h1>Stakeholder</h1>
 
+  @if (loadError) {
+    <p class="load-error" role="alert">{{ loadError }}</p>
+  }
+
   @if (!showDeleted) {
     <form [formGroup]="filterForm" class="filters">
       <label for="search">Suche</label>
@@ -50,7 +54,13 @@
           <td>
             @if (showDeleted) {
               <span class="deleted-badge">Gelöscht am {{ stakeholder.deletedAt | date: 'medium' }} von {{ stakeholder.deletedByName }}</span>
-              <button type="button" (click)="onRestore(stakeholder)">Wiederherstellen</button>
+              <app-processing-button
+                type="button"
+                [isSubmitting]="restoringStakeholderIds.has(stakeholder.id)"
+                label="Wiederherstellen"
+                submittingLabel="Wird wiederhergestellt…"
+                (click)="onRestore(stakeholder)"
+              />
             } @else {
               <button type="button" (click)="onEdit(stakeholder)">Bearbeiten</button>
               <button type="button" (click)="onDeleteClick(stakeholder)">Löschen</button>

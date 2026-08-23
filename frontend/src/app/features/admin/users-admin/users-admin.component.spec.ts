@@ -3,6 +3,7 @@ import { TestBed } from '@angular/core/testing';
 import { provideRouter } from '@angular/router';
 import { of, throwError } from 'rxjs';
 import { AdminUser, AdminUsersService } from '../admin-users.service';
+import { LOAD_ERROR_MESSAGE } from '../../../core/messages/http-error-messages';
 import { UsersAdminComponent } from './users-admin.component';
 
 describe('UsersAdminComponent', () => {
@@ -91,6 +92,14 @@ describe('UsersAdminComponent', () => {
     component['onCreateUser']();
 
     expect(component['createErrorMessage']).toBe('Diese E-Mail-Adresse wird bereits verwendet.');
+  });
+
+  it('should show a consistent load-error message when the user list fails to load (US-044 Akzeptanzkriterium 4)', () => {
+    adminUsersServiceSpy.listUsers.and.returnValue(throwError(() => new HttpErrorResponse({ status: 500 })));
+    const fixture = TestBed.createComponent(UsersAdminComponent);
+    fixture.detectChanges();
+
+    expect(fixture.componentInstance['loadError']).toBe(LOAD_ERROR_MESSAGE);
   });
 
   it('should reset a user password and show a success confirmation', () => {

@@ -3,6 +3,8 @@ import { provideRouter, Router } from '@angular/router';
 import { of, throwError } from 'rxjs';
 import { LoginPageComponent } from './login-page.component';
 import { AuthService } from '../auth.service';
+import { SessionNoticeService } from '../../../core/services/session-notice.service';
+import { SESSION_EXPIRED_MESSAGE } from '../../../core/messages/http-error-messages';
 
 describe('LoginPageComponent', () => {
   let authServiceSpy: jasmine.SpyObj<AuthService>;
@@ -76,6 +78,24 @@ describe('LoginPageComponent', () => {
 
     expect(component['mustChangePassword']).toBeFalse();
     expect(navigateSpy).toHaveBeenCalledWith(['/projects']);
+  });
+
+  it('should show the session-expired hint text once after a redirect from httpErrorInterceptor (US-044 Akzeptanzkriterium 2)', () => {
+    const sessionNotice = TestBed.inject(SessionNoticeService);
+    sessionNotice.set(SESSION_EXPIRED_MESSAGE);
+
+    const fixture = TestBed.createComponent(LoginPageComponent);
+    fixture.detectChanges();
+
+    expect(fixture.componentInstance['sessionExpiredMessage']).toBe(SESSION_EXPIRED_MESSAGE);
+    expect(sessionNotice.consume()).toBeNull();
+  });
+
+  it('should not show a session-expired hint text on a regular login visit', () => {
+    const fixture = TestBed.createComponent(LoginPageComponent);
+    fixture.detectChanges();
+
+    expect(fixture.componentInstance['sessionExpiredMessage']).toBeNull();
   });
 
   it('should show a non-blocking error and clear the password field on 401', () => {

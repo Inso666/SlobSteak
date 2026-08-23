@@ -3,6 +3,7 @@ import { ActivatedRoute } from '@angular/router';
 import { FormBuilder, ReactiveFormsModule, Validators } from '@angular/forms';
 import { HttpErrorResponse } from '@angular/common/http';
 import { Stakeholder, StakeholdersService } from '../stakeholders.service';
+import { ProcessingButtonComponent } from '../../../shared/processing-button/processing-button.component';
 
 /**
  * Formular „Stakeholder anlegen“ (US-021). Erfasst alle in der Story genannten Felder
@@ -16,7 +17,7 @@ import { Stakeholder, StakeholdersService } from '../stakeholders.service';
 @Component({
   selector: 'app-create-stakeholder-form',
   standalone: true,
-  imports: [ReactiveFormsModule],
+  imports: [ReactiveFormsModule, ProcessingButtonComponent],
   templateUrl: './create-stakeholder-form.component.html',
   styleUrl: './create-stakeholder-form.component.css',
 })
@@ -30,6 +31,8 @@ export class CreateStakeholderFormComponent implements OnInit {
 
   protected errorMessage: string | null = null;
   protected lastSimilarWarning: string | null = null;
+  /** US-043 Akzeptanzkriterium 1/2/3/4: Verarbeitungs-Feedback + Doppel-Submit-Schutz. */
+  protected isSubmitting = false;
 
   protected readonly form = this.formBuilder.nonNullable.group({
     name: ['', Validators.required],
@@ -53,12 +56,15 @@ export class CreateStakeholderFormComponent implements OnInit {
   }
 
   protected onSubmit(): void {
-    if (this.form.invalid) {
+    // US-043 Akzeptanzkriterium 3: ein zweiter Trigger während eines laufenden Requests löst
+    // nachweislich keinen zweiten HTTP-Request aus.
+    if (this.form.invalid || this.isSubmitting) {
       return;
     }
 
     this.errorMessage = null;
     this.lastSimilarWarning = null;
+    this.isSubmitting = true;
     const values = this.form.getRawValue();
 
     this.stakeholdersService
@@ -74,6 +80,7 @@ export class CreateStakeholderFormComponent implements OnInit {
       })
       .subscribe({
         next: (stakeholder) => {
+          this.isSubmitting = false;
           if (stakeholder.similarStakeholderWarning) {
             this.lastSimilarWarning = `Hinweis: Ähnlicher Stakeholder existiert bereits: ${stakeholder.similarStakeholderWarning.name}`;
           }
@@ -81,6 +88,7 @@ export class CreateStakeholderFormComponent implements OnInit {
           this.created.emit(stakeholder);
         },
         error: (error: HttpErrorResponse) => {
+          this.isSubmitting = false;
           this.errorMessage =
             error.error?.error === 'NAME_REQUIRED'
               ? 'Der Name darf nicht leer sein.'

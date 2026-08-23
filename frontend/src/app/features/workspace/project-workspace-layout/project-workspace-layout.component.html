@@ -1,4 +1,8 @@
 <div class="workspace">
+  @if (loadError) {
+    <p class="load-error" role="alert">{{ loadError }}</p>
+  }
+
   @if (project) {
     <header class="workspace-header">
       <h1>{{ project.name }}</h1>

@@ -1,8 +1,10 @@
+import { HttpErrorResponse } from '@angular/common/http';
 import { TestBed } from '@angular/core/testing';
 import { ActivatedRoute, convertToParamMap, provideRouter } from '@angular/router';
-import { of } from 'rxjs';
+import { of, throwError } from 'rxjs';
 import { Stakeholder, StakeholdersService } from '../stakeholders.service';
 import { ProjectOverviewItem, ProjectsService } from '../../projects/projects.service';
+import { LOAD_ERROR_MESSAGE } from '../../../core/messages/http-error-messages';
 import { StakeholderListComponent } from './stakeholder-list.component';
 
 describe('StakeholderListComponent', () => {
@@ -101,6 +103,13 @@ describe('StakeholderListComponent', () => {
       expect(stakeholdersServiceSpy.listStakeholders).toHaveBeenCalledWith('project-1', { search: undefined, type: 'Organization' });
       done();
     }, 350);
+  });
+
+  it('should show a consistent load-error message when the stakeholder list fails to load (US-044 Akzeptanzkriterium 4)', () => {
+    stakeholdersServiceSpy.listStakeholders.and.returnValue(throwError(() => new HttpErrorResponse({ status: 500 })));
+    const fixture = createComponent();
+
+    expect(fixture.componentInstance['loadError']).toBe(LOAD_ERROR_MESSAGE);
   });
 
   it('should reload the list when a stakeholder is created', () => {

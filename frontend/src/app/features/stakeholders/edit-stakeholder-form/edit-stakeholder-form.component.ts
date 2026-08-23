@@ -3,6 +3,7 @@ import { DatePipe } from '@angular/common';
 import { FormBuilder, ReactiveFormsModule, Validators } from '@angular/forms';
 import { HttpErrorResponse } from '@angular/common/http';
 import { Stakeholder, StakeholdersService } from '../stakeholders.service';
+import { ProcessingButtonComponent } from '../../../shared/processing-button/processing-button.component';
 
 /**
  * Formular „Stakeholder bearbeiten“ (US-022). Zeigt im Kopfbereich „Zuletzt geändert von [Name]
@@ -13,7 +14,7 @@ import { Stakeholder, StakeholdersService } from '../stakeholders.service';
 @Component({
   selector: 'app-edit-stakeholder-form',
   standalone: true,
-  imports: [ReactiveFormsModule, DatePipe],
+  imports: [ReactiveFormsModule, DatePipe, ProcessingButtonComponent],
   templateUrl: './edit-stakeholder-form.component.html',
   styleUrl: './edit-stakeholder-form.component.css',
 })
@@ -26,6 +27,8 @@ export class EditStakeholderFormComponent implements OnChanges {
   private readonly stakeholdersService = inject(StakeholdersService);
 
   protected errorMessage: string | null = null;
+  /** US-043 Akzeptanzkriterium 1/2/3/4: Verarbeitungs-Feedback + Doppel-Submit-Schutz. */
+  protected isSubmitting = false;
 
   protected readonly form = this.formBuilder.nonNullable.group({
     name: ['', Validators.required],
@@ -57,11 +60,14 @@ export class EditStakeholderFormComponent implements OnChanges {
   }
 
   protected onSubmit(): void {
-    if (this.form.invalid) {
+    // US-043 Akzeptanzkriterium 3: ein zweiter Trigger während eines laufenden Requests löst
+    // nachweislich keinen zweiten HTTP-Request aus.
+    if (this.form.invalid || this.isSubmitting) {
       return;
     }
 
     this.errorMessage = null;
+    this.isSubmitting = true;
     const values = this.form.getRawValue();
 
     this.stakeholdersService
@@ -76,8 +82,12 @@ export class EditStakeholderFormComponent implements OnChanges {
         description: values.description || null,
       })
       .subscribe({
-        next: (updated) => this.updated.emit(updated),
+        next: (updated) => {
+          this.isSubmitting = false;
+          this.updated.emit(updated);
+        },
         error: (error: HttpErrorResponse) => {
+          this.isSubmitting = false;
           this.errorMessage =
             error.error?.error === 'NAME_REQUIRED'
               ? 'Der Name darf nicht leer sein.'

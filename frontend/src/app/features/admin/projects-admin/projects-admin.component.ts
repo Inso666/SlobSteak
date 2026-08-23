@@ -3,6 +3,8 @@ import { FormBuilder, ReactiveFormsModule, Validators } from '@angular/forms';
 import { AdminSubNavComponent } from '../admin-sub-nav/admin-sub-nav.component';
 import { AdminProject, AdminProjectsService } from '../admin-projects.service';
 import { ProjectMembershipManagerComponent } from './project-membership-manager.component';
+import { LOAD_ERROR_MESSAGE } from '../../../core/messages/http-error-messages';
+import { ProcessingButtonComponent } from '../../../shared/processing-button/processing-button.component';
 
 /**
  * Admin-Bereich „Projektverwaltung & Mitgliederzuweisung“ (US-017, Screen S5 Sub-Bereich
@@ -17,7 +19,12 @@ import { ProjectMembershipManagerComponent } from './project-membership-manager.
 @Component({
   selector: 'app-projects-admin',
   standalone: true,
-  imports: [ReactiveFormsModule, ProjectMembershipManagerComponent, AdminSubNavComponent],
+  imports: [
+    ReactiveFormsModule,
+    ProjectMembershipManagerComponent,
+    AdminSubNavComponent,
+    ProcessingButtonComponent,
+  ],
   templateUrl: './projects-admin.component.html',
   styleUrl: './projects-admin.component.css',
 })
@@ -28,6 +35,9 @@ export class ProjectsAdminComponent implements OnInit {
   protected projects: AdminProject[] = [];
   protected createErrorMessage: string | null = null;
   protected selectedProjectId: string | null = null;
+  protected loadError: string | null = null;
+  /** US-043 Akzeptanzkriterium 1/2/3/4: Verarbeitungs-Feedback + Doppel-Submit-Schutz. */
+  protected isCreatingProject = false;
 
   protected readonly createForm = this.formBuilder.nonNullable.group({
     name: ['', Validators.required],
@@ -39,19 +49,24 @@ export class ProjectsAdminComponent implements OnInit {
   }
 
   protected onCreateProject(): void {
-    if (this.createForm.invalid) {
+    // US-043 Akzeptanzkriterium 3: ein zweiter Trigger während eines laufenden Requests löst
+    // nachweislich keinen zweiten HTTP-Request aus.
+    if (this.createForm.invalid || this.isCreatingProject) {
       return;
     }
 
     this.createErrorMessage = null;
+    this.isCreatingProject = true;
     const { name, description } = this.createForm.getRawValue();
 
     this.adminProjectsService.createProject(name, description || null).subscribe({
       next: () => {
+        this.isCreatingProject = false;
         this.createForm.reset();
         this.loadProjects();
       },
       error: () => {
+        this.isCreatingProject = false;
         this.createErrorMessage = 'Projekt konnte nicht angelegt werden.';
       },
     });
@@ -61,7 +76,13 @@ export class ProjectsAdminComponent implements OnInit {
     this.selectedProjectId = this.selectedProjectId === project.id ? null : project.id;
   }
 
+  /** US-044 Akzeptanzkriterium 4: konsistente Fehlermeldung statt stumm leerer Liste bei
+   * fehlgeschlagenem Laden. */
   private loadProjects(): void {
-    this.adminProjectsService.listProjects().subscribe((projects) => (this.projects = projects));
+    this.loadError = null;
+    this.adminProjectsService.listProjects().subscribe({
+      next: (projects) => (this.projects = projects),
+      error: () => (this.loadError = LOAD_ERROR_MESSAGE),
+    });
   }
 }

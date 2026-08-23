@@ -19,15 +19,25 @@
             <select
               [ngModel]="membership.role"
               [ngModelOptions]="{ standalone: true }"
+              [disabled]="changingRoleUserIds.has(membership.userId)"
               (ngModelChange)="onChangeRole(membership, $event)"
             >
               @for (role of roles; track role) {
                 <option [value]="role">{{ role }}</option>
               }
             </select>
+            @if (changingRoleUserIds.has(membership.userId)) {
+              <span class="processing-hint">Wird geändert…</span>
+            }
           </td>
           <td>
-            <button type="button" (click)="onRemoveMember(membership)">Entfernen</button>
+            <app-processing-button
+              type="button"
+              [isSubmitting]="removingMemberUserIds.has(membership.userId)"
+              label="Entfernen"
+              submittingLabel="Wird entfernt…"
+              (click)="onRemoveMember(membership)"
+            />
           </td>
         </tr>
       } @empty {
@@ -59,6 +69,6 @@
       }
     </select>
 
-    <button type="submit" [disabled]="assignForm.invalid">Hinzufügen</button>
+    <app-processing-button type="submit" [disabled]="assignForm.invalid" [isSubmitting]="isAssigning" label="Hinzufügen" submittingLabel="Wird hinzugefügt…" />
   </form>
 </section>

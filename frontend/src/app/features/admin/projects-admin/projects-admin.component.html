@@ -3,6 +3,10 @@
 
   <h1>Projektverwaltung</h1>
 
+  @if (loadError) {
+    <p class="load-error" role="alert">{{ loadError }}</p>
+  }
+
   <table>
     <thead>
       <tr>
@@ -48,6 +52,6 @@
       <p class="field-error">{{ createErrorMessage }}</p>
     }
 
-    <button type="submit" [disabled]="createForm.invalid">Projekt anlegen</button>
+    <app-processing-button type="submit" [disabled]="createForm.invalid" [isSubmitting]="isCreatingProject" label="Projekt anlegen" submittingLabel="Wird angelegt…" />
   </form>
 </section>
