@@ -18,6 +18,7 @@ Jede Story ist so geschnitten, dass sie in einem einzigen fokussierten Entwicklu
 | **CommunicationCatalog** | Instanzweiter Katalog der Kommunikationsarten (Admin) | F5.3 |
 | **StakeholderCommunication** | n:m-Zuordnung Stakeholder ↔ Kommunikationsart | F4.2 |
 | **DistributionList** | Gefilterte Empfängerlisten, Copy/CSV-Export | F4.1 |
+| **Frontend-Shell** | App-weite UI-Infrastruktur (Navigation, Session-/Fehler-Handling, Formular-Interaktionsmuster) quer zu allen fachlichen Contexts | Abschnitt 6 (UI-Architektur), CLAUDE.md 3.7 |
 
 ## Umsetzungsreihenfolge
 
@@ -107,6 +108,20 @@ Jede Story ist so geschnitten, dass sie in einem einzigen fokussierten Entwicklu
 |---|---|---|---|---|
 | US-041 | Verteilerlisten-Filter-Query-API inkl. Berechtigungsregel | DistributionList | US-039, US-025, US-007 | [US-041-distribution-list-api.md](US-041-distribution-list-api.md) |
 | US-042 | Verteilerlisten-UI: Filter, Tabelle, Copy-E-Mails, CSV-Export | DistributionList | US-041, US-019 | [US-042-distribution-list-ui.md](US-042-distribution-list-ui.md) |
+
+### Phase 9 — Frontend UX-Härtung (Cross-Cutting)
+
+Ergebnis eines UX-Reviews vom 23.08.2026 (Fokus: Feedback bei Operationen >0,5s, korrekte Weiterleitung nach Login/Aktionen). Alle vier Stories sind fachlich unabhängig von den Phasen 5–8 (Map, Communication, Distribution) und können parallel dazu bearbeitet werden — ihre Abhängigkeiten reichen ausschließlich in die bereits abgeschlossenen Phasen 1–4 zurück.
+
+| ID | Titel | Bounded Context | Abhängigkeiten | Datei | Status |
+|---|---|---|---|---|---|
+| US-043 | Einheitliches Verarbeitungs-Feedback & Doppel-Submit-Schutz auf allen Formularen/Aktions-Buttons | Frontend-Shell | US-009, US-016, US-017, US-021, US-022, US-023, US-024, US-029 | [US-043-formular-feedback-doppelsubmit-schutz.md](US-043-formular-feedback-doppelsubmit-schutz.md) | offen |
+| US-044 | Globales HTTP-Error-Handling inkl. automatischer Weiterleitung bei abgelaufener Sitzung | Frontend-Shell | US-006, US-009, US-018, US-019 | [US-044-globales-http-error-handling.md](US-044-globales-http-error-handling.md) | offen |
+| US-045 | Globale Navigation (Shell) inkl. Abmelden-Funktion | Frontend-Shell | US-006, US-009, US-018 | [US-045-globale-navigation-abmelden.md](US-045-globale-navigation-abmelden.md) | offen |
+| US-046 | Admin-Bereich über globale Navigation erreichbar machen | Frontend-Shell | US-016, US-017, US-045 | [US-046-globale-navigation-admin-eintrag.md](US-046-globale-navigation-admin-eintrag.md) | offen |
+| US-047 | Bestehendes Frontend auf das in CLAUDE.md definierte Design-System migrieren | Frontend-Shell | US-009, US-016, US-017, US-018, US-019, US-021, US-022, US-023, US-024, US-025, US-026, US-029, US-043, US-044, US-045, US-046 | [US-047-frontend-design-migration.md](US-047-frontend-design-migration.md) | offen |
+
+**Hinweis zu US-047:** Zusätzliche Definition-of-Ready-Voraussetzung über das übliche Schema hinaus — das in `CLAUDE.md` zu hinterlegende Design-Konzept (Farben inkl. Akzentfarbe, Typografie, Abstands-/Radius-Skala, Komponentenmuster) muss vollständig vorliegen, bevor diese Story begonnen wird (wird separat vom Projektverantwortlichen ausgearbeitet, siehe Story-Datei Abschnitt 5).
 
 ## Hinweise zur Nutzung durch den Dev-Agenten
 
