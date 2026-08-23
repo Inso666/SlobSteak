@@ -4,6 +4,31 @@ Alle nennenswerten Änderungen an diesem Projekt werden hier je User Story dokum
 
 ## [Unreleased]
 
+### US-043 — Einheitliches Verarbeitungs-Feedback & Doppel-Submit-Schutz auf allen Formularen/Aktions-Buttons
+
+- Neue, projektweit wiederverwendbare `ProcessingButtonComponent` (`frontend/src/app/shared/processing-button/`):
+  rendert einen `<button>`, der während `isSubmitting === true` über `[disabled]` gesperrt ist **und**
+  gleichzeitig einen Textwechsel (`submittingLabel`) plus Inline-Spinner zeigt — ein reines `[disabled]`
+  ohne visuellen Unterschied gilt laut Story nicht als erfüllt. Ersetzt die bisherige, in jeder
+  Formular-/Aktions-Komponente unterschiedliche `<button [disabled]="...">`-Kopie.
+- `isSubmitting`-Flag (bzw. `Set<string>` für zeilenweise Aktionen in Tabellen) inkl. Guard gegen einen
+  zweiten Trigger während eines laufenden Requests ergänzt in: `CreateStakeholderFormComponent`,
+  `EditStakeholderFormComponent`, `DeleteStakeholderDialogComponent`, `StakeholderListComponent`
+  (Wiederherstellen-Button), `AssessmentTabsComponent` (Speichern, inkl. „Trotzdem speichern“ aus dem
+  Konfliktdialog), `UsersAdminComponent` (Nutzer anlegen + Passwort zurücksetzen je Zeile),
+  `ProjectsAdminComponent` (Projekt anlegen), `ProjectMembershipManagerComponent` (Hinzufügen, Rolle
+  ändern, Entfernen je Zeile). `isSubmitting` wird in jedem Fall sowohl im `next`- als auch im
+  `error`-Callback zurückgesetzt, sodass ein fehlgeschlagener Request ohne Seiten-Reload erneut versucht
+  werden kann.
+- `login-page.component.html` und `password-change-modal.component.html` auf dasselbe sichtbare Muster
+  (`ProcessingButtonComponent` statt reinem `[disabled]`) angeglichen — das bereits vorhandene
+  `isSubmitting`-Flag dieser beiden Komponenten wird dafür jetzt auch visuell konsistent dargestellt.
+- Story-Test `frontend/src/app/shared/us-043-formular-feedback-doppelsubmit-schutz.spec.ts`: ein
+  Testblock je Akzeptanzkriterium; AC3 (Doppel-Trigger löst keinen zweiten HTTP-Request aus) wird für
+  `create-stakeholder-form` und `assessment-tabs` über `HttpTestingController` nachgewiesen.
+- Reiner Frontend-Anteil, keine Domain-/API-Änderung — `dotnet test` unverändert grün, `ng test`
+  (gesamter Workspace, 119 Tests) grün, `ng lint` fehlerfrei.
+
 ### US-045 — Globale Navigation (Shell) inkl. Abmelden-Funktion
 
 - Neue standalone `AppNavigationComponent` (`frontend/src/app/core/navigation/app-navigation/`)

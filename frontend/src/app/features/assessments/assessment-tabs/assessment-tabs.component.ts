@@ -4,6 +4,7 @@ import { FormBuilder, ReactiveFormsModule } from '@angular/forms';
 import { HttpErrorResponse } from '@angular/common/http';
 import { AssessmentRole, AssessmentsService } from '../assessments.service';
 import { AssessmentConflictDialogComponent } from '../assessment-conflict-dialog/assessment-conflict-dialog.component';
+import { ProcessingButtonComponent } from '../../../shared/processing-button/processing-button.component';
 
 const PERSPECTIVE_BEARING_ROLES = ['PL', 'Coreteam', 'Architect'] as const;
 
@@ -23,7 +24,7 @@ const PERSPECTIVE_BEARING_ROLES = ['PL', 'Coreteam', 'Architect'] as const;
 @Component({
   selector: 'app-assessment-tabs',
   standalone: true,
-  imports: [ReactiveFormsModule, DatePipe, AssessmentConflictDialogComponent],
+  imports: [ReactiveFormsModule, DatePipe, AssessmentConflictDialogComponent, ProcessingButtonComponent],
   templateUrl: './assessment-tabs.component.html',
   styleUrl: './assessment-tabs.component.css',
 })
@@ -40,6 +41,8 @@ export class AssessmentTabsComponent implements OnInit {
   protected assessing = false;
   protected conflict: { modifiedBy: string; modifiedAt: string } | null = null;
   protected errorMessage: string | null = null;
+  /** US-043 Akzeptanzkriterium 1/2/3/4: Verarbeitungs-Feedback + Doppel-Submit-Schutz. */
+  protected isSaving = false;
 
   protected readonly form = this.formBuilder.nonNullable.group({
     influence: [0],
@@ -86,7 +89,15 @@ export class AssessmentTabsComponent implements OnInit {
   }
 
   private save(expectedVersion: number | undefined): void {
+    // US-043 Akzeptanzkriterium 3: ein zweiter Trigger während eines laufenden Requests löst
+    // nachweislich keinen zweiten HTTP-Request aus (gilt für den Speichern-Button ebenso wie für
+    // „Trotzdem speichern“ im Konfliktdialog, die beide hier münden).
+    if (this.isSaving) {
+      return;
+    }
+
     this.errorMessage = null;
+    this.isSaving = true;
     const values = this.form.getRawValue();
 
     this.assessmentsService
@@ -98,11 +109,13 @@ export class AssessmentTabsComponent implements OnInit {
       })
       .subscribe({
         next: () => {
+          this.isSaving = false;
           this.conflict = null;
           this.assessing = false;
           this.loadAssessments();
         },
         error: (error: HttpErrorResponse) => {
+          this.isSaving = false;
           if (error.status === 409) {
             this.conflict = { modifiedBy: error.error?.modifiedBy, modifiedAt: error.error?.modifiedAt };
           } else {

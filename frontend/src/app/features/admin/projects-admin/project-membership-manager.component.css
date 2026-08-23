@@ -21,3 +21,9 @@ td {
   color: #b00020;
   font-size: 0.875rem;
 }
+
+.processing-hint {
+  margin-left: 0.5rem;
+  font-size: 0.8rem;
+  color: #555;
+}

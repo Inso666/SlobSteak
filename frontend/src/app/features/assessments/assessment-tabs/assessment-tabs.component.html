@@ -33,7 +33,7 @@
         }
 
         @if (isOwnRole) {
-          <button type="submit">Speichern</button>
+          <app-processing-button type="submit" [isSubmitting]="isSaving" label="Speichern" submittingLabel="Wird gespeichert…" />
         }
       </form>
     }

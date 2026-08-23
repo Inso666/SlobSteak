@@ -41,6 +41,6 @@
       <p class="info-message">{{ lastSimilarWarning }}</p>
     }
 
-    <button type="submit" [disabled]="form.invalid">Anlegen</button>
+    <app-processing-button type="submit" [disabled]="form.invalid" [isSubmitting]="isSubmitting" label="Anlegen" submittingLabel="Wird angelegt…" />
   </form>
 </section>

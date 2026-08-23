@@ -1,5 +1,6 @@
 import { Component, EventEmitter, Input, OnChanges, Output, inject } from '@angular/core';
 import { Stakeholder, StakeholderDeletionImpact, StakeholdersService } from '../stakeholders.service';
+import { ProcessingButtonComponent } from '../../../shared/processing-button/processing-button.component';
 
 /**
  * Lösch-Bestätigungsdialog (US-023 Akzeptanzkriterium 6): lädt beim Öffnen die Impact-Zahlen über
@@ -11,7 +12,7 @@ import { Stakeholder, StakeholderDeletionImpact, StakeholdersService } from '../
 @Component({
   selector: 'app-delete-stakeholder-dialog',
   standalone: true,
-  imports: [],
+  imports: [ProcessingButtonComponent],
   templateUrl: './delete-stakeholder-dialog.component.html',
   styleUrl: './delete-stakeholder-dialog.component.css',
 })
@@ -24,10 +25,13 @@ export class DeleteStakeholderDialogComponent implements OnChanges {
 
   protected impact: StakeholderDeletionImpact | null = null;
   protected errorMessage: string | null = null;
+  /** US-043 Akzeptanzkriterium 1/2/3/4: Verarbeitungs-Feedback + Doppel-Submit-Schutz. */
+  protected isSubmitting = false;
 
   ngOnChanges(): void {
     this.impact = null;
     this.errorMessage = null;
+    this.isSubmitting = false;
     this.stakeholdersService.getDeletionImpact(this.stakeholder.id).subscribe({
       next: (impact) => (this.impact = impact),
       error: () => {
@@ -37,9 +41,20 @@ export class DeleteStakeholderDialogComponent implements OnChanges {
   }
 
   protected onConfirm(): void {
+    // US-043 Akzeptanzkriterium 3: ein zweiter Trigger während eines laufenden Requests löst
+    // nachweislich keinen zweiten HTTP-Request aus.
+    if (this.isSubmitting) {
+      return;
+    }
+
+    this.isSubmitting = true;
     this.stakeholdersService.deleteStakeholder(this.stakeholder.id).subscribe({
-      next: () => this.deleted.emit(this.stakeholder.id),
+      next: () => {
+        this.isSubmitting = false;
+        this.deleted.emit(this.stakeholder.id);
+      },
       error: () => {
+        this.isSubmitting = false;
         this.errorMessage = 'Stakeholder konnte nicht gelöscht werden.';
       },
     });
