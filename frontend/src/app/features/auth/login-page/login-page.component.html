@@ -2,6 +2,10 @@
   <main class="login">
     <h1>Anmelden</h1>
 
+    @if (sessionExpiredMessage) {
+      <p class="session-expired-notice" role="alert">{{ sessionExpiredMessage }}</p>
+    }
+
     <form [formGroup]="form" (ngSubmit)="onSubmit()">
       <label for="email">E-Mail</label>
       <input id="email" type="email" formControlName="email" autocomplete="username" />

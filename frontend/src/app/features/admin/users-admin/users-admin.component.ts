@@ -2,6 +2,7 @@ import { Component, OnInit, inject } from '@angular/core';
 import { HttpErrorResponse } from '@angular/common/http';
 import { FormBuilder, ReactiveFormsModule, Validators } from '@angular/forms';
 import { AdminUser, AdminUsersService } from '../admin-users.service';
+import { LOAD_ERROR_MESSAGE } from '../../../core/messages/http-error-messages';
 
 /**
  * Admin-Bereich „Nutzerverwaltung“ (US-016, Screen S5 Sub-Bereich Nutzer): Liste aller Nutzer,
@@ -21,6 +22,7 @@ export class UsersAdminComponent implements OnInit {
   protected users: AdminUser[] = [];
   protected createErrorMessage: string | null = null;
   protected resetPasswordMessage: string | null = null;
+  protected loadError: string | null = null;
 
   protected readonly createForm = this.formBuilder.nonNullable.group({
     name: ['', Validators.required],
@@ -68,8 +70,14 @@ export class UsersAdminComponent implements OnInit {
     });
   }
 
+  /** US-044 Akzeptanzkriterium 4: konsistente Fehlermeldung statt stumm leerer Liste bei
+   * fehlgeschlagenem Laden. */
   private loadUsers(): void {
-    this.adminUsersService.listUsers().subscribe((users) => (this.users = users));
+    this.loadError = null;
+    this.adminUsersService.listUsers().subscribe({
+      next: (users) => (this.users = users),
+      error: () => (this.loadError = LOAD_ERROR_MESSAGE),
+    });
   }
 
   private generateTemporaryPassword(): string {

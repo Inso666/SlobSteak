@@ -1,6 +1,10 @@
 <section class="stakeholder-list">
   <h1>Stakeholder</h1>
 
+  @if (loadError) {
+    <p class="load-error" role="alert">{{ loadError }}</p>
+  }
+
   @if (!showDeleted) {
     <form [formGroup]="filterForm" class="filters">
       <label for="search">Suche</label>

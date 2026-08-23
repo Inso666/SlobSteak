@@ -1,6 +1,8 @@
+import { HttpErrorResponse } from '@angular/common/http';
 import { TestBed } from '@angular/core/testing';
-import { of } from 'rxjs';
+import { of, throwError } from 'rxjs';
 import { AdminProject, AdminProjectsService } from '../admin-projects.service';
+import { LOAD_ERROR_MESSAGE } from '../../../core/messages/http-error-messages';
 import { ProjectsAdminComponent } from './projects-admin.component';
 
 describe('ProjectsAdminComponent', () => {
@@ -64,6 +66,14 @@ describe('ProjectsAdminComponent', () => {
 
     expect(adminProjectsServiceSpy.createProject).toHaveBeenCalledWith('Neues Projekt', 'Beschreibung');
     expect(adminProjectsServiceSpy.listProjects).toHaveBeenCalledTimes(2);
+  });
+
+  it('should show a consistent load-error message when the project list fails to load (US-044 Akzeptanzkriterium 4)', () => {
+    adminProjectsServiceSpy.listProjects.and.returnValue(throwError(() => new HttpErrorResponse({ status: 500 })));
+    const fixture = TestBed.createComponent(ProjectsAdminComponent);
+    fixture.detectChanges();
+
+    expect(fixture.componentInstance['loadError']).toBe(LOAD_ERROR_MESSAGE);
   });
 
   it('should toggle the selected project on select and deselect', () => {

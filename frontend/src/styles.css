@@ -1,1 +1,9 @@
 /* You can add global styles to this file, and also import other style files */
+
+/* US-044: konsistente Darstellung für fehlgeschlagene lesende (GET-)Requests, geteilt über
+   mehrere Feature-Komponenten hinweg (stakeholder-list, project-overview,
+   project-workspace-layout, users-admin, projects-admin) statt je Komponente dupliziert. */
+.load-error {
+  color: #b00020;
+  font-size: 0.875rem;
+}
