@@ -1,5 +1,6 @@
 import { Component, EventEmitter, Input, Output } from '@angular/core';
 import { DatePipe } from '@angular/common';
+import { ButtonDirective } from 'primeng/button';
 
 /**
  * Konfliktdialog bei einer veralteten Assessment-Version (US-029 Akzeptanzkriterium 4): erscheint,
@@ -10,7 +11,7 @@ import { DatePipe } from '@angular/common';
 @Component({
   selector: 'app-assessment-conflict-dialog',
   standalone: true,
-  imports: [DatePipe],
+  imports: [DatePipe, ButtonDirective],
   templateUrl: './assessment-conflict-dialog.component.html',
   styleUrl: './assessment-conflict-dialog.component.css',
 })

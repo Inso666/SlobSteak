@@ -1,43 +1,43 @@
+/* US-047 / SPEC-00 §1.3: Pill-Tab-Muster über die geteilten `.tab-pills`/`.tab-pill`-Utility-Klassen
+   statt eines lokalen Unterstrich-Tabs — konsistent mit Projekt-Workspace-Navigation,
+   Projektübersicht und Admin-Sub-Navigation. Ausschließlich zentrale Tokens. */
 .assessment-tabs {
-  padding: 0.5rem 0;
+  padding: var(--app-space-sm) 0;
 }
 
-.tab-bar {
-  display: flex;
-  gap: 0.5rem;
-  margin-bottom: 1rem;
-  border-bottom: 1px solid #ddd;
-}
-
-.tab-bar button {
-  padding: 0.5rem 1rem;
-  border: none;
-  background: none;
-  cursor: pointer;
-}
-
-.tab-bar button.active {
-  border-bottom: 2px solid #333;
-  font-weight: 600;
+.tab-pills {
+  margin-bottom: var(--app-space-md);
 }
 
 .hint {
-  color: #666;
+  color: var(--app-color-text-muted);
 }
 
 .last-modified {
-  color: #666;
-  font-size: 0.875rem;
+  color: var(--app-color-text-muted);
+  font-size: var(--app-font-size-meta);
+  font-family: var(--app-font-family-mono);
 }
 
 form {
   display: flex;
   flex-direction: column;
-  gap: 0.25rem;
+  gap: var(--app-space-xs);
   max-width: 24rem;
 }
 
-.field-error {
-  color: #b00020;
-  font-size: 0.875rem;
+.field {
+  display: flex;
+  flex-direction: column;
+  gap: var(--app-space-xs);
+  margin-bottom: var(--app-space-sm);
+}
+
+.field label {
+  font-size: var(--app-font-size-body);
+  color: var(--app-color-text-muted);
+}
+
+.range-input {
+  accent-color: var(--app-color-text);
 }

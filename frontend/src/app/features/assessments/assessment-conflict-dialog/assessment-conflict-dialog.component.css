@@ -1,12 +1,14 @@
+/* US-047 / SPEC-00 §1.2: Konflikt-Hinweis in Fehlerfarbe, ausschließlich zentrale Tokens. */
 .conflict-dialog {
-  padding: 1rem;
-  margin: 0.5rem 0;
-  border: 1px solid #b00020;
-  background-color: #fff4f4;
+  padding: var(--app-space-md);
+  margin: var(--app-space-sm) 0;
+  background: var(--app-color-error-bg);
+  border: 1px solid var(--app-color-error);
+  border-radius: var(--app-radius-md);
 }
 
 .actions {
   display: flex;
-  gap: 0.5rem;
-  margin-top: 0.5rem;
+  gap: var(--app-space-sm);
+  margin-top: var(--app-space-sm);
 }
