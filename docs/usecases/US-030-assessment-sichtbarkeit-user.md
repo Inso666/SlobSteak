@@ -32,3 +32,25 @@ Als **Nutzer mit Rolle User** möchte ich **Stakeholder-Stammdaten einsehen kön
 **Wichtige Invarianten & Validierungsregeln:**
 
 - Nutzer mit `project_memberships.role = User` dürfen `stakeholder_assessments` über die API nicht lesen — dies ist eine Feldsichtbarkeits-Regel, keine UI-Deaktivierung (Abschnitt 4.3 Punkt 4, F2.3).
+
+### Anmerkungen des Dev-Agenten (Backend)
+
+- Akzeptanzkriterium 4 fordert zusätzlich einen Cross-Check, dass die Map-Navigation (US-032) und
+  der Map-Query-Endpoint (US-031) für Rolle `User` ebenfalls serverseitig gesperrt sind. Beide
+  Stories sind laut `docs/usecases/BACKLOG.md` noch nicht umgesetzt — es existiert schlicht noch
+  kein Map-Query-Endpoint, den man testen oder sperren könnte. Ihn jetzt vorwegzunehmen wäre ein
+  Vorgriff auf eine noch nicht begonnene Story (CLAUDE.md Abschnitt 3, „Doing"). Präzedenzfall:
+  US-023 hat den analogen Fall (Verweis auf US-031/US-041) identisch gehandhabt. Empfehlung: die
+  serverseitige Sperre für Rolle `User` wird als Nachtrag direkt in US-031 mitgebaut (dort entsteht
+  der Endpoint erstmals), inkl. eigenem Story-Test-Fall für diesen Cross-Check — nicht rückwirkend
+  in US-030 nachgezogen.
+- Backend-Umsetzung: `GET /api/v1/stakeholders/{id}/assessments` nutzt weiterhin die bestehende
+  deklarative `[RequireProjectRole(...)]`-Infrastruktur aus US-007/US-022 (ADR-0007) — `ProjectRole.User`
+  wurde schlicht aus der Liste der für diese Action erlaubten Rollen entfernt. Keine neue
+  Authorization-Infrastruktur nötig; das ist die am wenigsten überraschende, mit dem bestehenden
+  Code konsistenteste Lösung (der `StakeholderProjectRoleAuthorizationHandler` löst das Projekt
+  weiterhin über die Stakeholder-Id auf und liefert bei fehlender erlaubter Rolle automatisch
+  `403 {"error":"FORBIDDEN"}` ohne jegliche Assessment-Felder im Body, siehe
+  `JsonAuthorizationMiddlewareResultHandler`).
+- Akzeptanzkriterium 3 (Angular-Komponententest, Assessment-Tabs vollständig aus dem DOM entfernt)
+  ist Frontend-Scope und liegt nicht im Backend-Story-Test.
