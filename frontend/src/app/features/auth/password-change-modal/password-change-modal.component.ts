@@ -1,5 +1,8 @@
 import { Component, EventEmitter, Output, inject } from '@angular/core';
 import { FormBuilder, ReactiveFormsModule, Validators } from '@angular/forms';
+import { Dialog } from 'primeng/dialog';
+import { Message } from 'primeng/message';
+import { Password } from 'primeng/password';
 import { AuthService } from '../auth.service';
 import { ProcessingButtonComponent } from '../../../shared/processing-button/processing-button.component';
 
@@ -14,7 +17,7 @@ import { ProcessingButtonComponent } from '../../../shared/processing-button/pro
 @Component({
   selector: 'app-password-change-modal',
   standalone: true,
-  imports: [ReactiveFormsModule, ProcessingButtonComponent],
+  imports: [ReactiveFormsModule, ProcessingButtonComponent, Dialog, Message, Password],
   templateUrl: './password-change-modal.component.html',
   styleUrl: './password-change-modal.component.css',
 })

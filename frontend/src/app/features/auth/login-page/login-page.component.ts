@@ -1,6 +1,10 @@
 import { Component, OnInit, inject } from '@angular/core';
 import { FormBuilder, ReactiveFormsModule, Validators } from '@angular/forms';
 import { Router } from '@angular/router';
+import { Card } from 'primeng/card';
+import { InputText } from 'primeng/inputtext';
+import { Message } from 'primeng/message';
+import { Password } from 'primeng/password';
 import { AuthService } from '../auth.service';
 import { PasswordChangeModalComponent } from '../password-change-modal/password-change-modal.component';
 import { SessionNoticeService } from '../../../core/services/session-notice.service';
@@ -20,7 +24,7 @@ import { ProcessingButtonComponent } from '../../../shared/processing-button/pro
 @Component({
   selector: 'app-login-page',
   standalone: true,
-  imports: [ReactiveFormsModule, PasswordChangeModalComponent, ProcessingButtonComponent],
+  imports: [ReactiveFormsModule, PasswordChangeModalComponent, ProcessingButtonComponent, Card, InputText, Message, Password],
   templateUrl: './login-page.component.html',
   styleUrl: './login-page.component.css',
 })
