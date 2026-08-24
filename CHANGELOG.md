@@ -4,6 +4,30 @@ Alle nennenswerten Änderungen an diesem Projekt werden hier je User Story dokum
 
 ## [Unreleased]
 
+### US-030 — Server-seitige Sichtbarkeitsregel für Rolle User (Assessment-Daten)
+
+- `GET /api/v1/stakeholders/{id}/assessments` liefert für Nutzer mit `project_membership.role =
+  User` jetzt `403 Forbidden` (`{"error":"FORBIDDEN"}`, keinerlei Assessment-Felder im Body) statt
+  einer leeren oder maskierten Liste — Umsetzung über die bestehende deklarative
+  `[RequireProjectRole(...)]`-Infrastruktur (US-007/US-022, ADR-0007), `ProjectRole.User` wurde aus
+  der Liste der für `GetAssessments` erlaubten Rollen entfernt.
+- Auf der Stakeholder-Detailseite ist der gesamte Assessment-Bereich (Überschrift + Tabs) für Rolle
+  `User` vollständig aus dem DOM entfernt (`@if` auf Basis der vom Backend gelieferten Projektrolle,
+  keine reine CSS-Klasse) — neuer `data-testid="assessment-tabs"`-Testhook auf dem Tabs-Container.
+- Story-Tests: Backend `tests/SlobSteak.Api.Tests/UserStories/US030_AssessmentSichtbarkeitUserTests.cs`
+  (Akzeptanzkriterium 1/2), Frontend
+  `frontend/src/app/features/stakeholders/us-030-assessment-sichtbarkeit-user.spec.ts`
+  (Akzeptanzkriterium 3). Zusätzlicher Regressionstest `frontend/src/app/app.routes.spec.ts` sichert
+  die bereits bestehende Map-Route-Sperre (`roleGuard(['PL','Coreteam','Architect'])`, seit
+  US-019/US-026) gegen versehentliches Entfernen ab.
+- `dotnet test SlobSteak.sln` (323/323) und `ng test` (177/177) laufen grün, `dotnet format` und
+  `ng lint` ohne Befund. `SlobSteak.Domain`-Testabdeckung: 84,95 % (Richtwert 80 % erfüllt).
+- **Bekannter offener Punkt (dokumentierte Abweichung, kein Blocker):** Akzeptanzkriterium 4 fordert
+  zusätzlich eine serverseitige Sperre des Map-Query-Endpoints (US-031) für Rolle `User`. Dieser
+  Endpoint existiert laut Backlog noch nicht — die Sperre wird als Nachtrag direkt in US-031
+  mitgebaut (Präzedenzfall US-023). Die Map-**Navigation** (Frontend-Route) ist bereits gesperrt und
+  jetzt zusätzlich regressionsgetestet.
+
 ### US-047 — Bestehendes Frontend auf das Design-System migrieren
 
 - Zentrale Design-Tokens (Farben inkl. Rollen-/Attention-Palette, Radien, Abstände, Typografie)
