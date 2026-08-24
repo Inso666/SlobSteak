@@ -124,6 +124,23 @@ Ergebnis eines UX-Reviews vom 23.08.2026 (Fokus: Feedback bei Operationen >0,5s,
 
 **Hinweis zu US-047:** Zusätzliche Definition-of-Ready-Voraussetzung über das übliche Schema hinaus — das in `CLAUDE.md` zu hinterlegende Design-Konzept (Farben inkl. Akzentfarbe, Typografie, Abstands-/Radius-Skala, Komponentenmuster) muss vollständig vorliegen, bevor diese Story begonnen wird (wird separat vom Projektverantwortlichen ausgearbeitet, siehe Story-Datei Abschnitt 5).
 
+### Phase 10 — Bugfixing (aus `docs/bugs/bugs.md`, PO-Review vom 24.08.2026)
+
+Vom Projektverantwortlichen gemeldete Bugs (`docs/bugs/bugs.md`), vom Product Owner verifiziert (Code-/Spec-Abgleich) und zu acht Stories gruppiert/geschnitten. US-049–US-052 sind funktionale Bugs, US-053–US-056 Design-Abweichungen von den `docs/specs/SPEC-*`-Dateien bzw. dem in US-047 umgesetzten Design-System. Reihenfolge innerhalb der Phase spiegelt die dokumentierten Abhängigkeiten wider (z. B. US-053 vor US-054, US-055 vor US-056).
+
+| ID | Titel | Bounded Context | Abhängigkeiten | Datei | Status |
+|---|---|---|---|---|---|
+| US-049 | Verlässliche Antwortzeit & Statusrückmeldung beim ersten Request nach Systemstart | Shared Kernel / Infrastructure | US-001, US-006, US-009 | [US-049-kaltstart-performance-erster-request.md](US-049-kaltstart-performance-erster-request.md) | offen |
+| US-050 | Verlässlicher Lade-Zustand statt fälschlicher Leer-/Stale-Darstellung auf Listen-/Übersichtsseiten | Frontend-Shell | US-016, US-017, US-018, US-044 | [US-050-verlaesslicher-lade-zustand-listen.md](US-050-verlaesslicher-lade-zustand-listen.md) | offen |
+| US-051 | „Passwort zurücksetzen“ in der Nutzerverwaltung schließt zuverlässig ab | IdentityAccess | US-013, US-016, US-043 | [US-051-passwort-reset-abschliessen.md](US-051-passwort-reset-abschliessen.md) | offen |
+| US-052 | Stakeholderverwaltung nach Projektauswahl zuverlässig anzeigen | ProjectManagement / StakeholderManagement | US-019, US-025, US-026, US-044 | [US-052-stakeholderverwaltung-nach-projektklick.md](US-052-stakeholderverwaltung-nach-projektklick.md) | offen |
+| US-053 | App-Identität im Browser (Tab-Titel, Favicon, Marken-Icon) | Frontend-Shell | US-001, US-047 | [US-053-app-identitaet-browser.md](US-053-app-identitaet-browser.md) | offen |
+| US-054 | Login- und Passwort-Änderungs-Masken gemäß SPEC-01 angleichen | IdentityAccess | US-008, US-009, US-047, US-053 | [US-054-login-passwortaendern-spec01-angleichen.md](US-054-login-passwortaendern-spec01-angleichen.md) | offen |
+| US-055 | Globale Navigation als vertikale Sidebar statt horizontaler Kopfleiste | Frontend-Shell | US-045, US-046, US-047 | [US-055-vertikale-navigation-sidebar.md](US-055-vertikale-navigation-sidebar.md) | offen |
+| US-056 | Admin-Bereich gemäß SPEC-07 angleichen (Tab-Host mit Dialog-Formularen) | IdentityAccess / ProjectManagement | US-016, US-017, US-046, US-047, US-055 | [US-056-admin-bereich-spec07-angleichen.md](US-056-admin-bereich-spec07-angleichen.md) | offen |
+
+**Hinweis zur Gruppierung:** Der ursprüngliche Bug-Report enthielt 15 Einzelbefunde. Fünf funktional identische „Liste erscheint erst nach unabhängiger Interaktion“-Befunde (Projektübersicht, Nutzerverwaltung, Projektverwaltung, Mitgliederverwaltung ×2) wurden zu US-050 zusammengefasst, da Code-Review dieselbe strukturelle Ursache (fehlender diskreter Lade-Zustand gemäß `SPEC-00-Design-System.md` §3) an allen fünf Stellen bestätigt. Drei Icon-/Titel-Befunde wurden zu US-053 zusammengefasst. Details und Einzelbegründungen je Bug stehen jeweils unter „Anmerkungen des Product Owners“ in den einzelnen Story-Dateien.
+
 ## Hinweise zur Nutzung durch den Dev-Agenten
 
 Jede Story wird in genau einer isolierten Iteration umgesetzt. Vor Beginn einer Story müssen alle in „Abhängigkeiten“ genannten Stories bereits abgeschlossen und deren Akzeptanzkriterien grün sein. Die Reihenfolge innerhalb einer Phase ist ebenfalls verbindlich, da spätere Stories einer Phase häufig auf den unmittelbar vorangehenden aufbauen (z. B. US-023 Soft-Delete vor US-024 Restore). Domain-Invarianten aus Abschnitt 4.3 des PRD (`stakeholder_assessments` max. 1 je Rolle, `project_memberships` max. 1 je Nutzer, Rollen-Schreibrechte, `deleted_at`-Filterung, Sichtbarkeitsregel für Rolle User) sind kontextübergreifend gültig und werden in mehreren Stories wiederholt referenziert — sie dürfen in keiner Story verletzt werden, auch wenn eine einzelne Story sie nicht explizit als Akzeptanzkriterium führt.
