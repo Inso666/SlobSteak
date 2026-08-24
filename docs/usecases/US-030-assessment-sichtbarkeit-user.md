@@ -111,5 +111,5 @@ Als **Nutzer mit Rolle User** möchte ich **Stakeholder-Stammdaten einsehen kön
 ### Status
 
 Fertig am 24.08.2026. Umsetzung: PR auf `main` (Branch
-`feature/US-030-assessment-sichtbarkeit-user`), PR #<wird ergänzt>, Auto-Merge gemäß ADR-0003
-aktiviert.
+`feature/US-030-assessment-sichtbarkeit-user`), PR
+[#45](https://github.com/Inso666/SlobSteak/pull/45), Auto-Merge gemäß ADR-0003 aktiviert.
