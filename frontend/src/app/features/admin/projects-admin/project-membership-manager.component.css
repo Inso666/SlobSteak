@@ -1,29 +1,83 @@
+/* US-047: Zeilen-Liste statt roher <table> (analog zum Kartenlayout der übergeordneten
+   Projektverwaltung), eingebettet innerhalb der Projekt-Karte. Ausschließlich zentrale Tokens. */
 .membership-manager {
-  margin-top: 1rem;
-  padding: 1rem;
-  border: 1px solid #ddd;
+  margin-top: var(--app-space-md);
+  padding: var(--app-space-md);
+  background: var(--app-color-surface-hover);
+  border: 1px solid var(--app-color-border);
+  border-radius: var(--app-radius-md);
 }
 
-table {
-  width: 100%;
-  border-collapse: collapse;
-  margin-bottom: 1rem;
+.membership-manager h3,
+.membership-manager h4 {
+  margin-top: 0;
 }
 
-th,
-td {
-  text-align: left;
-  padding: 0.5rem;
-  border-bottom: 1px solid #ddd;
+.member-rows {
+  display: flex;
+  flex-direction: column;
+  gap: var(--app-space-sm);
+  margin-bottom: var(--app-space-md);
 }
 
-.field-error {
-  color: #b00020;
-  font-size: 0.875rem;
+.member-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  flex-wrap: wrap;
+  gap: var(--app-space-sm);
+  padding: var(--app-space-sm) var(--app-space-md);
+  background: var(--app-color-surface);
+  border: 1px solid var(--app-color-border);
+  border-radius: var(--app-radius-sm);
+}
+
+.member-row__data {
+  display: flex;
+  flex-direction: column;
+  min-width: 0;
+}
+
+.member-row__name {
+  font-size: var(--app-font-size-body);
+  color: var(--app-color-text);
+  font-weight: 600;
+}
+
+.member-row__email {
+  font-size: var(--app-font-size-meta);
+  color: var(--app-color-text-muted);
+}
+
+.member-row__role {
+  display: flex;
+  align-items: center;
+  gap: var(--app-space-sm);
 }
 
 .processing-hint {
-  margin-left: 0.5rem;
-  font-size: 0.8rem;
-  color: #555;
+  font-size: var(--app-font-size-meta);
+  color: var(--app-color-text-muted);
+}
+
+.empty-state {
+  color: var(--app-color-text-muted);
+}
+
+.assign-form {
+  display: flex;
+  align-items: flex-end;
+  gap: var(--app-space-md);
+  flex-wrap: wrap;
+}
+
+.field {
+  display: flex;
+  flex-direction: column;
+  gap: var(--app-space-xs);
+}
+
+.field label {
+  font-size: var(--app-font-size-body);
+  color: var(--app-color-text-muted);
 }

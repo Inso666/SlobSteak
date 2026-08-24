@@ -4,6 +4,43 @@ Alle nennenswerten Änderungen an diesem Projekt werden hier je User Story dokum
 
 ## [Unreleased]
 
+### US-047 — Bestehendes Frontend auf das Design-System migrieren
+
+- Zentrale Design-Tokens (Farben inkl. Rollen-/Attention-Palette, Radien, Abstände, Typografie)
+  als CSS Custom Properties auf `:root` in `frontend/src/styles.css`; PrimeNG-Custom-Preset
+  `SlobSteakPreset` (`core/theme/slobsteak-preset.ts`, auf Basis des dunklen Aura-Presets) bildet
+  dieselben Werte auf PrimeNG-interne Semantik-Tokens ab und wird einmalig über `providePrimeNG`
+  in `app.config.ts` verdrahtet. Web-Fonts (Space Grotesk, IBM Plex Sans, IBM Plex Mono) zentral in
+  `index.html` eingebunden.
+- Alle 15 in der Story gelisteten Feature-`.css`-Dateien sowie `app.css`, `admin-sub-nav.component.css`
+  und `app-navigation.component.css` (letztere zwei nicht in der ursprünglichen Dateiliste, aber
+  Bestandteil der app-weiten Navigations-Shell aus US-043–046) referenzieren ausschließlich diese
+  zentralen Tokens statt hartcodierter Hex-/px-Werte.
+- Kartenlayout statt roher `<table>`-Strukturen in Stakeholder-Liste, Nutzerverwaltung,
+  Projektverwaltung und Projekt-Mitgliederverwaltung — Spalteninhalte und Aktionen (Bearbeiten,
+  Löschen, Wiederherstellen, Passwort zurücksetzen, Mitglieder verwalten/entfernen) bleiben
+  vollständig erhalten.
+- Neue wiederverwendbare `AppAttentionBadgeComponent` (`shared/attention-badge/`, SPEC-00 §1.3),
+  angewendet auf den "ähnlicher Stakeholder"-Hinweis im Anlage-Formular — die Attention-Farbe wird
+  ausschließlich dafür und für den produktweiten Fokus-Ring verwendet.
+- Geteilte Utility-Klassen `.tab-pills`/`.tab-pill` (gefülltes Pill-Muster), `.role-badge`,
+  `.status-tag` in `styles.css` statt lokal duplizierter Tab-/Badge-Styles je Screen; Rollen-Badge
+  im Projekt-Workspace-Header zeigt PL/Coreteam/Architect farbcodiert, Rolle „User" erhält bewusst
+  keinen Badge (SPEC-00 §4).
+- Formularfehler folgen einheitlich dem SPEC-00-§2-Muster (verknüpftes `<label>`, `p-message`
+  mit Icon, `aria-invalid`/`aria-describedby`) — u. a. in Login und Passwort-Änderungs-Dialog
+  ergänzt, wo bislang keine sichtbare Fehlerdarstellung vorhanden war.
+- Neuer Story-Test `us-047-frontend-design-migration.spec.ts` (ein Testfall je geprüftem
+  Akzeptanzkriterium); `ng test` (172/172) und `ng lint` laufen grün, kein bestehender Test musste
+  angepasst werden. `angular.json`-Bundle-Budget auf 900 kB/1,5 MB angehoben (PrimeNG/PrimeFlex
+  vergrößern das Initial-Bundle erwartungsgemäß).
+- **Bekannter offener Punkt (kein Code-Mangel, sondern Lizenzfrage):** Die installierte
+  `primeng@22.1.0` verlangt eine PrimeUI-Lizenz und zeigt ohne gültigen Key ein "Invalid PrimeUI
+  License"-Banner; SlobSteak dürfte für die kostenlose Community License qualifizieren, die
+  Registrierung eines Keys erfordert aber eine Konto-Anlage, die außerhalb der Handlungsbefugnis
+  dieses Agenten liegt. Siehe „Anmerkungen des Dev-Agenten" in der Story-Datei für Details und den
+  konkreten Einhängepunkt (`providePrimeNG({ …, license: '<KEY>' })`).
+
 ### US-046 — Admin-Bereich über globale Navigation erreichbar machen
 
 - Die globale Navigation (`AppNavigationComponent`, US-045) zeigt zusätzlich einen Eintrag „Admin“

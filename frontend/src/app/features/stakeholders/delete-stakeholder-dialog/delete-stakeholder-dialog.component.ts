@@ -1,4 +1,6 @@
 import { Component, EventEmitter, Input, OnChanges, Output, inject } from '@angular/core';
+import { ButtonDirective } from 'primeng/button';
+import { Message } from 'primeng/message';
 import { Stakeholder, StakeholderDeletionImpact, StakeholdersService } from '../stakeholders.service';
 import { ProcessingButtonComponent } from '../../../shared/processing-button/processing-button.component';
 
@@ -12,7 +14,7 @@ import { ProcessingButtonComponent } from '../../../shared/processing-button/pro
 @Component({
   selector: 'app-delete-stakeholder-dialog',
   standalone: true,
-  imports: [ProcessingButtonComponent],
+  imports: [ProcessingButtonComponent, ButtonDirective, Message],
   templateUrl: './delete-stakeholder-dialog.component.html',
   styleUrl: './delete-stakeholder-dialog.component.css',
 })

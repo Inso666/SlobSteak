@@ -1,6 +1,9 @@
 import { Component, OnInit, inject } from '@angular/core';
 import { HttpErrorResponse } from '@angular/common/http';
 import { FormBuilder, ReactiveFormsModule, Validators } from '@angular/forms';
+import { InputText } from 'primeng/inputtext';
+import { Message } from 'primeng/message';
+import { Password } from 'primeng/password';
 import { AdminSubNavComponent } from '../admin-sub-nav/admin-sub-nav.component';
 import { AdminUser, AdminUsersService } from '../admin-users.service';
 import { LOAD_ERROR_MESSAGE } from '../../../core/messages/http-error-messages';
@@ -16,7 +19,7 @@ import { ProcessingButtonComponent } from '../../../shared/processing-button/pro
 @Component({
   selector: 'app-users-admin',
   standalone: true,
-  imports: [ReactiveFormsModule, AdminSubNavComponent, ProcessingButtonComponent],
+  imports: [ReactiveFormsModule, AdminSubNavComponent, ProcessingButtonComponent, InputText, Message, Password],
   templateUrl: './users-admin.component.html',
   styleUrl: './users-admin.component.css',
 })

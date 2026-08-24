@@ -1,41 +1,118 @@
+/* US-047 Akzeptanzkriterium 4: Kartenlayout statt roher <table> — alle Spalteninhalte
+   (Name/Typ/Organisation/Position/Kontakt) und Aktionen (Bearbeiten/Löschen/Wiederherstellen)
+   bleiben erhalten, nur die Darstellung ändert sich. Ausschließlich zentrale Tokens
+   (`frontend/src/styles.css`), keine hartcodierten Hex-/px-Werte. */
 .stakeholder-list {
-  padding: 1rem 0;
+  padding: var(--app-space-md) 0;
 }
 
 .filters {
   display: flex;
-  gap: 1rem;
-  align-items: center;
-  margin-bottom: 1rem;
+  gap: var(--app-space-lg);
+  align-items: flex-end;
+  margin-bottom: var(--app-space-md);
+  flex-wrap: wrap;
+}
+
+.filters .field {
+  display: flex;
+  flex-direction: column;
+  gap: var(--app-space-xs);
+}
+
+.filters label {
+  font-size: var(--app-font-size-body);
+  color: var(--app-color-text-muted);
 }
 
 .deleted-toggle {
   display: flex;
   align-items: center;
-  gap: 0.5rem;
-  margin-bottom: 1rem;
+  gap: var(--app-space-sm);
+  margin-bottom: var(--app-space-md);
 }
 
-table {
-  width: 100%;
-  border-collapse: collapse;
-  margin-bottom: 1rem;
+.stakeholder-cards {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(18rem, 1fr));
+  gap: var(--app-space-lg);
+  margin-bottom: var(--app-space-md);
 }
 
-th,
-td {
-  text-align: left;
-  padding: 0.5rem;
-  border-bottom: 1px solid #ddd;
+.stakeholder-card {
+  display: flex;
+  flex-direction: column;
+  gap: var(--app-space-sm);
+  padding: var(--app-space-lg);
+  background: var(--app-color-surface);
+  border: 1px solid var(--app-color-border);
+  border-radius: var(--app-radius-md);
 }
 
-tr.deleted {
-  color: #888;
-  background-color: #f5f5f5;
+.stakeholder-card.deleted {
+  color: var(--app-color-text-muted);
+  background: var(--app-color-surface-hover);
+}
+
+.stakeholder-card__head {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: var(--app-space-sm);
+}
+
+.stakeholder-card__name {
+  font-family: var(--app-font-family-display);
+  font-size: var(--app-font-size-card-title);
+  font-weight: 600;
+  color: var(--app-color-text);
+  text-decoration: none;
+}
+
+a.stakeholder-card__name:hover {
+  text-decoration: underline;
+}
+
+.stakeholder-card__type {
+  font-size: var(--app-font-size-meta);
+  font-family: var(--app-font-family-mono);
+  color: var(--app-color-text-muted);
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+}
+
+.stakeholder-card__data {
+  display: grid;
+  grid-template-columns: auto 1fr;
+  column-gap: var(--app-space-sm);
+  row-gap: var(--app-space-xs);
+  margin: 0;
+  font-size: var(--app-font-size-body);
+}
+
+.stakeholder-card__data dt {
+  color: var(--app-color-text-muted);
+}
+
+.stakeholder-card__data dd {
+  margin: 0;
+  color: var(--app-color-text);
+}
+
+.stakeholder-card__footer {
+  display: flex;
+  align-items: center;
+  gap: var(--app-space-sm);
+  margin-top: var(--app-space-xs);
+  flex-wrap: wrap;
 }
 
 .deleted-badge {
-  margin-right: 0.5rem;
-  font-size: 0.85rem;
+  font-size: var(--app-font-size-meta);
   font-style: italic;
+  color: var(--app-color-text-muted);
+}
+
+.empty-state {
+  color: var(--app-color-text-muted);
 }

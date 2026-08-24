@@ -1,6 +1,7 @@
 import { Component, OnInit, inject } from '@angular/core';
 import { ActivatedRoute, Router, RouterLink } from '@angular/router';
 import { DatePipe } from '@angular/common';
+import { ButtonDirective } from 'primeng/button';
 import { Stakeholder, StakeholdersService } from '../stakeholders.service';
 import { ProjectsService } from '../../projects/projects.service';
 import { EditStakeholderFormComponent } from '../edit-stakeholder-form/edit-stakeholder-form.component';
@@ -26,7 +27,7 @@ import { AssessmentTabsComponent } from '../../assessments/assessment-tabs/asses
 @Component({
   selector: 'app-stakeholder-detail',
   standalone: true,
-  imports: [RouterLink, DatePipe, EditStakeholderFormComponent, DeleteStakeholderDialogComponent, AssessmentTabsComponent],
+  imports: [RouterLink, DatePipe, EditStakeholderFormComponent, DeleteStakeholderDialogComponent, AssessmentTabsComponent, ButtonDirective],
   templateUrl: './stakeholder-detail.component.html',
   styleUrl: './stakeholder-detail.component.css',
 })

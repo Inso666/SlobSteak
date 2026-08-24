@@ -2,8 +2,12 @@ import { Component, EventEmitter, Input, OnInit, Output, inject } from '@angular
 import { ActivatedRoute } from '@angular/router';
 import { FormBuilder, ReactiveFormsModule, Validators } from '@angular/forms';
 import { HttpErrorResponse } from '@angular/common/http';
+import { InputText } from 'primeng/inputtext';
+import { Message } from 'primeng/message';
+import { Textarea } from 'primeng/textarea';
 import { Stakeholder, StakeholdersService } from '../stakeholders.service';
 import { ProcessingButtonComponent } from '../../../shared/processing-button/processing-button.component';
+import { AttentionBadgeComponent } from '../../../shared/attention-badge/attention-badge.component';
 
 /**
  * Formular „Stakeholder anlegen“ (US-021). Erfasst alle in der Story genannten Felder
@@ -17,7 +21,7 @@ import { ProcessingButtonComponent } from '../../../shared/processing-button/pro
 @Component({
   selector: 'app-create-stakeholder-form',
   standalone: true,
-  imports: [ReactiveFormsModule, ProcessingButtonComponent],
+  imports: [ReactiveFormsModule, ProcessingButtonComponent, AttentionBadgeComponent, InputText, Message, Textarea],
   templateUrl: './create-stakeholder-form.component.html',
   styleUrl: './create-stakeholder-form.component.css',
 })

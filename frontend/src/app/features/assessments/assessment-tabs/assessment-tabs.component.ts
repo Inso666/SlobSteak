@@ -2,6 +2,9 @@ import { Component, Input, OnInit, inject } from '@angular/core';
 import { DatePipe } from '@angular/common';
 import { FormBuilder, ReactiveFormsModule } from '@angular/forms';
 import { HttpErrorResponse } from '@angular/common/http';
+import { ButtonDirective } from 'primeng/button';
+import { Message } from 'primeng/message';
+import { Textarea } from 'primeng/textarea';
 import { AssessmentRole, AssessmentsService } from '../assessments.service';
 import { AssessmentConflictDialogComponent } from '../assessment-conflict-dialog/assessment-conflict-dialog.component';
 import { ProcessingButtonComponent } from '../../../shared/processing-button/processing-button.component';
@@ -24,7 +27,7 @@ const PERSPECTIVE_BEARING_ROLES = ['PL', 'Coreteam', 'Architect'] as const;
 @Component({
   selector: 'app-assessment-tabs',
   standalone: true,
-  imports: [ReactiveFormsModule, DatePipe, AssessmentConflictDialogComponent, ProcessingButtonComponent],
+  imports: [ReactiveFormsModule, DatePipe, AssessmentConflictDialogComponent, ProcessingButtonComponent, ButtonDirective, Message, Textarea],
   templateUrl: './assessment-tabs.component.html',
   styleUrl: './assessment-tabs.component.css',
 })

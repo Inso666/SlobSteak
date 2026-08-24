@@ -2,43 +2,68 @@
   <h2>Stakeholder anlegen</h2>
 
   <form [formGroup]="form" (ngSubmit)="onSubmit()">
-    <label for="name">Name</label>
-    <input id="name" formControlName="name" />
+    <div class="field">
+      <label for="name">Name</label>
+      <input pInputText id="name" formControlName="name" class="w-full" />
+    </div>
 
-    <label for="type">Typ</label>
-    <select id="type" formControlName="type">
-      <option value="Person">Person</option>
-      <option value="Organization">Organisation</option>
-    </select>
+    <div class="field">
+      <label for="type">Typ</label>
+      <select id="type" formControlName="type">
+        <option value="Person">Person</option>
+        <option value="Organization">Organisation</option>
+      </select>
+    </div>
 
-    <label for="organization">Organisation</label>
-    <input id="organization" formControlName="organization" />
+    <div class="field">
+      <label for="organization">Organisation</label>
+      <input pInputText id="organization" formControlName="organization" class="w-full" />
+    </div>
 
     @if (!isOrganization) {
-      <label for="position">Position/Funktion</label>
-      <input id="position" formControlName="position" />
+      <div class="field">
+        <label for="position">Position/Funktion</label>
+        <input pInputText id="position" formControlName="position" class="w-full" />
+      </div>
     }
 
-    <label for="email">E-Mail</label>
-    <input id="email" type="email" formControlName="email" />
-    @if (form.controls.email.invalid && form.controls.email.dirty) {
-      <p class="field-error">Ungültiges E-Mail-Format.</p>
-    }
+    <div class="field">
+      <label for="email">E-Mail</label>
+      <input
+        pInputText
+        id="email"
+        type="email"
+        formControlName="email"
+        class="w-full"
+        [class.ng-invalid]="form.controls.email.invalid && form.controls.email.dirty"
+        [attr.aria-invalid]="form.controls.email.invalid && form.controls.email.dirty"
+        [attr.aria-describedby]="form.controls.email.invalid && form.controls.email.dirty ? 'email-error' : null"
+      />
+      @if (form.controls.email.invalid && form.controls.email.dirty) {
+        <p-message id="email-error" severity="error" styleClass="w-full" role="alert">Ungültiges E-Mail-Format.</p-message>
+      }
+    </div>
 
-    <label for="phone">Telefon</label>
-    <input id="phone" formControlName="phone" />
+    <div class="field">
+      <label for="phone">Telefon</label>
+      <input pInputText id="phone" formControlName="phone" class="w-full" />
+    </div>
 
-    <label for="locationDepartment">Standort/Abteilung</label>
-    <input id="locationDepartment" formControlName="locationDepartment" />
+    <div class="field">
+      <label for="locationDepartment">Standort/Abteilung</label>
+      <input pInputText id="locationDepartment" formControlName="locationDepartment" class="w-full" />
+    </div>
 
-    <label for="description">Beschreibung</label>
-    <textarea id="description" formControlName="description"></textarea>
+    <div class="field">
+      <label for="description">Beschreibung</label>
+      <textarea pTextarea id="description" formControlName="description" class="w-full" rows="3"></textarea>
+    </div>
 
     @if (errorMessage) {
-      <p class="field-error">{{ errorMessage }}</p>
+      <p-message severity="error" styleClass="w-full" role="alert">{{ errorMessage }}</p-message>
     }
     @if (lastSimilarWarning) {
-      <p class="info-message">{{ lastSimilarWarning }}</p>
+      <app-attention-badge [text]="lastSimilarWarning" />
     }
 
     <app-processing-button type="submit" [disabled]="form.invalid" [isSubmitting]="isSubmitting" label="Anlegen" submittingLabel="Wird angelegt…" />

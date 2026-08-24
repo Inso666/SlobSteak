@@ -47,4 +47,21 @@ export class ProjectWorkspaceLayoutComponent implements OnInit {
   protected get showDistributionTab(): boolean {
     return this.project !== null && (this.project.role === 'PL' || this.project.role === 'Coreteam');
   }
+
+  /**
+   * US-047 / SPEC-00 §1.3 & §4: Rollenfarbe als CSS-Modifier-Klasse für den `.role-badge`-Baustein.
+   * Die Rolle „User" erhält bewusst `null` (kein Badge, SPEC-00 §4) statt einer neutralen Variante.
+   */
+  protected get roleBadgeClass(): string | null {
+    switch (this.project?.role) {
+      case 'PL':
+        return 'role-badge--pl';
+      case 'Coreteam':
+        return 'role-badge--coreteam';
+      case 'Architect':
+        return 'role-badge--architect';
+      default:
+        return null;
+    }
+  }
 }

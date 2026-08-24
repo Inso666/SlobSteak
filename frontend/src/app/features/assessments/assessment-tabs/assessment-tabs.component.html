@@ -1,7 +1,9 @@
 <section class="assessment-tabs">
-  <div class="tab-bar">
+  <div class="tab-pills" role="tablist">
     @for (roleTab of roleTabs; track roleTab) {
-      <button type="button" [class.active]="activeTab === roleTab" (click)="onSelectTab(roleTab)">{{ roleTab }}-Sicht</button>
+      <button type="button" class="tab-pill" role="tab" [class.active]="activeTab === roleTab" [attr.aria-selected]="activeTab === roleTab" (click)="onSelectTab(roleTab)">
+        {{ roleTab }}-Sicht
+      </button>
     }
   </div>
 
@@ -11,7 +13,7 @@
     } @else if (role.status === 'NOT_ASSESSED' && !assessing) {
       <p class="hint">Noch nicht bewertet.</p>
       @if (isOwnRole) {
-        <button type="button" (click)="onStartAssessing()">Jetzt bewerten</button>
+        <button type="button" pButton (click)="onStartAssessing()">Jetzt bewerten</button>
       }
     } @else {
       @if (role.status === 'ASSESSED') {
@@ -19,17 +21,23 @@
       }
 
       <form [formGroup]="form" (ngSubmit)="onSave()">
-        <label for="assessment-influence">Einfluss ({{ form.controls.influence.value }})</label>
-        <input id="assessment-influence" type="range" min="0" max="100" formControlName="influence" />
+        <div class="field">
+          <label for="assessment-influence">Einfluss ({{ form.controls.influence.value }})</label>
+          <input class="range-input" id="assessment-influence" type="range" min="0" max="100" formControlName="influence" />
+        </div>
 
-        <label for="assessment-interest">Interesse ({{ form.controls.interest.value }})</label>
-        <input id="assessment-interest" type="range" min="0" max="100" formControlName="interest" />
+        <div class="field">
+          <label for="assessment-interest">Interesse ({{ form.controls.interest.value }})</label>
+          <input class="range-input" id="assessment-interest" type="range" min="0" max="100" formControlName="interest" />
+        </div>
 
-        <label for="assessment-notes">Notizen</label>
-        <textarea id="assessment-notes" formControlName="notes"></textarea>
+        <div class="field">
+          <label for="assessment-notes">Notizen</label>
+          <textarea pTextarea id="assessment-notes" formControlName="notes" class="w-full" rows="3"></textarea>
+        </div>
 
         @if (errorMessage) {
-          <p class="field-error">{{ errorMessage }}</p>
+          <p-message severity="error" styleClass="w-full" role="alert">{{ errorMessage }}</p-message>
         }
 
         @if (isOwnRole) {

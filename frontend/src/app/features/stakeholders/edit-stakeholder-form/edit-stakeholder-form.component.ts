@@ -2,6 +2,10 @@ import { Component, EventEmitter, Input, OnChanges, Output, inject } from '@angu
 import { DatePipe } from '@angular/common';
 import { FormBuilder, ReactiveFormsModule, Validators } from '@angular/forms';
 import { HttpErrorResponse } from '@angular/common/http';
+import { ButtonDirective } from 'primeng/button';
+import { InputText } from 'primeng/inputtext';
+import { Message } from 'primeng/message';
+import { Textarea } from 'primeng/textarea';
 import { Stakeholder, StakeholdersService } from '../stakeholders.service';
 import { ProcessingButtonComponent } from '../../../shared/processing-button/processing-button.component';
 
@@ -14,7 +18,7 @@ import { ProcessingButtonComponent } from '../../../shared/processing-button/pro
 @Component({
   selector: 'app-edit-stakeholder-form',
   standalone: true,
-  imports: [ReactiveFormsModule, DatePipe, ProcessingButtonComponent],
+  imports: [ReactiveFormsModule, DatePipe, ProcessingButtonComponent, ButtonDirective, InputText, Message, Textarea],
   templateUrl: './edit-stakeholder-form.component.html',
   styleUrl: './edit-stakeholder-form.component.css',
 })

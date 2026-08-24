@@ -1,20 +1,26 @@
+/* US-047 / SPEC-01 §1.1: Layout ausschließlich über zentrale Tokens + PrimeFlex-Utilities,
+   keine hartcodierten Hex-/px-Werte. */
 .login {
-  max-width: 24rem;
-  margin: 4rem auto;
-  padding: 1.5rem;
+  max-width: 26rem;
+  margin: var(--app-space-xl) auto;
+  padding: var(--app-space-lg);
 }
 
-.form-error {
-  color: #b00020;
-  font-size: 0.875rem;
+.field {
+  display: flex;
+  flex-direction: column;
+  gap: var(--app-space-xs);
+  margin-bottom: var(--app-space-md);
 }
 
+.field label {
+  font-size: var(--app-font-size-body);
+  color: var(--app-color-text-muted);
+}
+
+/* p-message severity="warn" trägt bereits die Attention-Farbe aus dem Preset; zusätzlicher
+   Abstand analog des bisherigen Hinweis-Banners. */
 .session-expired-notice {
-  color: #8a5300;
-  background: #fff4e0;
-  border: 1px solid #f0c47a;
-  border-radius: 0.25rem;
-  padding: 0.5rem 0.75rem;
-  font-size: 0.875rem;
-  margin-bottom: 1rem;
+  margin-bottom: var(--app-space-md);
+  display: block;
 }

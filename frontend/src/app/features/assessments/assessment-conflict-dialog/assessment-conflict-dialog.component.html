@@ -2,7 +2,7 @@
   <p>Diese Bewertung wurde zwischenzeitlich von {{ modifiedBy }} am {{ modifiedAt | date: 'medium' }} aktualisiert. Trotzdem speichern?</p>
 
   <div class="actions">
-    <button type="button" (click)="overwrite.emit()">Trotzdem speichern</button>
-    <button type="button" (click)="cancelled.emit()">Abbrechen</button>
+    <button type="button" pButton severity="danger" (click)="overwrite.emit()">Trotzdem speichern</button>
+    <button type="button" pButton [outlined]="true" severity="secondary" (click)="cancelled.emit()">Abbrechen</button>
   </div>
 </div>
