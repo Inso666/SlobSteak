@@ -120,6 +120,7 @@ Ergebnis eines UX-Reviews vom 23.08.2026 (Fokus: Feedback bei Operationen >0,5s,
 | US-045 | Globale Navigation (Shell) inkl. Abmelden-Funktion | Frontend-Shell | US-006, US-009, US-018 | [US-045-globale-navigation-abmelden.md](US-045-globale-navigation-abmelden.md) | fertig (23.08.2026) |
 | US-046 | Admin-Bereich über globale Navigation erreichbar machen | Frontend-Shell | US-016, US-017, US-045 | [US-046-globale-navigation-admin-eintrag.md](US-046-globale-navigation-admin-eintrag.md) | fertig (23.08.2026) |
 | US-047 | Bestehendes Frontend auf das in CLAUDE.md definierte Design-System migrieren | Frontend-Shell | US-009, US-016, US-017, US-018, US-019, US-021, US-022, US-023, US-024, US-025, US-026, US-029, US-043, US-044, US-045, US-046 | [US-047-frontend-design-migration.md](US-047-frontend-design-migration.md) | fertig (24.08.2026) |
+| US-048 | PrimeNG-Lizenzschlüssel serverseitig verwalten statt im Frontend-Bundle auszuliefern | Frontend-Shell | US-047 | [US-048-primeng-lizenzschluessel-serverseitig.md](US-048-primeng-lizenzschluessel-serverseitig.md) | offen |
 
 **Hinweis zu US-047:** Zusätzliche Definition-of-Ready-Voraussetzung über das übliche Schema hinaus — das in `CLAUDE.md` zu hinterlegende Design-Konzept (Farben inkl. Akzentfarbe, Typografie, Abstands-/Radius-Skala, Komponentenmuster) muss vollständig vorliegen, bevor diese Story begonnen wird (wird separat vom Projektverantwortlichen ausgearbeitet, siehe Story-Datei Abschnitt 5).
 
