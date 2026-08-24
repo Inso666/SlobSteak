@@ -1,4 +1,4 @@
-<button [type]="type" [disabled]="disabled || isSubmitting" [attr.aria-busy]="isSubmitting" class="app-processing-button">
+<button pButton [type]="type" [disabled]="disabled || isSubmitting" [attr.aria-busy]="isSubmitting" class="app-processing-button">
   @if (isSubmitting) {
     <span class="app-processing-button__spinner" aria-hidden="true"></span>
   }

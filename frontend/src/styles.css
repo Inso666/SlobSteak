@@ -1,9 +1,232 @@
-/* You can add global styles to this file, and also import other style files */
+/* US-047: zentrale Design-Tokens (SPEC-00 §1.2) — einzige Quelle der Wahrheit für Farben,
+   Typografie, Radien und Abstände. Jede Feature-`.css`-Datei referenziert ausschließlich diese
+   Custom Properties statt Werte lokal zu duplizieren (Story-Akzeptanzkriterium 1/2). Das
+   PrimeNG-Preset (`frontend/src/app/core/theme/slobsteak-preset.ts`) bildet dieselben Werte
+   zusätzlich auf die PrimeNG-internen Tokens ab, damit PrimeNG-Komponenten und eigene
+   Komponenten dieselbe Palette teilen. */
+
+@import 'primeicons/primeicons.css';
+@import 'primeflex/primeflex.css';
+
+:root {
+  /* SlobSteak ist ausschließlich als dunkles Theme spezifiziert (SPEC-00 §1.1); erzwingt, dass
+     die wenigen PrimeNG-internen `light-dark()`-Aufrufe konsistent den dunklen Zweig wählen
+     (siehe Anmerkung in slobsteak-preset.ts). */
+  color-scheme: dark;
+
+  /* Farben (SPEC-00 §1.2) */
+  --app-color-background: #10151f;
+  --app-color-surface: #161d2b;
+  --app-color-surface-hover: #1d2536;
+  --app-color-border: #262f42;
+  --app-color-text: #edeff4;
+  --app-color-text-muted: #8d97ac;
+  --app-color-text-faint: #5d6883;
+  --app-attention: #f2a93b;
+  --app-attention-bg: rgba(242, 169, 59, 0.14);
+  --app-attention-border: rgba(242, 169, 59, 0.35);
+  --app-color-success: #22c55e;
+  --app-color-success-bg: rgba(34, 197, 94, 0.14);
+  --app-color-error: #f87171;
+  --app-color-error-bg: rgba(248, 113, 113, 0.14);
+  --app-role-pl: #8b7cf6;
+  --app-role-pl-bg: rgba(139, 124, 246, 0.16);
+  --app-role-ct: #2dd4bf;
+  --app-role-ct-bg: rgba(45, 212, 191, 0.16);
+  --app-role-ar: #38bdf8;
+  --app-role-ar-bg: rgba(56, 189, 248, 0.16);
+
+  /* Radien (SPEC-00 §1.2) */
+  --app-radius-sm: 6px;
+  --app-radius-md: 8px;
+  --app-radius-lg: 10px;
+  --app-radius-full: 9999px;
+
+  /* Typografie (SPEC-00 §1.1/§1.2) */
+  --app-font-family-display: 'Space Grotesk', system-ui, sans-serif;
+  --app-font-family-body: 'IBM Plex Sans', system-ui, sans-serif;
+  --app-font-family-mono: 'IBM Plex Mono', ui-monospace, monospace;
+  --app-font-size-display: 1.625rem; /* 26px */
+  --app-font-size-card-title: 1rem; /* 16px */
+  --app-font-size-body: 0.875rem; /* 14px, obere Spec-Spanne 13–14px */
+  --app-font-size-data: 1.75rem; /* 28px */
+  --app-font-size-meta: 0.6875rem; /* 11px */
+
+  /* Abstands-Skala (SPEC-00 §1.2: 8/14-16/20/36px als benannte Stufen, plus generische
+     Zwischenwerte für Fälle, die keiner der vier Wireframe-Semantikstufen entsprechen). */
+  --app-space-xs: 0.25rem; /* 4px */
+  --app-space-sm: 0.5rem; /* 8px */
+  --app-space-md: 0.875rem; /* 14px */
+  --app-space-lg: 1.25rem; /* 20px */
+  --app-space-xl: 2.25rem; /* 36px */
+}
+
+* {
+  box-sizing: border-box;
+}
+
+html,
+body {
+  height: 100%;
+}
+
+body {
+  margin: 0;
+  background: var(--app-color-background);
+  color: var(--app-color-text);
+  font-family: var(--app-font-family-body);
+  font-size: var(--app-font-size-body);
+  line-height: 1.5;
+}
+
+h1,
+h2,
+h3 {
+  font-family: var(--app-font-family-display);
+  font-weight: 600;
+}
+
+/* SPEC-00 §2 „Fokuszustand": produktweit einheitlicher Fokus-Ring in der Akzentfarbe, auf allen
+   interaktiven Elementen sichtbar und nicht durch Screen-lokales Styling entfernbar. */
+:focus-visible {
+  outline: 2px solid var(--app-attention);
+  outline-offset: 2px;
+}
+
+.sr-only {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  padding: 0;
+  margin: -1px;
+  overflow: hidden;
+  clip: rect(0, 0, 0, 0);
+  white-space: nowrap;
+  border: 0;
+}
 
 /* US-044: konsistente Darstellung für fehlgeschlagene lesende (GET-)Requests, geteilt über
    mehrere Feature-Komponenten hinweg (stakeholder-list, project-overview,
    project-workspace-layout, users-admin, projects-admin) statt je Komponente dupliziert. */
 .load-error {
-  color: #b00020;
-  font-size: 0.875rem;
+  color: var(--app-color-error);
+  font-size: var(--app-font-size-body);
+}
+
+/* US-047 / SPEC-00 §1.3 „.role-badge": Rollenfarbe als Text auf 16%-Opazitäts-Hintergrund,
+   `radius.full`. Geteilte Utility-Klasse statt Duplizierung je Screen (Projekt-Workspace-Header,
+   künftig Stakeholder-Map-Legende/Assessment-Tabs). Rolle „User" erhält laut SPEC-00 §4 bewusst
+   keinen Badge — Verwendungsstellen blenden ihn dafür vollständig aus, statt eine neutrale Variante
+   zu zeigen. */
+.role-badge {
+  display: inline-flex;
+  align-items: center;
+  padding: 0.15rem var(--app-space-sm);
+  border-radius: var(--app-radius-full);
+  font-family: var(--app-font-family-mono);
+  font-size: var(--app-font-size-meta);
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+}
+
+.role-badge--pl {
+  color: var(--app-role-pl);
+  background: var(--app-role-pl-bg);
+}
+
+.role-badge--coreteam {
+  color: var(--app-role-ct);
+  background: var(--app-role-ct-bg);
+}
+
+.role-badge--architect {
+  color: var(--app-role-ar);
+  background: var(--app-role-ar-bg);
+}
+
+/* US-047 / SPEC-00 §1.3 „.tabs / .tab.active": gefüllter Pill-Container, aktiver Tab = Fläche in
+   `color.text` mit `color.background`-Schrift. Als geteilte Utility-Klassen statt PrimeNG
+   `<p-tabs>`, da die betroffenen Screens (Assessment-Tabs, Projektübersicht,
+   Projekt-Workspace-Navigation) den Tab-Wechsel bereits über bestehende, story-geprüfte
+   Klick-Handler/RouterLinks steuern — ein Wechsel auf `<p-tabs>` würde die DOM-/Value-Bindung
+   dieser Komponenten umbauen, was über reines Presentation-Styling hinausginge (siehe Anmerkungen
+   des Dev-Agenten in der Story-Datei). Optik entspricht exakt dem Wireframe-Pill-Muster. */
+.tab-pills {
+  display: inline-flex;
+  gap: var(--app-space-xs);
+  padding: var(--app-space-xs);
+  background: var(--app-color-surface);
+  border: 1px solid var(--app-color-border);
+  border-radius: var(--app-radius-lg);
+}
+
+.tab-pill {
+  padding: var(--app-space-xs) var(--app-space-md);
+  border: none;
+  border-radius: var(--app-radius-sm);
+  background: transparent;
+  color: var(--app-color-text-muted);
+  font-family: var(--app-font-family-body);
+  font-size: var(--app-font-size-body);
+  font-weight: 500;
+  text-decoration: none;
+  cursor: pointer;
+}
+
+.tab-pill.active {
+  background: var(--app-color-text);
+  color: var(--app-color-background);
+}
+
+/* US-047 / SPEC-00 §1.3 „.status-tag": uppercase, `radius.sm`, `severity`-Mapping (aktiv → Erfolg,
+   archiviert/gelöscht → neutral/Fehler). Geteilte Utility-Klasse statt Duplizierung je Screen
+   (aktuell Projektverwaltung; künftig Stakeholder-Papierkorb-Badges u. Ä.). */
+.status-tag {
+  display: inline-flex;
+  align-items: center;
+  padding: 0.15rem var(--app-space-sm);
+  border-radius: var(--app-radius-sm);
+  background: var(--app-color-success-bg);
+  color: var(--app-color-success);
+  font-size: var(--app-font-size-meta);
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+}
+
+.status-tag--archived {
+  background: var(--app-color-surface-hover);
+  color: var(--app-color-text-muted);
+}
+
+.status-tag--deleted {
+  background: var(--app-color-error-bg);
+  color: var(--app-color-error);
+}
+
+/* US-047 / SPEC-00 §2: native `<select>`/`<textarea>`-Elemente, die (noch) nicht auf `p-select`
+   migriert sind (siehe Anmerkungen des Dev-Agenten), erhalten dieselbe Feld-Optik wie
+   `pInputText`/`p-password` — Feldhintergrund `color.surface`, Rahmen `color.border`,
+   `radius.md`, Textfarbe `color.text`, Body-Schriftgröße. */
+select:not(.p-select),
+textarea:not(.p-textarea) {
+  padding: var(--app-space-sm);
+  background: var(--app-color-surface);
+  border: 1px solid var(--app-color-border);
+  border-radius: var(--app-radius-md);
+  color: var(--app-color-text);
+  font-family: var(--app-font-family-body);
+  font-size: var(--app-font-size-body);
+}
+
+select:not(.p-select):hover,
+textarea:not(.p-textarea):hover {
+  border-color: var(--app-color-text-faint);
+}
+
+select:not(.p-select):focus-visible,
+textarea:not(.p-textarea):focus-visible {
+  outline: 2px solid var(--app-attention);
+  outline-offset: 2px;
 }

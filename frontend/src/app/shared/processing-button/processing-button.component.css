@@ -5,7 +5,7 @@
 .app-processing-button {
   display: inline-flex;
   align-items: center;
-  gap: 0.5rem;
+  gap: var(--app-space-sm);
 }
 
 .app-processing-button__spinner {

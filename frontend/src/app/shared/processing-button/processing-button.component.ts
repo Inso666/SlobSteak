@@ -1,4 +1,5 @@
 import { Component, Input } from '@angular/core';
+import { ButtonDirective } from 'primeng/button';
 
 /**
  * Einheitlicher Baustein für jeden Button, der einen schreibenden HTTP-Request auslöst (US-043).
@@ -29,6 +30,7 @@ import { Component, Input } from '@angular/core';
 @Component({
   selector: 'app-processing-button',
   standalone: true,
+  imports: [ButtonDirective],
   templateUrl: './processing-button.component.html',
   styleUrl: './processing-button.component.css',
 })
