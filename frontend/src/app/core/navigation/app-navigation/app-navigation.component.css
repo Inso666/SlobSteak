@@ -1,21 +1,29 @@
+/* US-047: die globale Navigations-Shell (US-045) ist auf jedem Screen sichtbar und daher für die
+   visuelle Konsistenz über S1–S5 hinweg (Akzeptanzkriterium 4) besonders relevant — obwohl nicht
+   explizit in der Story-Dateiliste genannt, wird sie hier mitmigriert (siehe Anmerkungen des
+   Dev-Agenten, Begründung „US-043–046 führen neue UI-Bausteine ein, die sonst ein zweites Mal
+   migriert werden müssten"). Ausschließlich zentrale Tokens. */
 .app-navigation {
   display: flex;
   align-items: center;
-  gap: 1.5rem;
-  padding: 0.75rem 1.5rem;
-  border-bottom: 1px solid #ddd;
-  font-family: sans-serif;
+  gap: var(--app-space-lg);
+  padding: var(--app-space-sm) var(--app-space-lg);
+  background: var(--app-color-surface);
+  border-bottom: 1px solid var(--app-color-border);
+  font-family: var(--app-font-family-body);
 }
 
 .app-navigation__brand {
-  font-weight: bold;
+  font-family: var(--app-font-family-display);
+  font-weight: 600;
+  color: var(--app-color-text);
   margin-right: auto;
 }
 
 .app-navigation__links {
   display: flex;
   align-items: center;
-  gap: 1rem;
+  gap: var(--app-space-md);
   list-style: none;
   margin: 0;
   padding: 0;
@@ -23,28 +31,25 @@
 
 .app-navigation__links a {
   text-decoration: none;
-  color: inherit;
+  color: var(--app-color-text-muted);
+  font-size: var(--app-font-size-body);
 }
 
 .app-navigation__links a.active {
-  font-weight: bold;
-  border-bottom: 2px solid #333;
+  color: var(--app-color-text);
+  font-weight: 600;
 }
 
 .app-navigation__logout {
-  padding: 0.4rem 0.9rem;
-  border: 1px solid #ccc;
-  border-radius: 0.25rem;
-  background: #fff;
+  padding: var(--app-space-xs) var(--app-space-md);
+  border: 1px solid var(--app-color-border);
+  border-radius: var(--app-radius-md);
+  background: transparent;
+  color: var(--app-color-text);
   cursor: pointer;
   font: inherit;
 }
 
 .app-navigation__logout:hover {
-  background: #f5f5f5;
-}
-
-.app-navigation__logout:focus-visible {
-  outline: 2px solid #333;
-  outline-offset: 2px;
+  background: var(--app-color-surface-hover);
 }
