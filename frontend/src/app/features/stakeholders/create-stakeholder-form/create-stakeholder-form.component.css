@@ -1,21 +1,25 @@
+/* US-047 / SPEC-00 §2: Formularfeld-Muster ausschließlich über zentrale Tokens, keine
+   hartcodierten Hex-/px-Werte. */
 .create-stakeholder {
-  padding: 1rem 0;
+  padding: var(--app-space-md) 0;
 }
 
 form {
   display: flex;
   flex-direction: column;
-  gap: 0.25rem;
+  gap: var(--app-space-xs);
   max-width: 24rem;
-  margin-bottom: 1.5rem;
+  margin-bottom: var(--app-space-lg);
 }
 
-.field-error {
-  color: #b00020;
-  font-size: 0.875rem;
+.field {
+  display: flex;
+  flex-direction: column;
+  gap: var(--app-space-xs);
+  margin-bottom: var(--app-space-sm);
 }
 
-.info-message {
-  color: #8a6d00;
-  font-size: 0.875rem;
+.field label {
+  font-size: var(--app-font-size-body);
+  color: var(--app-color-text-muted);
 }

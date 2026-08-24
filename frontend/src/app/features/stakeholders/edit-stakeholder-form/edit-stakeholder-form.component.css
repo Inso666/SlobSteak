@@ -1,28 +1,39 @@
+/* US-047 / SPEC-00 §2: ausschließlich zentrale Tokens, keine hartcodierten Hex-/px-Werte. */
 .edit-stakeholder {
-  padding: 1rem;
-  margin: 0.5rem 0;
-  border: 1px solid #ddd;
+  padding: var(--app-space-md);
+  margin: var(--app-space-sm) 0;
+  background: var(--app-color-surface);
+  border: 1px solid var(--app-color-border);
+  border-radius: var(--app-radius-md);
 }
 
 .last-modified {
-  color: #666;
-  font-size: 0.875rem;
+  color: var(--app-color-text-muted);
+  font-size: var(--app-font-size-meta);
+  font-family: var(--app-font-family-mono);
 }
 
 form {
   display: flex;
   flex-direction: column;
-  gap: 0.25rem;
+  gap: var(--app-space-xs);
   max-width: 24rem;
+}
+
+.field {
+  display: flex;
+  flex-direction: column;
+  gap: var(--app-space-xs);
+  margin-bottom: var(--app-space-sm);
+}
+
+.field label {
+  font-size: var(--app-font-size-body);
+  color: var(--app-color-text-muted);
 }
 
 .actions {
   display: flex;
-  gap: 0.5rem;
-  margin-top: 0.5rem;
-}
-
-.field-error {
-  color: #b00020;
-  font-size: 0.875rem;
+  gap: var(--app-space-sm);
+  margin-top: var(--app-space-sm);
 }

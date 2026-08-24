@@ -3,45 +3,70 @@
   <p class="last-modified">Zuletzt geändert von {{ stakeholder.updatedByName }} am {{ stakeholder.updatedAt | date: 'medium' }}</p>
 
   <form [formGroup]="form" (ngSubmit)="onSubmit()">
-    <label for="edit-name">Name</label>
-    <input id="edit-name" formControlName="name" />
+    <div class="field">
+      <label for="edit-name">Name</label>
+      <input pInputText id="edit-name" formControlName="name" class="w-full" />
+    </div>
 
-    <label for="edit-type">Typ</label>
-    <select id="edit-type" formControlName="type">
-      <option value="Person">Person</option>
-      <option value="Organization">Organisation</option>
-    </select>
+    <div class="field">
+      <label for="edit-type">Typ</label>
+      <select id="edit-type" formControlName="type">
+        <option value="Person">Person</option>
+        <option value="Organization">Organisation</option>
+      </select>
+    </div>
 
-    <label for="edit-organization">Organisation</label>
-    <input id="edit-organization" formControlName="organization" />
+    <div class="field">
+      <label for="edit-organization">Organisation</label>
+      <input pInputText id="edit-organization" formControlName="organization" class="w-full" />
+    </div>
 
     @if (!isOrganization) {
-      <label for="edit-position">Position/Funktion</label>
-      <input id="edit-position" formControlName="position" />
+      <div class="field">
+        <label for="edit-position">Position/Funktion</label>
+        <input pInputText id="edit-position" formControlName="position" class="w-full" />
+      </div>
     }
 
-    <label for="edit-email">E-Mail</label>
-    <input id="edit-email" type="email" formControlName="email" />
-    @if (form.controls.email.invalid && form.controls.email.dirty) {
-      <p class="field-error">Ungültiges E-Mail-Format.</p>
-    }
+    <div class="field">
+      <label for="edit-email">E-Mail</label>
+      <input
+        pInputText
+        id="edit-email"
+        type="email"
+        formControlName="email"
+        class="w-full"
+        [class.ng-invalid]="form.controls.email.invalid && form.controls.email.dirty"
+        [attr.aria-invalid]="form.controls.email.invalid && form.controls.email.dirty"
+        [attr.aria-describedby]="form.controls.email.invalid && form.controls.email.dirty ? 'edit-email-error' : null"
+      />
+      @if (form.controls.email.invalid && form.controls.email.dirty) {
+        <p-message id="edit-email-error" severity="error" styleClass="w-full" role="alert">Ungültiges E-Mail-Format.</p-message>
+      }
+    </div>
 
-    <label for="edit-phone">Telefon</label>
-    <input id="edit-phone" formControlName="phone" />
+    <div class="field">
+      <label for="edit-phone">Telefon</label>
+      <input pInputText id="edit-phone" formControlName="phone" class="w-full" />
+    </div>
 
-    <label for="edit-locationDepartment">Standort/Abteilung</label>
-    <input id="edit-locationDepartment" formControlName="locationDepartment" />
+    <div class="field">
+      <label for="edit-locationDepartment">Standort/Abteilung</label>
+      <input pInputText id="edit-locationDepartment" formControlName="locationDepartment" class="w-full" />
+    </div>
 
-    <label for="edit-description">Beschreibung</label>
-    <textarea id="edit-description" formControlName="description"></textarea>
+    <div class="field">
+      <label for="edit-description">Beschreibung</label>
+      <textarea pTextarea id="edit-description" formControlName="description" class="w-full" rows="3"></textarea>
+    </div>
 
     @if (errorMessage) {
-      <p class="field-error">{{ errorMessage }}</p>
+      <p-message severity="error" styleClass="w-full" role="alert">{{ errorMessage }}</p-message>
     }
 
     <div class="actions">
       <app-processing-button type="submit" [disabled]="form.invalid" [isSubmitting]="isSubmitting" label="Speichern" submittingLabel="Wird gespeichert…" />
-      <button type="button" [disabled]="isSubmitting" (click)="onCancel()">Abbrechen</button>
+      <button type="button" pButton [outlined]="true" severity="secondary" [disabled]="isSubmitting" (click)="onCancel()">Abbrechen</button>
     </div>
   </form>
 </section>

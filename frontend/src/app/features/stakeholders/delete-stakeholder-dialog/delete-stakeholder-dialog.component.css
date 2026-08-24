@@ -1,21 +1,20 @@
+/* US-047 / SPEC-00 §1.2: destruktive Aktionsfläche in `color.error`, ausschließlich zentrale
+   Tokens. */
 .delete-dialog {
-  padding: 1rem;
-  margin: 0.5rem 0;
-  border: 1px solid #b00020;
+  padding: var(--app-space-md);
+  margin: var(--app-space-sm) 0;
+  background: var(--app-color-surface);
+  border: 1px solid var(--app-color-error);
+  border-radius: var(--app-radius-md);
 }
 
 .impact {
-  color: #666;
-  font-size: 0.875rem;
+  color: var(--app-color-text-muted);
+  font-size: var(--app-font-size-body);
 }
 
 .actions {
   display: flex;
-  gap: 0.5rem;
-  margin-top: 0.5rem;
-}
-
-.field-error {
-  color: #b00020;
-  font-size: 0.875rem;
+  gap: var(--app-space-sm);
+  margin-top: var(--app-space-sm);
 }

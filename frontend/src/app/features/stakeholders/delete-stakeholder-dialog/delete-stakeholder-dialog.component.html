@@ -9,11 +9,11 @@
   }
 
   @if (errorMessage) {
-    <p class="field-error">{{ errorMessage }}</p>
+    <p-message severity="error" styleClass="w-full" role="alert">{{ errorMessage }}</p-message>
   }
 
   <div class="actions">
     <app-processing-button type="button" [isSubmitting]="isSubmitting" label="Löschen bestätigen" submittingLabel="Wird gelöscht…" (click)="onConfirm()" />
-    <button type="button" [disabled]="isSubmitting" (click)="onCancel()">Abbrechen</button>
+    <button type="button" pButton [outlined]="true" severity="secondary" [disabled]="isSubmitting" (click)="onCancel()">Abbrechen</button>
   </div>
 </div>

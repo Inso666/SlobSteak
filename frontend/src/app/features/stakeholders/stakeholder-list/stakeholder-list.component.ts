@@ -2,6 +2,8 @@ import { Component, OnInit, inject } from '@angular/core';
 import { ActivatedRoute, RouterLink } from '@angular/router';
 import { FormBuilder, ReactiveFormsModule } from '@angular/forms';
 import { DatePipe } from '@angular/common';
+import { ButtonDirective } from 'primeng/button';
+import { InputText } from 'primeng/inputtext';
 import { debounceTime } from 'rxjs';
 import { Stakeholder, StakeholdersService } from '../stakeholders.service';
 import { ProjectsService } from '../../projects/projects.service';
@@ -45,6 +47,8 @@ import { ProcessingButtonComponent } from '../../../shared/processing-button/pro
     EditStakeholderFormComponent,
     DeleteStakeholderDialogComponent,
     ProcessingButtonComponent,
+    ButtonDirective,
+    InputText,
   ],
   templateUrl: './stakeholder-list.component.html',
   styleUrl: './stakeholder-list.component.css',

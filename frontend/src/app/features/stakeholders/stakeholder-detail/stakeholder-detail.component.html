@@ -19,10 +19,10 @@
 
       <div class="actions">
         @if (canEdit && !editing) {
-          <button type="button" (click)="onEditClick()">Bearbeiten</button>
+          <button type="button" pButton [outlined]="true" severity="secondary" (click)="onEditClick()">Bearbeiten</button>
         }
         @if (canDelete) {
-          <button type="button" (click)="onDeleteClick()">Löschen</button>
+          <button type="button" pButton [outlined]="true" severity="danger" (click)="onDeleteClick()">Löschen</button>
         }
       </div>
     </header>

@@ -1,68 +1,91 @@
+/* US-047: ausschließlich zentrale Tokens (frontend/src/styles.css), keine hartcodierten
+   Hex-/px-Werte. */
 .not-found {
-  padding: 1.5rem;
-  color: #666;
+  padding: var(--app-space-lg);
+  color: var(--app-color-text-muted);
 }
 
 .stakeholder-detail {
-  padding: 1rem 0;
+  padding: var(--app-space-md) 0;
 }
 
 .back-link {
   display: inline-block;
-  margin-bottom: 1rem;
-  color: #666;
+  margin-bottom: var(--app-space-md);
+  color: var(--app-color-text-muted);
   text-decoration: none;
 }
 
+.back-link:hover {
+  text-decoration: underline;
+}
+
 header {
-  margin-bottom: 1.5rem;
+  margin-bottom: var(--app-space-lg);
+}
+
+header h1 {
+  margin-bottom: var(--app-space-xs);
 }
 
 .meta {
-  color: #666;
+  color: var(--app-color-text-muted);
+  margin: 0;
 }
 
 .last-modified {
-  color: #666;
-  font-size: 0.875rem;
+  color: var(--app-color-text-muted);
+  font-size: var(--app-font-size-meta);
+  font-family: var(--app-font-family-mono);
+  margin: var(--app-space-xs) 0 0;
 }
 
 .actions {
   display: flex;
-  gap: 0.5rem;
-  margin-top: 0.75rem;
+  gap: var(--app-space-sm);
+  margin-top: var(--app-space-md);
 }
 
 .master-data {
   display: grid;
   grid-template-columns: 10rem 1fr;
-  row-gap: 0.5rem;
-  margin-bottom: 1.5rem;
+  row-gap: var(--app-space-sm);
+  margin-bottom: var(--app-space-lg);
 }
 
 .master-data dt {
   font-weight: 600;
+  color: var(--app-color-text-muted);
 }
 
 .master-data dd {
   margin: 0;
+  color: var(--app-color-text);
 }
 
 .placeholder-slot {
-  margin-top: 1.5rem;
-  padding: 1rem;
-  border: 1px dashed #ccc;
+  margin-top: var(--app-space-lg);
+  padding: var(--app-space-md);
+  background: var(--app-color-surface);
+  border: 1px dashed var(--app-color-border);
+  border-radius: var(--app-radius-md);
+}
+
+.placeholder-slot h2 {
+  margin-top: 0;
 }
 
 .placeholder-slot .placeholder {
-  color: #666;
+  color: var(--app-color-text-muted);
   margin: 0;
 }
 
 .assessment-slot {
-  margin-top: 1.5rem;
-  padding: 1rem;
-  border: 1px solid #ddd;
+  margin-top: var(--app-space-lg);
+  padding: var(--app-space-md);
+  background: var(--app-color-surface);
+  border: 1px solid var(--app-color-border);
+  border-radius: var(--app-radius-md);
 }
 
 .assessment-slot h2 {
