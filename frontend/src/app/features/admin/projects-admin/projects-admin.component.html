@@ -7,49 +7,48 @@
     <p class="load-error" role="alert">{{ loadError }}</p>
   }
 
-  <table>
-    <thead>
-      <tr>
-        <th>Name</th>
-        <th>Status</th>
-        <th>Mitglieder</th>
-        <th></th>
-      </tr>
-    </thead>
-    <tbody>
-      @for (project of projects; track project.id) {
-        <tr>
-          <td>{{ project.name }}</td>
-          <td>{{ project.status }}</td>
-          <td>{{ project.memberCount }}</td>
-          <td>
-            <button type="button" (click)="onSelectProject(project)">
-              {{
-                selectedProjectId === project.id ? 'Mitglieder ausblenden' : 'Mitglieder verwalten'
-              }}
-            </button>
-          </td>
-        </tr>
+  <div class="project-cards" role="list">
+    @for (project of projects; track project.id) {
+      <article class="project-card" role="listitem">
+        <div class="project-card__head">
+          <span class="project-card__name">{{ project.name }}</span>
+          <span class="status-tag" [class.status-tag--archived]="project.status !== 'Active'">{{ project.status }}</span>
+        </div>
+
+        <dl class="project-card__data">
+          <dt>Mitglieder</dt>
+          <dd>{{ project.memberCount }}</dd>
+        </dl>
+
+        <div class="project-card__footer">
+          <button type="button" pButton [outlined]="true" severity="secondary" (click)="onSelectProject(project)">
+            {{ selectedProjectId === project.id ? 'Mitglieder ausblenden' : 'Mitglieder verwalten' }}
+          </button>
+        </div>
+
         @if (selectedProjectId === project.id) {
-          <tr>
-            <td colspan="4">
-              <app-project-membership-manager [projectId]="project.id" />
-            </td>
-          </tr>
+          <app-project-membership-manager [projectId]="project.id" />
         }
-      }
-    </tbody>
-  </table>
+      </article>
+    } @empty {
+      <p class="empty-state">Es existieren noch keine Projekte.</p>
+    }
+  </div>
 
   <h2>Projekt anlegen</h2>
   <form [formGroup]="createForm" (ngSubmit)="onCreateProject()">
-    <label for="name">Name</label>
-    <input id="name" formControlName="name" />
+    <div class="field">
+      <label for="name">Name</label>
+      <input pInputText id="name" formControlName="name" class="w-full" />
+    </div>
 
-    <label for="description">Beschreibung</label>
-    <input id="description" formControlName="description" />
+    <div class="field">
+      <label for="description">Beschreibung</label>
+      <input pInputText id="description" formControlName="description" class="w-full" />
+    </div>
+
     @if (createErrorMessage) {
-      <p class="field-error">{{ createErrorMessage }}</p>
+      <p-message severity="error" styleClass="w-full" role="alert">{{ createErrorMessage }}</p-message>
     }
 
     <app-processing-button type="submit" [disabled]="createForm.invalid" [isSubmitting]="isCreatingProject" label="Projekt anlegen" submittingLabel="Wird angelegt…" />

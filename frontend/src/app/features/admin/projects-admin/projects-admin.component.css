@@ -1,23 +1,84 @@
+/* US-047 Akzeptanzkriterium 4: Kartenlayout statt roher <table> für die Projektliste. Ausschließlich
+   zentrale Tokens, keine hartcodierten Hex-/px-Werte. */
 .admin-projects {
-  max-width: 48rem;
-  margin: 2rem auto;
-  padding: 1.5rem;
+  padding: var(--app-space-md) 0;
 }
 
-table {
-  width: 100%;
-  border-collapse: collapse;
-  margin-bottom: 1rem;
+.admin-projects h1 {
+  margin-bottom: var(--app-space-lg);
 }
 
-th,
-td {
-  text-align: left;
-  padding: 0.5rem;
-  border-bottom: 1px solid #ddd;
+.admin-projects h2 {
+  margin-top: var(--app-space-xl);
 }
 
-.field-error {
-  color: #b00020;
-  font-size: 0.875rem;
+.project-cards {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(18rem, 1fr));
+  gap: var(--app-space-lg);
+  margin-bottom: var(--app-space-md);
+}
+
+.project-card {
+  display: flex;
+  flex-direction: column;
+  gap: var(--app-space-sm);
+  padding: var(--app-space-lg);
+  background: var(--app-color-surface);
+  border: 1px solid var(--app-color-border);
+  border-radius: var(--app-radius-md);
+}
+
+.project-card__head {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: var(--app-space-sm);
+}
+
+.project-card__name {
+  font-family: var(--app-font-family-display);
+  font-size: var(--app-font-size-card-title);
+  font-weight: 600;
+  color: var(--app-color-text);
+}
+
+.project-card__data {
+  display: grid;
+  grid-template-columns: auto 1fr;
+  column-gap: var(--app-space-sm);
+  margin: 0;
+  font-size: var(--app-font-size-body);
+}
+
+.project-card__data dt {
+  color: var(--app-color-text-muted);
+}
+
+.project-card__data dd {
+  margin: 0;
+  color: var(--app-color-text);
+}
+
+.project-card__footer {
+  display: flex;
+  gap: var(--app-space-sm);
+  margin-top: var(--app-space-xs);
+}
+
+.empty-state {
+  color: var(--app-color-text-muted);
+}
+
+.field {
+  display: flex;
+  flex-direction: column;
+  gap: var(--app-space-xs);
+  max-width: 24rem;
+  margin-bottom: var(--app-space-md);
+}
+
+.field label {
+  font-size: var(--app-font-size-body);
+  color: var(--app-color-text-muted);
 }

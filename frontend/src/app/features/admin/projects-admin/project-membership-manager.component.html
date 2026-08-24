@@ -1,73 +1,69 @@
 <section class="membership-manager">
   <h3>Mitglieder</h3>
 
-  <table>
-    <thead>
-      <tr>
-        <th>Name</th>
-        <th>E-Mail</th>
-        <th>Rolle</th>
-        <th></th>
-      </tr>
-    </thead>
-    <tbody>
-      @for (membership of memberships; track membership.userId) {
-        <tr>
-          <td>{{ membership.userName }}</td>
-          <td>{{ membership.userEmail }}</td>
-          <td>
-            <select
-              [ngModel]="membership.role"
-              [ngModelOptions]="{ standalone: true }"
-              [disabled]="changingRoleUserIds.has(membership.userId)"
-              (ngModelChange)="onChangeRole(membership, $event)"
-            >
-              @for (role of roles; track role) {
-                <option [value]="role">{{ role }}</option>
-              }
-            </select>
-            @if (changingRoleUserIds.has(membership.userId)) {
-              <span class="processing-hint">Wird geändert…</span>
+  <div class="member-rows" role="list">
+    @for (membership of memberships; track membership.userId) {
+      <div class="member-row" role="listitem">
+        <div class="member-row__data">
+          <span class="member-row__name">{{ membership.userName }}</span>
+          <span class="member-row__email">{{ membership.userEmail }}</span>
+        </div>
+
+        <div class="member-row__role">
+          <label class="sr-only" [attr.for]="'role-' + membership.userId">Rolle von {{ membership.userName }}</label>
+          <select
+            [id]="'role-' + membership.userId"
+            [ngModel]="membership.role"
+            [ngModelOptions]="{ standalone: true }"
+            [disabled]="changingRoleUserIds.has(membership.userId)"
+            (ngModelChange)="onChangeRole(membership, $event)"
+          >
+            @for (role of roles; track role) {
+              <option [value]="role">{{ role }}</option>
             }
-          </td>
-          <td>
-            <app-processing-button
-              type="button"
-              [isSubmitting]="removingMemberUserIds.has(membership.userId)"
-              label="Entfernen"
-              submittingLabel="Wird entfernt…"
-              (click)="onRemoveMember(membership)"
-            />
-          </td>
-        </tr>
-      } @empty {
-        <tr>
-          <td colspan="4">Noch keine Mitglieder zugewiesen.</td>
-        </tr>
-      }
-    </tbody>
-  </table>
+          </select>
+          @if (changingRoleUserIds.has(membership.userId)) {
+            <span class="processing-hint">Wird geändert…</span>
+          }
+        </div>
+
+        <app-processing-button
+          type="button"
+          [isSubmitting]="removingMemberUserIds.has(membership.userId)"
+          label="Entfernen"
+          submittingLabel="Wird entfernt…"
+          (click)="onRemoveMember(membership)"
+        />
+      </div>
+    } @empty {
+      <p class="empty-state">Noch keine Mitglieder zugewiesen.</p>
+    }
+  </div>
 
   @if (errorMessage) {
-    <p class="field-error">{{ errorMessage }}</p>
+    <p-message severity="error" styleClass="w-full" role="alert">{{ errorMessage }}</p-message>
   }
 
   <h4>Mitglied hinzufügen</h4>
-  <form [formGroup]="assignForm" (ngSubmit)="onAssignMember()">
-    <label for="userId">Nutzer</label>
-    <select id="userId" formControlName="userId">
-      <option value="" disabled>Nutzer wählen…</option>
-      @for (user of assignableUsers; track user.id) {
-        <option [value]="user.id">{{ user.name }} ({{ user.email }})</option>
-      }
-    </select>
+  <form [formGroup]="assignForm" (ngSubmit)="onAssignMember()" class="assign-form">
+    <div class="field">
+      <label for="userId">Nutzer</label>
+      <select id="userId" formControlName="userId">
+        <option value="" disabled>Nutzer wählen…</option>
+        @for (user of assignableUsers; track user.id) {
+          <option [value]="user.id">{{ user.name }} ({{ user.email }})</option>
+        }
+      </select>
+    </div>
 
-    <label for="role">Rolle</label>
-    <select id="role" formControlName="role">
-      @for (role of roles; track role) {
-        <option [value]="role">{{ role }}</option>
-      }
-    </select>
+    <div class="field">
+      <label for="role">Rolle</label>
+      <select id="role" formControlName="role">
+        @for (role of roles; track role) {
+          <option [value]="role">{{ role }}</option>
+        }
+      </select>
+    </div>
 
     <app-processing-button type="submit" [disabled]="assignForm.invalid" [isSubmitting]="isAssigning" label="Hinzufügen" submittingLabel="Wird hinzugefügt…" />
   </form>

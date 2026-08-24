@@ -1,28 +1,69 @@
+/* US-047 Akzeptanzkriterium 4: Kartenlayout statt roher <table> für die Nutzerliste, analog zum
+   Stakeholder-Liste-Muster. Ausschließlich zentrale Tokens, keine hartcodierten Hex-/px-Werte. */
 .admin-users {
-  max-width: 40rem;
-  margin: 2rem auto;
-  padding: 1.5rem;
+  padding: var(--app-space-md) 0;
 }
 
-table {
-  width: 100%;
-  border-collapse: collapse;
-  margin-bottom: 1rem;
+.admin-users h1 {
+  margin-bottom: var(--app-space-lg);
 }
 
-th,
-td {
-  text-align: left;
-  padding: 0.5rem;
-  border-bottom: 1px solid #ddd;
+.admin-users h2 {
+  margin-top: var(--app-space-xl);
 }
 
-.field-error {
-  color: #b00020;
-  font-size: 0.875rem;
+.user-cards {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(18rem, 1fr));
+  gap: var(--app-space-lg);
+  margin-bottom: var(--app-space-md);
 }
 
-.info-message {
-  color: #1b5e20;
-  font-size: 0.875rem;
+.user-card {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--app-space-md);
+  padding: var(--app-space-lg);
+  background: var(--app-color-surface);
+  border: 1px solid var(--app-color-border);
+  border-radius: var(--app-radius-md);
+}
+
+.user-card__data {
+  display: flex;
+  flex-direction: column;
+  gap: var(--app-space-xs);
+  min-width: 0;
+}
+
+.user-card__name {
+  font-family: var(--app-font-family-display);
+  font-size: var(--app-font-size-card-title);
+  font-weight: 600;
+  color: var(--app-color-text);
+}
+
+.user-card__email {
+  font-size: var(--app-font-size-body);
+  color: var(--app-color-text-muted);
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.empty-state {
+  color: var(--app-color-text-muted);
+}
+
+.field {
+  display: flex;
+  flex-direction: column;
+  gap: var(--app-space-xs);
+  max-width: 24rem;
+  margin-bottom: var(--app-space-md);
+}
+
+.field label {
+  font-size: var(--app-font-size-body);
+  color: var(--app-color-text-muted);
 }

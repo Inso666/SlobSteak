@@ -1,5 +1,8 @@
 import { Component, OnInit, inject } from '@angular/core';
 import { FormBuilder, ReactiveFormsModule, Validators } from '@angular/forms';
+import { ButtonDirective } from 'primeng/button';
+import { InputText } from 'primeng/inputtext';
+import { Message } from 'primeng/message';
 import { AdminSubNavComponent } from '../admin-sub-nav/admin-sub-nav.component';
 import { AdminProject, AdminProjectsService } from '../admin-projects.service';
 import { ProjectMembershipManagerComponent } from './project-membership-manager.component';
@@ -24,6 +27,9 @@ import { ProcessingButtonComponent } from '../../../shared/processing-button/pro
     ProjectMembershipManagerComponent,
     AdminSubNavComponent,
     ProcessingButtonComponent,
+    ButtonDirective,
+    InputText,
+    Message,
   ],
   templateUrl: './projects-admin.component.html',
   styleUrl: './projects-admin.component.css',

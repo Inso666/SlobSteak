@@ -1,20 +1,12 @@
+/* US-047 / SPEC-00 §1.3: Pill-Tab-Muster über die geteilten `.tab-pills`/`.tab-pill`-Utility-Klassen
+   (`frontend/src/styles.css`) statt eines lokalen Unterstrich-Tabs — konsistent mit
+   Projekt-Workspace-Navigation, Projektübersicht und Assessment-Tabs. */
 .admin-sub-nav ul {
-  display: flex;
-  gap: 1rem;
-  list-style: none;
-  margin: 0 0 1.5rem;
+  margin: 0 0 var(--app-space-lg);
   padding: 0;
-  border-bottom: 1px solid #ddd;
+  list-style: none;
 }
 
-.admin-sub-nav a {
-  display: inline-block;
-  padding: 0.5rem 0;
-  text-decoration: none;
-  color: inherit;
-}
-
-.admin-sub-nav a.active {
-  font-weight: bold;
-  border-bottom: 2px solid #333;
+.admin-sub-nav li {
+  display: contents;
 }

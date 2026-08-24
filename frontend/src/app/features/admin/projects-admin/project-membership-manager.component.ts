@@ -1,6 +1,7 @@
 import { Component, Input, OnInit, inject } from '@angular/core';
 import { HttpErrorResponse } from '@angular/common/http';
 import { FormBuilder, FormsModule, ReactiveFormsModule, Validators } from '@angular/forms';
+import { Message } from 'primeng/message';
 import { AdminUser, AdminUsersService } from '../admin-users.service';
 import { AdminProjectMembership, AdminProjectsService, PROJECT_ROLES } from '../admin-projects.service';
 import { ProcessingButtonComponent } from '../../../shared/processing-button/processing-button.component';
@@ -14,7 +15,7 @@ import { ProcessingButtonComponent } from '../../../shared/processing-button/pro
 @Component({
   selector: 'app-project-membership-manager',
   standalone: true,
-  imports: [ReactiveFormsModule, FormsModule, ProcessingButtonComponent],
+  imports: [ReactiveFormsModule, FormsModule, ProcessingButtonComponent, Message],
   templateUrl: './project-membership-manager.component.html',
   styleUrl: './project-membership-manager.component.css',
 })

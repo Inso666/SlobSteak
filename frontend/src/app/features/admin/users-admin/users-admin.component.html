@@ -7,50 +7,58 @@
     <p class="load-error" role="alert">{{ loadError }}</p>
   }
 
-  <table>
-    <thead>
-      <tr>
-        <th>Name</th>
-        <th>E-Mail</th>
-        <th></th>
-      </tr>
-    </thead>
-    <tbody>
-      @for (user of users; track user.id) {
-        <tr>
-          <td>{{ user.name }}</td>
-          <td>{{ user.email }}</td>
-          <td>
-            <app-processing-button
-              type="button"
-              [isSubmitting]="resettingUserIds.has(user.id)"
-              label="Passwort zurücksetzen"
-              submittingLabel="Wird zurückgesetzt…"
-              (click)="onResetPassword(user)"
-            />
-          </td>
-        </tr>
-      }
-    </tbody>
-  </table>
+  <div class="user-cards" role="list">
+    @for (user of users; track user.id) {
+      <article class="user-card" role="listitem">
+        <div class="user-card__data">
+          <span class="user-card__name">{{ user.name }}</span>
+          <span class="user-card__email">{{ user.email }}</span>
+        </div>
+        <app-processing-button
+          type="button"
+          [isSubmitting]="resettingUserIds.has(user.id)"
+          label="Passwort zurücksetzen"
+          submittingLabel="Wird zurückgesetzt…"
+          (click)="onResetPassword(user)"
+        />
+      </article>
+    } @empty {
+      <p class="empty-state">Keine Nutzer angelegt.</p>
+    }
+  </div>
 
   @if (resetPasswordMessage) {
-    <p class="info-message">{{ resetPasswordMessage }}</p>
+    <p-message severity="success" styleClass="w-full" role="status">{{ resetPasswordMessage }}</p-message>
   }
 
   <h2>Nutzer anlegen</h2>
   <form [formGroup]="createForm" (ngSubmit)="onCreateUser()">
-    <label for="name">Name</label>
-    <input id="name" formControlName="name" />
+    <div class="field">
+      <label for="name">Name</label>
+      <input pInputText id="name" formControlName="name" class="w-full" />
+    </div>
 
-    <label for="email">E-Mail</label>
-    <input id="email" type="email" formControlName="email" />
-    @if (createErrorMessage) {
-      <p class="field-error">{{ createErrorMessage }}</p>
-    }
+    <div class="field">
+      <label for="email">E-Mail</label>
+      <input
+        pInputText
+        id="email"
+        type="email"
+        formControlName="email"
+        class="w-full"
+        [class.ng-invalid]="!!createErrorMessage"
+        [attr.aria-invalid]="createErrorMessage ? true : null"
+        [attr.aria-describedby]="createErrorMessage ? 'create-user-error' : null"
+      />
+      @if (createErrorMessage) {
+        <p-message id="create-user-error" severity="error" styleClass="w-full" role="alert">{{ createErrorMessage }}</p-message>
+      }
+    </div>
 
-    <label for="initialPassword">Initiales Passwort</label>
-    <input id="initialPassword" type="password" formControlName="initialPassword" />
+    <div class="field">
+      <label for="initialPassword">Initiales Passwort</label>
+      <p-password inputId="initialPassword" formControlName="initialPassword" [toggleMask]="true" [feedback]="false" styleClass="w-full" [inputStyle]="{ width: '100%' }" />
+    </div>
 
     <app-processing-button type="submit" [disabled]="createForm.invalid" [isSubmitting]="isCreatingUser" label="Nutzer anlegen" submittingLabel="Wird angelegt…" />
   </form>
