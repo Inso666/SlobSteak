@@ -107,10 +107,15 @@ public sealed class AssessmentController : ControllerBase
     }
 
     /// <summary>Liefert die Assessment-Übersicht des Stakeholders — je perspektiv-tragender Rolle
-    /// genau ein Eintrag (Akzeptanzkriterium 5/6). Für alle vier Projektrollen erreichbar; die
-    /// Sichtbarkeitsregel für Rolle <c>User</c> (Ausblenden der Werte) folgt erst mit US-030.</summary>
+    /// genau ein Eintrag (Akzeptanzkriterium 5/6 aus US-028). Ausschließlich für die drei
+    /// perspektiv-tragenden Rollen erreichbar; Nutzer mit Rolle <see cref="ProjectRole.User"/>
+    /// erhalten <c>403 Forbidden</c> statt einer leeren/maskierten Liste (US-030, PRD Abschnitt
+    /// 4.3 Punkt 4 / F2.3) — durchgesetzt über die deklarative <see cref="RequireProjectRoleAttribute"/>
+    /// analog zum bestehenden Muster dieses Controllers, da hier (anders als bei
+    /// <see cref="UpsertAssessment"/>) die erlaubte Rollenmenge statisch ist und keine manuelle
+    /// Prüfung benötigt.</summary>
     [HttpGet]
-    [RequireProjectRole(ProjectRole.PL, ProjectRole.Coreteam, ProjectRole.Architect, ProjectRole.User)]
+    [RequireProjectRole(ProjectRole.PL, ProjectRole.Coreteam, ProjectRole.Architect)]
     [ProducesResponseType(typeof(IReadOnlyList<AssessmentRoleResponse>), StatusCodes.Status200OK)]
     [ProducesResponseType(StatusCodes.Status401Unauthorized)]
     [ProducesResponseType(StatusCodes.Status403Forbidden)]

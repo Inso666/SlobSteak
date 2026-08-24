@@ -20,7 +20,10 @@ import { AssessmentTabsComponent } from '../../assessments/assessment-tabs/asses
  * (Akzeptanzkriterium 4); nach erfolgreichem Löschen navigiert die Seite zurück zur Liste.
  * Reserviert einen Platzhalter-Slot für „Kommunikationszuordnungen“ (US-040) sowie seit US-029
  * den befüllten Assessment-Bereich ({@link AssessmentTabsComponent}, `currentUserRole` wird
- * durchgereicht, damit nur der Tab der eigenen Rolle editierbar ist). Ein 404 (Stakeholder nicht
+ * durchgereicht, damit nur der Tab der eigenen Rolle editierbar ist). Seit US-030 ist dieser
+ * gesamte Assessment-Slot für Rolle `User` per `@if` ({@link canViewAssessments}) vollständig aus
+ * dem DOM entfernt (nicht nur per CSS versteckt) — eine zusätzliche UX-Schicht über der
+ * serverseitigen 403-Sperre auf `GET .../assessments`. Ein 404 (Stakeholder nicht
  * vorhanden oder soft-gelöscht, Akzeptanzkriterium 5) zeigt eine „Nicht gefunden“-Ansicht statt
  * der Detailinhalte.
  */
@@ -64,6 +67,20 @@ export class StakeholderDetailComponent implements OnInit {
   /** Akzeptanzkriterium 4: CTA „Löschen“ nur für PL/Admin(mit PL-Zuweisung) sichtbar. */
   protected get canDelete(): boolean {
     return this.currentUserRole === 'PL';
+  }
+
+  /**
+   * US-030 Akzeptanzkriterium 3: Assessment-Bereich (inkl. Tabs) wird für Rolle `User` vollständig
+   * aus dem DOM entfernt, nicht nur per CSS versteckt — reine, zusätzliche UX-Schicht über der
+   * serverseitigen 403-Sperre auf `GET .../assessments` (US-030 Akzeptanzkriterium 1/2). Gleiches
+   * Allowlist-Gating wie {@link canEdit}, hier bewusst in dieser Komponente statt in
+   * `AssessmentTabsComponent` selbst platziert, damit dasselbe etablierte Rollen-Gating-Muster
+   * dieser Seite (`canEdit`/`canDelete`, US-026) für alle Sichtbarkeitsentscheidungen konsistent an
+   * einer Stelle bleibt und der gesamte Slot (inkl. Überschrift „Assessment“) verschwindet statt nur
+   * die Tabs darunter.
+   */
+  protected get canViewAssessments(): boolean {
+    return this.currentUserRole === 'PL' || this.currentUserRole === 'Coreteam' || this.currentUserRole === 'Architect';
   }
 
   protected onEditClick(): void {

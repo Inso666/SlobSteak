@@ -53,9 +53,11 @@
       <p class="placeholder">Kommunikationszuordnungen folgen (US-040).</p>
     </section>
 
-    <section class="assessment-slot">
-      <h2>Assessment</h2>
-      <app-assessment-tabs [stakeholderId]="stakeholder.id" [currentUserRole]="currentUserRole" />
-    </section>
+    @if (canViewAssessments) {
+      <section class="assessment-slot">
+        <h2>Assessment</h2>
+        <app-assessment-tabs [stakeholderId]="stakeholder.id" [currentUserRole]="currentUserRole" />
+      </section>
+    }
   </section>
 }

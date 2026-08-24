@@ -1,4 +1,4 @@
-<section class="assessment-tabs">
+<section class="assessment-tabs" data-testid="assessment-tabs">
   <div class="tab-pills" role="tablist">
     @for (roleTab of roleTabs; track roleTab) {
       <button type="button" class="tab-pill" role="tab" [class.active]="activeTab === roleTab" [attr.aria-selected]="activeTab === roleTab" (click)="onSelectTab(roleTab)">
