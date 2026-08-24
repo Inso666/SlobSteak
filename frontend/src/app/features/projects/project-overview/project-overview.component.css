@@ -1,48 +1,57 @@
+/* US-047: ausschließlich zentrale Tokens (frontend/src/styles.css), keine hartcodierten
+   Hex-/px-Werte. Tab-Pill-Muster über die geteilten `.tab-pills`/`.tab-pill`-Utility-Klassen
+   (SPEC-00 §1.3). */
 .project-overview {
-  max-width: 60rem;
-  margin: 2rem auto;
-  padding: 1.5rem;
+  padding: var(--app-space-md) 0;
 }
 
-.tabs {
+.project-overview h1 {
+  margin-bottom: var(--app-space-lg);
+}
+
+.toolbar {
   display: flex;
-  gap: 0.5rem;
-  margin-bottom: 1rem;
-}
-
-.tabs button.active {
-  font-weight: bold;
-}
-
-.create-project-cta {
-  margin-bottom: 1rem;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--app-space-md);
+  margin-bottom: var(--app-space-lg);
+  flex-wrap: wrap;
 }
 
 .empty-state {
-  color: #666;
+  color: var(--app-color-text-muted);
 }
 
 .project-cards {
   display: grid;
   grid-template-columns: repeat(auto-fill, minmax(14rem, 1fr));
-  gap: 1rem;
+  gap: var(--app-space-lg);
 }
 
 .project-card {
+  display: block;
   text-align: left;
-  padding: 1rem;
-  border: 1px solid #ddd;
-  border-radius: 0.25rem;
+  padding: var(--app-space-lg);
+  background: var(--app-color-surface);
+  border: 1px solid var(--app-color-border);
+  border-radius: var(--app-radius-md);
   cursor: pointer;
-  background: none;
+  font-family: var(--app-font-family-body);
+}
+
+.project-card:hover {
+  background: var(--app-color-surface-hover);
 }
 
 .project-card h2 {
-  margin: 0 0 0.5rem;
-  font-size: 1.1rem;
+  margin: 0 0 var(--app-space-xs);
+  font-family: var(--app-font-family-display);
+  font-size: var(--app-font-size-card-title);
+  color: var(--app-color-text);
 }
 
 .project-card p {
-  margin: 0.25rem 0;
-  font-size: 0.9rem;
+  margin: var(--app-space-xs) 0 0;
+  font-size: var(--app-font-size-body);
+  color: var(--app-color-text-muted);
 }

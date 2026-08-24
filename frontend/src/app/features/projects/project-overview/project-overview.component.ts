@@ -1,5 +1,6 @@
 import { Component, OnInit, inject } from '@angular/core';
 import { Router } from '@angular/router';
+import { ButtonDirective } from 'primeng/button';
 import { ProjectOverviewItem, ProjectsService } from '../projects.service';
 import { AdminProject, AdminProjectsService } from '../../admin/admin-projects.service';
 import { TokenStorageService } from '../../auth/token-storage.service';
@@ -16,7 +17,7 @@ import { LOAD_ERROR_MESSAGE } from '../../../core/messages/http-error-messages';
 @Component({
   selector: 'app-project-overview',
   standalone: true,
-  imports: [],
+  imports: [ButtonDirective],
   templateUrl: './project-overview.component.html',
   styleUrl: './project-overview.component.css',
 })

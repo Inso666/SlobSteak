@@ -5,18 +5,22 @@
     <p class="load-error" role="alert">{{ loadError }}</p>
   }
 
-  @if (isSystemAdmin) {
-    <div class="tabs">
-      <button type="button" [class.active]="activeTab === 'mine'" (click)="onSelectTab('mine')">
-        Meine Projekte
-      </button>
-      <button type="button" [class.active]="activeTab === 'all'" (click)="onSelectTab('all')">Alle Projekte</button>
-    </div>
-  }
+  <div class="toolbar">
+    @if (isSystemAdmin) {
+      <div class="tab-pills" role="tablist">
+        <button type="button" class="tab-pill" role="tab" [class.active]="activeTab === 'mine'" [attr.aria-selected]="activeTab === 'mine'" (click)="onSelectTab('mine')">
+          Meine Projekte
+        </button>
+        <button type="button" class="tab-pill" role="tab" [class.active]="activeTab === 'all'" [attr.aria-selected]="activeTab === 'all'" (click)="onSelectTab('all')">
+          Alle Projekte
+        </button>
+      </div>
+    }
 
-  @if (isSystemAdmin) {
-    <button type="button" class="create-project-cta" (click)="onCreateProject()">Neues Projekt</button>
-  }
+    @if (isSystemAdmin) {
+      <button type="button" pButton (click)="onCreateProject()">Neues Projekt</button>
+    }
+  </div>
 
   @if (activeTab === 'mine' || !isSystemAdmin) {
     @if (myProjects.length === 0) {
