@@ -22,7 +22,10 @@ const PERSPECTIVE_BEARING_ROLES = ['PL', 'Coreteam', 'Architect'] as const;
  * {@link AssessmentConflictDialogComponent} (Akzeptanzkriterium 4). `status: "NOT_ASSESSED"` zeigt
  * einen Hinweis mit „Jetzt bewerten“-CTA, klickbar nur für die eigene Rolle (Akzeptanzkriterium 5);
  * `status: "NO_ROLE_ASSIGNED"` zeigt einen Hinweis ganz ohne Eingabemöglichkeit
- * (Akzeptanzkriterium 6).
+ * (Akzeptanzkriterium 6). Der äußerste Tabs-Container trägt `data-testid="assessment-tabs"`
+ * (US-030 Akzeptanzkriterium 3): die aufrufende {@link StakeholderDetailComponent} entfernt diese
+ * Komponente für Rolle `User` per `@if` vollständig aus dem DOM, statt sie nur per CSS zu
+ * verstecken.
  */
 @Component({
   selector: 'app-assessment-tabs',

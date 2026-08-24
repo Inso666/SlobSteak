@@ -1,4 +1,5 @@
 import { TestBed } from '@angular/core/testing';
+import { By } from '@angular/platform-browser';
 import { ActivatedRoute, Router, convertToParamMap, provideRouter } from '@angular/router';
 import { of, throwError } from 'rxjs';
 import { HttpErrorResponse } from '@angular/common/http';
@@ -143,6 +144,22 @@ describe('StakeholderDetailComponent', () => {
     fixture.componentInstance['onDeleted']();
 
     expect(router.navigate).toHaveBeenCalledWith(['/projects', 'project-1', 'stakeholders']);
+  });
+
+  // US-030 Akzeptanzkriterium 3: Assessment-Tabs sind für Rolle User vollständig aus dem DOM
+  // entfernt (nicht nur per CSS versteckt) — für PL/Coreteam/Architect bleibt das bestehende
+  // Verhalten aus US-029 unverändert (Regressionscheck).
+  it('should remove the assessment tabs from the DOM for role User and keep them for role PL/Coreteam/Architect', () => {
+    let fixture = createComponent();
+    expect(fixture.debugElement.query(By.css('[data-testid="assessment-tabs"]'))).toBeNull();
+    expect(fixture.componentInstance['canViewAssessments']).toBeFalse();
+
+    for (const role of ['PL', 'Coreteam', 'Architect']) {
+      configure(role);
+      fixture = createComponent();
+      expect(fixture.componentInstance['canViewAssessments']).toBeTrue();
+      expect(fixture.debugElement.query(By.css('[data-testid="assessment-tabs"]'))).not.toBeNull();
+    }
   });
 
   // Akzeptanzkriterium 5: Aufruf mit der ID eines soft-gelöschten (oder unbekannten) Stakeholders
