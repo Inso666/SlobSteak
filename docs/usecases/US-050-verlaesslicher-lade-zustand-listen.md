@@ -3,7 +3,7 @@
 **Bounded Context / Domain:** Frontend-Shell (cross-cutting, analog zu US-043/US-044)
 **Abhängigkeiten:** US-016, US-017, US-018, US-044
 
-**Status:** offen
+**Status:** fertig am 25.08.2026 (PR: siehe unten, verifiziert durch QA-Agent)
 
 ---
 
@@ -26,15 +26,15 @@ Als **Nutzer** möchte ich, dass mir bereits vorhandene Daten (meine Projekte, a
 
 ### 3. Akzeptanzkriterien
 
-- [ ] Jede der fünf betroffenen Stellen unterscheidet sichtbar (Skeleton/Ladezustand gemäß SPEC-00 §3) zwischen „lädt noch“ und „wirklich leer“ — der `@empty`-Text erscheint ausschließlich, wenn der zugehörige Request tatsächlich abgeschlossen ist und ein leeres Ergebnis geliefert hat.
-- [ ] Nach Abschluss des jeweiligen Requests erscheinen die Daten ohne jede weitere Nutzerinteraktion — verifiziert durch einen Test, der nach `flush()`/Antwort **ohne** einen zusätzlichen simulierten Klick/Tastatureingabe prüft, dass die gerenderte Liste die neuen Daten enthält.
-- [ ] `/projects`: „Meine Projekte“ zeigt zugewiesene Projekte unmittelbar nach dem Laden, unabhängig vom Tab „Alle Projekte“.
-- [ ] `/admin/users`: die Nutzerliste ist beim Laden der Seite gefüllt, ohne dass eine Eingabe im Formular nötig ist.
-- [ ] `/admin/projects`: die Projektliste ist beim Laden der Seite gefüllt, ohne dass eine Eingabe im Formular nötig ist.
-- [ ] `/admin/projects` → „Mitglieder verwalten“: die Liste potenzieller Nutzer ist beim ersten Öffnen bereits gefüllt, ohne erneute Auswahl.
-- [ ] `/admin/projects` → „Hinzufügen“: die Mitgliederliste aktualisiert sich unmittelbar nach erfolgreicher Zuweisung, ohne weitere Interaktion.
-- [ ] Der neue Ladezustand nutzt ausschließlich die in SPEC-00 §1.2/§3 definierten Tokens/Bausteine (`<p-skeleton>` in `color.surface-hover` auf `color.surface`), keine neue, lokal erfundene Lade-Darstellung.
-- [ ] Bestehende Tests (insbesondere `us-044-http-error-handling.spec.ts`, das `loadError`-Verhalten der fünf Komponenten prüft) bleiben grün bzw. werden um den neuen Lade-Zustand ergänzt, nicht ersetzt.
+- [x] Jede der fünf betroffenen Stellen unterscheidet sichtbar (Skeleton/Ladezustand gemäß SPEC-00 §3) zwischen „lädt noch“ und „wirklich leer“ — der `@empty`-Text erscheint ausschließlich, wenn der zugehörige Request tatsächlich abgeschlossen ist und ein leeres Ergebnis geliefert hat.
+- [x] Nach Abschluss des jeweiligen Requests erscheinen die Daten ohne jede weitere Nutzerinteraktion — verifiziert durch einen Test, der nach `flush()`/Antwort **ohne** einen zusätzlichen simulierten Klick/Tastatureingabe prüft, dass die gerenderte Liste die neuen Daten enthält.
+- [x] `/projects`: „Meine Projekte“ zeigt zugewiesene Projekte unmittelbar nach dem Laden, unabhängig vom Tab „Alle Projekte“.
+- [x] `/admin/users`: die Nutzerliste ist beim Laden der Seite gefüllt, ohne dass eine Eingabe im Formular nötig ist.
+- [x] `/admin/projects`: die Projektliste ist beim Laden der Seite gefüllt, ohne dass eine Eingabe im Formular nötig ist.
+- [x] `/admin/projects` → „Mitglieder verwalten“: die Liste potenzieller Nutzer ist beim ersten Öffnen bereits gefüllt, ohne erneute Auswahl.
+- [x] `/admin/projects` → „Hinzufügen“: die Mitgliederliste aktualisiert sich unmittelbar nach erfolgreicher Zuweisung, ohne weitere Interaktion.
+- [x] Der neue Ladezustand nutzt ausschließlich die in SPEC-00 §1.2/§3 definierten Tokens/Bausteine (`<p-skeleton>` in `color.surface-hover` auf `color.surface`), keine neue, lokal erfundene Lade-Darstellung.
+- [x] Bestehende Tests (insbesondere `us-044-http-error-handling.spec.ts`, das `loadError`-Verhalten der fünf Komponenten prüft) bleiben grün bzw. werden um den neuen Lade-Zustand ergänzt, nicht ersetzt.
 
 ### 4. Technische Hinweise für den Dev-Agenten
 
@@ -68,3 +68,17 @@ Die PO-Diagnose in Abschnitt 2 stellt fest, dass Code-Review „kein Zoneless-Se
 - **Bewusst nicht angefasst (Scope-Grenze):** Andere `subscribe()`-Callbacks in denselben vier Dateien (z. B. `onCreateUser`, `onResetPassword`, `onChangeRole`, `onRemoveMember`) haben denselben strukturellen Makel, sind aber nicht Teil der fünf in dieser Story benannten Fundstellen — sie wurden nicht geändert, um den Umfang der Story nicht stillschweigend zu erweitern. Ebenso nicht angefasst: `project-workspace-layout.component.ts` und `stakeholder-list.component.ts` (US-044, außerhalb der „Zu ändernde Dateien“-Liste dieser Story), obwohl deren `loadError`-Zuweisungen vermutlich demselben Muster unterliegen. **Empfehlung an PO/Backlog:** eigene Folge-Story „Zoneless-Reaktivität systematisch nachziehen“ für die verbleibenden Stellen, statt jede künftige Story einzeln gegen dieses Muster zu prüfen.
 
 **Neue gemeinsame Komponente:** `frontend/src/app/shared/view-state/` (`view-state.ts` Typ + `deriveListViewState()`-Helfer, `view-state.component.ts/.html/.css` — `<app-view-state>`, kapselt Skeleton-/Empty-Darstellung, projiziert `content` unverändert via `<ng-content>`). PrimeNG-Preset (`slobsteak-preset.ts`) um `components.skeleton.root.background = '#1D2536'` (`color.surface-hover`) ergänzt; `borderRadius` bleibt bewusst ungesetzt, da Aura bereits auf das schon vorhandene `semantic.content.borderRadius` (`8px`/`radius.md`) referenziert.
+
+### Anmerkungen des QA-Agenten (25.08.2026)
+
+**Verifikation:** Alle neun Akzeptanzkriterien einzeln gegen Code, Story-Test und ein reales `docker-compose`-System geprüft (Details siehe PR-Text). Story-Test (`us-050-verlaesslicher-lade-zustand-listen.spec.ts`) deckt jedes Akzeptanzkriterium 1:1 in Dokument-Reihenfolge als eigenen Testfall ab (Konvention `.claude/agents/qa.md` Abschnitt 1) — keine Lücke, keine Ergänzung nötig. `ng test` (199/199 grün, inkl. `us-044-http-error-handling.spec.ts`), `ng lint` (fehlerfrei), `ng build` (erfolgreich, einzige Auffälligkeit: vorbestehende Bundle-Budget-Warnung, siehe unten) verifiziert.
+
+**Manueller Smoke-Test:** durchgeführt gegen ein eigenständiges, per `docker-compose` (Basis-`docker-compose.yml`, isolierte Ports/Projektname) aufgesetztes System mit Seed-Admin + eigens angelegtem Testnutzer/-projekt — nicht gegen den bereits seit längerem laufenden, gemeinsam genutzten Container-Stack im Repo-Root, dessen Admin-Zugangsdaten inzwischen von anderer Stelle geändert wurden. Alle fünf Fundstellen (`/projects` Meine/Alle Projekte, `/admin/users`, `/admin/projects`, „Mitglieder verwalten“ inkl. „Hinzufügen“) zeigen Daten beim Laden bzw. nach der Aktion ohne weitere Interaktion — reproduziert per Browser-Automatisierung mit Screenshots.
+
+**Explorativer Test:** dreifaches schnelles Auf-/Zuklappen von „Mitglieder verwalten“ sowie schnelle Navigation weg von einer noch ladenden Seite (`/admin/users` → `/projects` → `/admin/projects`) zeigten keine Auffälligkeiten (kein doppeltes Rendering, keine Konsolenfehler, korrekter Endzustand).
+
+**Major-Finding außerhalb des Scopes dieser Story (dokumentiert gemäß `.claude/agents/qa.md` Abschnitt 6, kein Blocker für US-050):** Beim Login (`LoginComponent`, nicht Teil der „Zu ändernde Dateien“-Liste dieser Story) bleibt der Button nach Klick auf „Anmelden“ dauerhaft im Zustand „Wird angemeldet…“ hängen, obwohl der `POST /api/v1/auth/login`-Request serverseitig erfolgreich mit `200 OK` beantwortet wird (per Netzwerk-Log verifiziert) — keine Weiterleitung erfolgt, die Seite bleibt auf `/login` stehen. Reproduktion: frisches System, `admin@example.com` / Seed-Passwort im Formular eingeben, „Anmelden“ klicken, warten (auch nach mehreren Sekunden keine Änderung). Erwartet: Weiterleitung nach erfolgreichem Login (bzw. zur Passwort-ändern-Seite, da `mustChangePassword: true`). Tatsächlich: Button bleibt im Submitting-Zustand hängen. Das Symptommuster ist identisch zur in dieser Story behobenen Ursache (zoneless-Frontend, fehlendes `markForCheck()` im HTTP-`subscribe()`-Callback) — passt exakt zur bereits im Dev-Agenten-Abschnitt oben ausgesprochenen Empfehlung einer Folge-Story „Zoneless-Reaktivität systematisch nachziehen“. **Nicht in dieser Story behoben**, da `LoginComponent` nicht zu den fünf in „Technische Hinweise“ benannten Fundstellen gehört und eine Ausweitung des Scopes gegen CLAUDE.md Abschnitt 3 („nur an aktueller Story arbeiten“) verstoßen würde. Empfehlung: eigene Bugfix-Story mit hoher Priorität, da dies den Login-Flow für alle Nutzer mit `mustChangePassword: true` betrifft (z. B. jeden neu angelegten Nutzer).
+
+**Minor-Finding:** `ng build` meldet weiterhin die vorbestehende Bundle-Budget-Warnung („Initial exceeded maximum budget … 275.04 kB“, Budget 900 kB) — Konfiguration/Zustand unverändert durch diese Story (kein Diff an `angular.json`), kein neuer Regressionsbefund, aber zur Transparenz dokumentiert.
+
+**Barrierefreiheit-Stichprobe:** `<p-skeleton>`-Platzhalter tragen kein `tabindex` (verifiziert per DOM-Abfrage), keine Fokus-Falle. Ladezustand wird zusätzlich per `<span class="sr-only" role="status">Wird geladen…</span>` für Screenreader angekündigt (implizites `aria-live="polite"` durch `role="status"`).

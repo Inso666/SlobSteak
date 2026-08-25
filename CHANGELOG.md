@@ -31,6 +31,13 @@ Alle nennenswerten Änderungen an diesem Projekt werden hier je User Story dokum
   (`us-044-http-error-handling.spec.ts`) unverändert grün — `loadError` bleibt bestehen und
   koexistiert mit dem neuen `ViewState`.
 - `ng test` (199/199) grün, `ng lint` ohne Befund.
+- **QA-Verifikation (25.08.2026):** alle neun Akzeptanzkriterien einzeln gegen Code/Tests/laufendes
+  System geprüft, manueller Smoke-Test gegen eigenständigen `docker-compose`-Stack durchgeführt.
+  Dabei Major-Finding außerhalb des Story-Scopes entdeckt und dokumentiert: `LoginComponent`
+  bleibt nach erfolgreichem `POST /api/v1/auth/login` (`200 OK`) dauerhaft im Zustand „Wird
+  angemeldet…“ hängen (gleiches zoneless-`markForCheck()`-Muster wie in dieser Story behoben, aber
+  `LoginComponent` gehört nicht zu den fünf benannten Fundstellen) — siehe „Anmerkungen des
+  QA-Agenten“ in der Story-Datei, Empfehlung für eigene Bugfix-Folge-Story.
 
 ### US-030 — Server-seitige Sichtbarkeitsregel für Rolle User (Assessment-Daten)
 
