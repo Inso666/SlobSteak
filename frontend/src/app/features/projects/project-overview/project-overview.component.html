@@ -23,9 +23,7 @@
   </div>
 
   @if (activeTab === 'mine' || !isSystemAdmin) {
-    @if (myProjects.length === 0) {
-      <p class="empty-state">Du bist noch keinem Projekt zugewiesen.</p>
-    } @else {
+    <app-view-state [state]="myProjectsState" emptyMessage="Du bist noch keinem Projekt zugewiesen." [skeletonCount]="3">
       <div class="project-cards">
         @for (project of myProjects; track project.id) {
           <button type="button" class="project-card" (click)="onOpenProject(project.id)">
@@ -35,13 +33,11 @@
           </button>
         }
       </div>
-    }
+    </app-view-state>
   }
 
   @if (isSystemAdmin && activeTab === 'all') {
-    @if (allProjects.length === 0) {
-      <p class="empty-state">Es existieren noch keine Projekte.</p>
-    } @else {
+    <app-view-state [state]="allProjectsState" emptyMessage="Es existieren noch keine Projekte." [skeletonCount]="3">
       <div class="project-cards">
         @for (project of allProjects; track project.id) {
           <button type="button" class="project-card" (click)="onOpenProject(project.id)">
@@ -51,6 +47,6 @@
           </button>
         }
       </div>
-    }
+    </app-view-state>
   }
 </section>

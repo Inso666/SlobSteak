@@ -1,6 +1,7 @@
 import { TestBed } from '@angular/core/testing';
 import { of, throwError } from 'rxjs';
-import { HttpErrorResponse } from '@angular/common/http';
+import { HttpErrorResponse, provideHttpClient } from '@angular/common/http';
+import { HttpTestingController, provideHttpClientTesting } from '@angular/common/http/testing';
 import { AdminUser, AdminUsersService } from '../admin-users.service';
 import { AdminProjectMembership, AdminProjectsService } from '../admin-projects.service';
 import { ProjectMembershipManagerComponent } from './project-membership-manager.component';
@@ -112,5 +113,74 @@ describe('ProjectMembershipManagerComponent', () => {
     component['onRemoveMember'](existingMemberships[0]);
 
     expect(component['errorMessage']).toContain('Max Mustermann');
+  });
+
+  describe('US-050: diskreter Ladezustand statt fälschlicher Leer-Darstellung', () => {
+    // Diese Tests brauchen den echten `HttpClient` (samt `HttpTestingController`) statt der
+    // Spy-Provider aus dem äußeren `beforeEach` oben — `resetTestingModule()` verhindert, dass die
+    // dort bereits registrierten Spy-Provider (insb. `AdminUsersService`/`AdminProjectsService`)
+    // unbemerkt weiterwirken.
+    beforeEach(() => TestBed.resetTestingModule());
+
+    function createHttpComponent() {
+      TestBed.configureTestingModule({
+        imports: [ProjectMembershipManagerComponent],
+        providers: [provideHttpClient(), provideHttpClientTesting()],
+      });
+      const fixture = TestBed.createComponent(ProjectMembershipManagerComponent);
+      fixture.componentRef.setInput('projectId', 'project-1');
+      fixture.detectChanges();
+      return fixture;
+    }
+
+    it('shows the loading state for both the potential-users field and the membership list before the responses arrive, then their data without any further interaction after flush()', () => {
+      const fixture = createHttpComponent();
+      const httpTestingController = TestBed.inject(HttpTestingController);
+
+      expect(fixture.componentInstance['allUsersState']).toBe('loading');
+      expect(fixture.componentInstance['membershipsState']).toBe('loading');
+      expect(fixture.nativeElement.querySelector('select#userId')).toBeNull();
+      expect(fixture.nativeElement.querySelector('.member-row')).toBeNull();
+
+      httpTestingController.expectOne('/api/v1/admin/users').flush(allUsers);
+      httpTestingController.expectOne('/api/v1/admin/projects/project-1/memberships').flush(existingMemberships);
+      fixture.detectChanges();
+
+      expect(fixture.componentInstance['allUsersState']).toBe('content');
+      expect(fixture.componentInstance['membershipsState']).toBe('content');
+      const select: HTMLSelectElement = fixture.nativeElement.querySelector('select#userId');
+      expect(select).not.toBeNull();
+      expect(select.querySelectorAll('option[value="user-2"]').length).toBe(1);
+      expect(fixture.nativeElement.querySelectorAll('.member-row').length).toBe(existingMemberships.length);
+
+      httpTestingController.verify();
+    });
+
+    it('refreshes the membership list without any further interaction immediately after a successful "Hinzufügen" (assign) POST', () => {
+      const fixture = createHttpComponent();
+      const httpTestingController = TestBed.inject(HttpTestingController);
+      httpTestingController.expectOne('/api/v1/admin/users').flush(allUsers);
+      httpTestingController.expectOne('/api/v1/admin/projects/project-1/memberships').flush(existingMemberships);
+      fixture.detectChanges();
+
+      const component = fixture.componentInstance;
+      component['assignForm'].setValue({ userId: 'user-2', role: 'Coreteam' });
+      component['onAssignMember']();
+
+      httpTestingController.expectOne({ url: '/api/v1/admin/projects/project-1/memberships', method: 'POST' }).flush(null);
+
+      const updatedMemberships: AdminProjectMembership[] = [
+        ...existingMemberships,
+        { userId: 'user-2', userName: 'Erika Musterfrau', userEmail: 'erika@example.com', role: 'Coreteam' },
+      ];
+      httpTestingController.expectOne({ url: '/api/v1/admin/projects/project-1/memberships', method: 'GET' }).flush(updatedMemberships);
+      fixture.detectChanges();
+
+      expect(component['membershipsState']).toBe('content');
+      expect(fixture.nativeElement.querySelectorAll('.member-row').length).toBe(updatedMemberships.length);
+      expect(fixture.nativeElement.textContent).toContain('Erika Musterfrau');
+
+      httpTestingController.verify();
+    });
   });
 });

@@ -1,4 +1,5 @@
-import { HttpErrorResponse } from '@angular/common/http';
+import { HttpErrorResponse, provideHttpClient } from '@angular/common/http';
+import { HttpTestingController, provideHttpClientTesting } from '@angular/common/http/testing';
 import { TestBed } from '@angular/core/testing';
 import { provideRouter, Router } from '@angular/router';
 import { of, throwError } from 'rxjs';
@@ -117,5 +118,63 @@ describe('ProjectOverviewComponent', () => {
     fixture.componentInstance['onCreateProject']();
 
     expect(navigateSpy).toHaveBeenCalledWith(['/admin/projects']);
+  });
+
+  describe('US-050: diskreter Ladezustand statt fälschlicher Leer-Darstellung', () => {
+    it('shows the loading state before the response arrives, then the projects without any further interaction after flush()', () => {
+      TestBed.configureTestingModule({
+        imports: [ProjectOverviewComponent],
+        providers: [
+          provideHttpClient(),
+          provideHttpClientTesting(),
+          provideRouter([]),
+          { provide: TokenStorageService, useValue: jasmine.createSpyObj('TokenStorageService', { getClaims: { sub: 'user-1', isSystemAdmin: false } }) },
+        ],
+      });
+
+      const fixture = TestBed.createComponent(ProjectOverviewComponent);
+      fixture.detectChanges();
+
+      expect(fixture.componentInstance['myProjectsState']).toBe('loading');
+      expect(fixture.nativeElement.querySelector('.empty-state')).toBeNull();
+      expect(fixture.nativeElement.querySelectorAll('.project-card').length).toBe(0);
+
+      const httpTestingController = TestBed.inject(HttpTestingController);
+      httpTestingController.expectOne('/api/v1/projects').flush(myProjects);
+      fixture.detectChanges();
+
+      expect(fixture.componentInstance['myProjectsState']).toBe('content');
+      const cards: NodeListOf<HTMLElement> = fixture.nativeElement.querySelectorAll('.project-card');
+      expect(cards.length).toBe(myProjects.length);
+      expect(cards[0].textContent).toContain(myProjects[0].name);
+
+      httpTestingController.verify();
+    });
+
+    it('shows the empty state only after the request resolved with an actually empty result, not while it is still pending', () => {
+      TestBed.configureTestingModule({
+        imports: [ProjectOverviewComponent],
+        providers: [
+          provideHttpClient(),
+          provideHttpClientTesting(),
+          provideRouter([]),
+          { provide: TokenStorageService, useValue: jasmine.createSpyObj('TokenStorageService', { getClaims: { sub: 'user-1', isSystemAdmin: false } }) },
+        ],
+      });
+
+      const fixture = TestBed.createComponent(ProjectOverviewComponent);
+      fixture.detectChanges();
+
+      expect(fixture.nativeElement.querySelector('.empty-state')).toBeNull();
+
+      const httpTestingController = TestBed.inject(HttpTestingController);
+      httpTestingController.expectOne('/api/v1/projects').flush([]);
+      fixture.detectChanges();
+
+      expect(fixture.componentInstance['myProjectsState']).toBe('empty');
+      expect(fixture.nativeElement.querySelector('.empty-state')?.textContent).toContain('Du bist noch keinem Projekt zugewiesen.');
+
+      httpTestingController.verify();
+    });
   });
 });

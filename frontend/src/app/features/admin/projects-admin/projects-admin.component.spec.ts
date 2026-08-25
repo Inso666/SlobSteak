@@ -1,4 +1,5 @@
-import { HttpErrorResponse } from '@angular/common/http';
+import { HttpErrorResponse, provideHttpClient } from '@angular/common/http';
+import { HttpTestingController, provideHttpClientTesting } from '@angular/common/http/testing';
 import { TestBed } from '@angular/core/testing';
 import { provideRouter } from '@angular/router';
 import { of, throwError } from 'rxjs';
@@ -93,5 +94,58 @@ describe('ProjectsAdminComponent', () => {
 
     component['onSelectProject'](existingProjects[0]);
     expect(component['selectedProjectId']).toBeNull();
+  });
+
+  describe('US-050: diskreter Ladezustand statt fälschlicher Leer-Darstellung', () => {
+    // Diese Tests brauchen den echten `HttpClient` (samt `HttpTestingController`) statt der
+    // Spy-Provider aus dem äußeren `beforeEach` oben — `resetTestingModule()` verhindert, dass die
+    // dort bereits registrierten Spy-Provider (insb. `AdminProjectsService`) unbemerkt weiterwirken.
+    beforeEach(() => TestBed.resetTestingModule());
+
+    it('shows the loading state before the response arrives, then the projects without any further interaction after flush()', () => {
+      TestBed.configureTestingModule({
+        imports: [ProjectsAdminComponent],
+        providers: [provideHttpClient(), provideHttpClientTesting(), provideRouter([])],
+      });
+
+      const fixture = TestBed.createComponent(ProjectsAdminComponent);
+      fixture.detectChanges();
+
+      expect(fixture.componentInstance['projectsState']).toBe('loading');
+      expect(fixture.nativeElement.querySelector('.empty-state')).toBeNull();
+      expect(fixture.nativeElement.querySelectorAll('.project-card').length).toBe(0);
+
+      const httpTestingController = TestBed.inject(HttpTestingController);
+      httpTestingController.expectOne('/api/v1/admin/projects').flush(existingProjects);
+      fixture.detectChanges();
+
+      expect(fixture.componentInstance['projectsState']).toBe('content');
+      const cards: NodeListOf<HTMLElement> = fixture.nativeElement.querySelectorAll('.project-card');
+      expect(cards.length).toBe(existingProjects.length);
+      expect(cards[0].textContent).toContain(existingProjects[0].name);
+
+      httpTestingController.verify();
+    });
+
+    it('shows the empty state only after the request resolved with an actually empty result, not while it is still pending', () => {
+      TestBed.configureTestingModule({
+        imports: [ProjectsAdminComponent],
+        providers: [provideHttpClient(), provideHttpClientTesting(), provideRouter([])],
+      });
+
+      const fixture = TestBed.createComponent(ProjectsAdminComponent);
+      fixture.detectChanges();
+
+      expect(fixture.nativeElement.querySelector('.empty-state')).toBeNull();
+
+      const httpTestingController = TestBed.inject(HttpTestingController);
+      httpTestingController.expectOne('/api/v1/admin/projects').flush([]);
+      fixture.detectChanges();
+
+      expect(fixture.componentInstance['projectsState']).toBe('empty');
+      expect(fixture.nativeElement.querySelector('.empty-state')?.textContent).toContain('Es existieren noch keine Projekte.');
+
+      httpTestingController.verify();
+    });
   });
 });

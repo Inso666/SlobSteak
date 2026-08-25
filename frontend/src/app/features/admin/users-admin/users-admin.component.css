@@ -51,10 +51,6 @@
   text-overflow: ellipsis;
 }
 
-.empty-state {
-  color: var(--app-color-text-muted);
-}
-
 .field {
   display: flex;
   flex-direction: column;

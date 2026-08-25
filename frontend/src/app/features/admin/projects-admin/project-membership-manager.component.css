@@ -60,10 +60,6 @@
   color: var(--app-color-text-muted);
 }
 
-.empty-state {
-  color: var(--app-color-text-muted);
-}
-
 .assign-form {
   display: flex;
   align-items: flex-end;
