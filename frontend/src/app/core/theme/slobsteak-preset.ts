@@ -86,5 +86,15 @@ export const SlobSteakPreset = definePreset(Aura, {
         dark: { root: { background: '#161D2B', color: '#EDEFF4' } },
       },
     },
+    // US-050 / SPEC-00 §3: Skeleton-Bausteine (`<p-skeleton>`) in `color.surface-hover`
+    // (`--app-color-surface-hover`) auf `color.surface`-Hintergrund. `borderRadius` bleibt
+    // bewusst ungesetzt — Aura referenziert dafür bereits `{content.border.radius}`, das über
+    // `semantic.content.borderRadius` oben schon auf `8px`/`radius.md` gesetzt ist, ein
+    // zusätzlicher lokaler Wert wäre eine doppelte Quelle der Wahrheit.
+    skeleton: {
+      root: {
+        background: '#1D2536',
+      },
+    },
   },
 });
