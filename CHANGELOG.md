@@ -4,6 +4,32 @@ Alle nennenswerten Änderungen an diesem Projekt werden hier je User Story dokum
 
 ## [Unreleased]
 
+### US-057 — Login-Flow bleibt nach erfolgreicher Anmeldung dauerhaft im Verarbeitungs-Zustand hängen
+
+- Bugfix in `LoginPageComponent.onSubmit()` (`frontend/src/app/features/auth/login-page/login-page.component.ts`):
+  `ChangeDetectorRef` injiziert, `markForCheck()` im `next`- **und** im `error`-Handler des
+  `authService.login(...).subscribe(...)`-Aufrufs ergänzt. Exakt dasselbe zoneless-Muster, das in
+  US-050 an fünf anderen Stellen behoben wurde (kein `zone.js` im Projekt, eine reine
+  Feldzuweisung in einem außerhalb eines Nutzer-Events eintreffenden `subscribe()`-Callback
+  markiert die Komponente nicht automatisch für die nächste Change-Detection-Runde) — vom
+  QA-Agenten während der US-050-Verifikation als Major-Finding entdeckt und in dieser eigenen
+  Story behoben. Betraf **jeden** Login-Vorgang, insbesondere jeden neu angelegten Nutzer mit
+  `mustChangePassword: true`, der dadurch nie über den Login-Screen hinauskam.
+- Kein neues Ladezustands-Muster — `isSubmitting`/`app-processing-button` (US-043) unverändert.
+- Story-Test `frontend/src/app/features/auth/login-page/us-057-login-haengt-nach-erfolgreicher-anmeldung.spec.ts`
+  (ein Testfall je Akzeptanzkriterium, gleiche Reihenfolge wie im Story-Dokument), zusätzlich
+  `HttpTestingController`-basierte Erfolgs-/Fehlerfall-Tests in `login-page.component.spec.ts`
+  ergänzt. Testwirksamkeit verifiziert: ohne die beiden `markForCheck()`-Aufrufe schlagen die
+  DOM-Endzustand-Tests zuverlässig fehl.
+- `ng test` (207/207) grün, `ng lint` ohne Befund. Manueller Smoke-Test gegen eigenständigen
+  `docker-compose`-Stack: Login mit Seed-Admin (`mustChangePassword: true`) zeigt sofort das
+  Passwort-ändern-Modal, Login mit falschem Passwort zeigt sofort die Fehlermeldung — kein
+  Hängenbleiben mehr.
+- **Fund außerhalb des Scopes (dokumentiert, nicht behoben):** `PasswordChangeModalComponent`
+  hat denselben strukturellen Makel im `subscribe()`-Callback von `authService.changePassword(...)`
+  — siehe „Anmerkungen des Dev-Agenten“ in der Story-Datei, Empfehlung für die bereits in US-050
+  vorgeschlagene Folge-Story „Zoneless-Reaktivität systematisch nachziehen“.
+
 ### US-050 — Verlässlicher Lade-Zustand statt fälschlicher Leer-/Stale-Darstellung auf Listen-/Übersichtsseiten
 
 - Neue, wiederverwendbare Komponente `AppViewStateComponent` (`frontend/src/app/shared/view-state/`)
