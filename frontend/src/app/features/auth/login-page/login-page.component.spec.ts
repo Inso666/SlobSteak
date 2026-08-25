@@ -1,3 +1,5 @@
+import { provideHttpClient } from '@angular/common/http';
+import { HttpTestingController, provideHttpClientTesting } from '@angular/common/http/testing';
 import { TestBed } from '@angular/core/testing';
 import { provideRouter, Router } from '@angular/router';
 import { of, throwError } from 'rxjs';
@@ -109,5 +111,70 @@ describe('LoginPageComponent', () => {
     expect(component['errorMessage']).toBe('E-Mail oder Passwort ist falsch.');
     expect(component['form'].controls.password.value).toBe('');
     expect(component['mustChangePassword']).toBeFalse();
+  });
+
+  /**
+   * US-057: die obigen Tests verwenden einen `AuthService`-Spy mit synchronem `of(...)`/
+   * `throwError(...)`, wodurch der `subscribe()`-Callback noch im selben synchronen Aufruf von
+   * `onSubmit()` läuft — das reproduziert den eigentlichen Bug nicht (siehe Story Abschnitt 2).
+   * Diese Tests nutzen stattdessen `HttpTestingController`: `flush()` löst den Callback erst NACH
+   * dem ursprünglichen `onSubmit()`-Aufruf aus, analog zum in US-050 etablierten Muster, und
+   * beweisen, dass das DOM danach — ohne zusätzliche simulierte Interaktion — den korrekten
+   * Endzustand zeigt (Akzeptanzkriterium 4 der Story).
+   */
+  describe('mit echtem HttpClient/HttpTestingController (US-057)', () => {
+    let http: HttpTestingController;
+    let httpRouter: Router;
+    let httpNavigateSpy: jasmine.Spy;
+
+    beforeEach(async () => {
+      await TestBed.resetTestingModule()
+        .configureTestingModule({
+          imports: [LoginPageComponent],
+          providers: [provideHttpClient(), provideHttpClientTesting(), provideRouter([])],
+        })
+        .compileComponents();
+
+      http = TestBed.inject(HttpTestingController);
+      httpRouter = TestBed.inject(Router);
+      httpNavigateSpy = spyOn(httpRouter, 'navigate').and.resolveTo(true);
+    });
+
+    afterEach(() => http.verify());
+
+    it('should navigate to /projects and release the button from the processing state after flush() without further interaction (success)', () => {
+      const fixture = TestBed.createComponent(LoginPageComponent);
+      fixture.detectChanges();
+      fixture.componentInstance['form'].setValue({ email: 'user@example.com', password: 'correct-horse' });
+      fixture.componentInstance['onSubmit']();
+
+      http.expectOne('/api/v1/auth/login').flush({ token: 'fake-jwt-token', mustChangePassword: false });
+      // Bewusst KEIN simulierter Klick/Tastatur-Event nach flush() — nur der reguläre CD-Zyklus.
+      fixture.detectChanges();
+
+      expect(httpNavigateSpy).toHaveBeenCalledWith(['/projects']);
+      const button: HTMLButtonElement = fixture.nativeElement.querySelector('button.app-processing-button');
+      expect(button.disabled).toBeFalse();
+      expect(button.getAttribute('aria-busy')).toBe('false');
+      expect(button.textContent).toContain('Anmelden');
+    });
+
+    it('should show the error message and release the button from the processing state after flush() without further interaction (error)', () => {
+      const fixture = TestBed.createComponent(LoginPageComponent);
+      fixture.detectChanges();
+      fixture.componentInstance['form'].setValue({ email: 'user@example.com', password: 'wrong-password' });
+      fixture.componentInstance['onSubmit']();
+
+      http.expectOne('/api/v1/auth/login').flush({ message: 'Unauthorized' }, { status: 401, statusText: 'Unauthorized' });
+      fixture.detectChanges();
+
+      expect(httpNavigateSpy).not.toHaveBeenCalled();
+      // `disabled` wird bewusst nicht geprüft: `onSubmit()` leert das Passwort-Feld im Fehlerfall,
+      // wodurch die Formular-Validierung den Button erneut sperrt — beabsichtigtes Verhalten, nicht
+      // der hier zu behebende Verarbeitungs-Zustand. Maßgeblich ist `aria-busy`.
+      const button: HTMLButtonElement = fixture.nativeElement.querySelector('button.app-processing-button');
+      expect(button.getAttribute('aria-busy')).toBe('false');
+      expect(fixture.nativeElement.textContent).toContain('E-Mail oder Passwort ist falsch.');
+    });
   });
 });
