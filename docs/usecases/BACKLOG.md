@@ -138,8 +138,11 @@ Vom Projektverantwortlichen gemeldete Bugs (`docs/bugs/bugs.md`), vom Product Ow
 | US-054 | Login- und Passwort-Änderungs-Masken gemäß SPEC-01 angleichen | IdentityAccess | US-008, US-009, US-047, US-053 | [US-054-login-passwortaendern-spec01-angleichen.md](US-054-login-passwortaendern-spec01-angleichen.md) | offen |
 | US-055 | Globale Navigation als vertikale Sidebar statt horizontaler Kopfleiste | Frontend-Shell | US-045, US-046, US-047 | [US-055-vertikale-navigation-sidebar.md](US-055-vertikale-navigation-sidebar.md) | offen |
 | US-056 | Admin-Bereich gemäß SPEC-07 angleichen (Tab-Host mit Dialog-Formularen) | IdentityAccess / ProjectManagement | US-016, US-017, US-046, US-047, US-055 | [US-056-admin-bereich-spec07-angleichen.md](US-056-admin-bereich-spec07-angleichen.md) | offen |
+| US-057 | Login-Flow bleibt nach erfolgreicher Anmeldung dauerhaft im Verarbeitungs-Zustand hängen | Frontend-Shell | US-009, US-043, US-050 | [US-057-login-haengt-nach-erfolgreicher-anmeldung.md](US-057-login-haengt-nach-erfolgreicher-anmeldung.md) | offen |
 
 **Hinweis zur Gruppierung:** Der ursprüngliche Bug-Report enthielt 15 Einzelbefunde. Fünf funktional identische „Liste erscheint erst nach unabhängiger Interaktion“-Befunde (Projektübersicht, Nutzerverwaltung, Projektverwaltung, Mitgliederverwaltung ×2) wurden zu US-050 zusammengefasst, da Code-Review dieselbe strukturelle Ursache (fehlender diskreter Lade-Zustand gemäß `SPEC-00-Design-System.md` §3) an allen fünf Stellen bestätigt. Drei Icon-/Titel-Befunde wurden zu US-053 zusammengefasst. Details und Einzelbegründungen je Bug stehen jeweils unter „Anmerkungen des Product Owners“ in den einzelnen Story-Dateien.
+
+**Hinweis zu US-057:** Kein Befund aus dem ursprünglichen Bug-Report, sondern während der QA-Verifikation von US-050 neu entdeckt (Login hängt nach erfolgreicher Anmeldung dauerhaft im Verarbeitungs-Zustand, gleiche Root Cause wie US-050 — fehlendes `ChangeDetectorRef.markForCheck()` im zoneless Frontend). Als eigene, hochpriorisierte Story angelegt statt nachträglich in US-050 eingemischt, da `LoginPageComponent` nicht zu den dort benannten Fundstellen gehörte.
 
 ## Hinweise zur Nutzung durch den Dev-Agenten
 
