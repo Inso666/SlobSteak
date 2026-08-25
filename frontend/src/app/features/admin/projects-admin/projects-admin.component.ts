@@ -1,4 +1,4 @@
-import { Component, OnInit, inject } from '@angular/core';
+import { ChangeDetectorRef, Component, OnInit, inject } from '@angular/core';
 import { FormBuilder, ReactiveFormsModule, Validators } from '@angular/forms';
 import { ButtonDirective } from 'primeng/button';
 import { InputText } from 'primeng/inputtext';
@@ -8,6 +8,8 @@ import { AdminProject, AdminProjectsService } from '../admin-projects.service';
 import { ProjectMembershipManagerComponent } from './project-membership-manager.component';
 import { LOAD_ERROR_MESSAGE } from '../../../core/messages/http-error-messages';
 import { ProcessingButtonComponent } from '../../../shared/processing-button/processing-button.component';
+import { ViewState, deriveListViewState } from '../../../shared/view-state/view-state';
+import { ViewStateComponent } from '../../../shared/view-state/view-state.component';
 
 /**
  * Admin-Bereich „Projektverwaltung & Mitgliederzuweisung“ (US-017, Screen S5 Sub-Bereich
@@ -27,6 +29,7 @@ import { ProcessingButtonComponent } from '../../../shared/processing-button/pro
     ProjectMembershipManagerComponent,
     AdminSubNavComponent,
     ProcessingButtonComponent,
+    ViewStateComponent,
     ButtonDirective,
     InputText,
     Message,
@@ -37,11 +40,14 @@ import { ProcessingButtonComponent } from '../../../shared/processing-button/pro
 export class ProjectsAdminComponent implements OnInit {
   private readonly formBuilder = inject(FormBuilder);
   private readonly adminProjectsService = inject(AdminProjectsService);
+  private readonly changeDetectorRef = inject(ChangeDetectorRef);
 
   protected projects: AdminProject[] = [];
   protected createErrorMessage: string | null = null;
   protected selectedProjectId: string | null = null;
   protected loadError: string | null = null;
+  /** US-050: diskreter Ladezustand der Projektliste statt eines kombinierbaren `isLoading`-Flags. */
+  protected projectsState: ViewState = 'loading';
   /** US-043 Akzeptanzkriterium 1/2/3/4: Verarbeitungs-Feedback + Doppel-Submit-Schutz. */
   protected isCreatingProject = false;
 
@@ -83,12 +89,27 @@ export class ProjectsAdminComponent implements OnInit {
   }
 
   /** US-044 Akzeptanzkriterium 4: konsistente Fehlermeldung statt stumm leerer Liste bei
-   * fehlgeschlagenem Laden. */
+   * fehlgeschlagenem Laden. US-050: zusätzlich ein diskreter `ViewState`, damit „lädt noch“
+   * sichtbar von „wirklich leer“ unterschieden wird.
+   *
+   * `changeDetectorRef.markForCheck()` behebt die eigentliche technische Ursache der Story: Das
+   * Frontend läuft ohne `zone.js`, eine reine Feldzuweisung in einem `subscribe()`-Callback
+   * markiert die Komponente sonst nicht automatisch für die nächste Change-Detection-Runde (siehe
+   * ausführliche Anmerkung in `project-overview.component.ts` bzw. der Story-Datei). */
   private loadProjects(): void {
     this.loadError = null;
+    this.projectsState = 'loading';
     this.adminProjectsService.listProjects().subscribe({
-      next: (projects) => (this.projects = projects),
-      error: () => (this.loadError = LOAD_ERROR_MESSAGE),
+      next: (projects) => {
+        this.projects = projects;
+        this.projectsState = deriveListViewState(projects.length);
+        this.changeDetectorRef.markForCheck();
+      },
+      error: () => {
+        this.loadError = LOAD_ERROR_MESSAGE;
+        this.projectsState = 'error';
+        this.changeDetectorRef.markForCheck();
+      },
     });
   }
 }
