@@ -7,33 +7,33 @@
     <p class="load-error" role="alert">{{ loadError }}</p>
   }
 
-  <div class="project-cards" role="list">
-    @for (project of projects; track project.id) {
-      <article class="project-card" role="listitem">
-        <div class="project-card__head">
-          <span class="project-card__name">{{ project.name }}</span>
-          <span class="status-tag" [class.status-tag--archived]="project.status !== 'Active'">{{ project.status }}</span>
-        </div>
+  <app-view-state [state]="projectsState" emptyMessage="Es existieren noch keine Projekte." [skeletonCount]="3">
+    <div class="project-cards" role="list">
+      @for (project of projects; track project.id) {
+        <article class="project-card" role="listitem">
+          <div class="project-card__head">
+            <span class="project-card__name">{{ project.name }}</span>
+            <span class="status-tag" [class.status-tag--archived]="project.status !== 'Active'">{{ project.status }}</span>
+          </div>
 
-        <dl class="project-card__data">
-          <dt>Mitglieder</dt>
-          <dd>{{ project.memberCount }}</dd>
-        </dl>
+          <dl class="project-card__data">
+            <dt>Mitglieder</dt>
+            <dd>{{ project.memberCount }}</dd>
+          </dl>
 
-        <div class="project-card__footer">
-          <button type="button" pButton [outlined]="true" severity="secondary" (click)="onSelectProject(project)">
-            {{ selectedProjectId === project.id ? 'Mitglieder ausblenden' : 'Mitglieder verwalten' }}
-          </button>
-        </div>
+          <div class="project-card__footer">
+            <button type="button" pButton [outlined]="true" severity="secondary" (click)="onSelectProject(project)">
+              {{ selectedProjectId === project.id ? 'Mitglieder ausblenden' : 'Mitglieder verwalten' }}
+            </button>
+          </div>
 
-        @if (selectedProjectId === project.id) {
-          <app-project-membership-manager [projectId]="project.id" />
-        }
-      </article>
-    } @empty {
-      <p class="empty-state">Es existieren noch keine Projekte.</p>
-    }
-  </div>
+          @if (selectedProjectId === project.id) {
+            <app-project-membership-manager [projectId]="project.id" />
+          }
+        </article>
+      }
+    </div>
+  </app-view-state>
 
   <h2>Projekt anlegen</h2>
   <form [formGroup]="createForm" (ngSubmit)="onCreateProject()">

@@ -1,0 +1,16 @@
+@switch (state) {
+  @case ('loading') {
+    <div class="view-state__skeletons">
+      <span class="sr-only" role="status">Wird geladen…</span>
+      @for (row of skeletonRows; track row) {
+        <p-skeleton [height]="skeletonRowHeight" class="view-state__skeleton-row" />
+      }
+    </div>
+  }
+  @case ('empty') {
+    <p class="empty-state">{{ emptyMessage }}</p>
+  }
+  @case ('content') {
+    <ng-content />
+  }
+}

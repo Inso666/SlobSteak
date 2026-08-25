@@ -1,4 +1,5 @@
-import { HttpErrorResponse } from '@angular/common/http';
+import { HttpErrorResponse, provideHttpClient } from '@angular/common/http';
+import { HttpTestingController, provideHttpClientTesting } from '@angular/common/http/testing';
 import { TestBed } from '@angular/core/testing';
 import { provideRouter } from '@angular/router';
 import { of, throwError } from 'rxjs';
@@ -112,5 +113,58 @@ describe('UsersAdminComponent', () => {
 
     expect(adminUsersServiceSpy.resetPassword).toHaveBeenCalledWith('user-1', jasmine.any(String));
     expect(component['resetPasswordMessage']).toContain('Max Mustermann');
+  });
+
+  describe('US-050: diskreter Ladezustand statt fälschlicher Leer-Darstellung', () => {
+    // Diese beiden Tests brauchen den echten `HttpClient` (samt `HttpTestingController`) statt der
+    // Spy-Provider aus dem äußeren `beforeEach` oben — `resetTestingModule()` verhindert, dass die
+    // dort bereits registrierten Spy-Provider (insb. `AdminUsersService`) unbemerkt weiterwirken.
+    beforeEach(() => TestBed.resetTestingModule());
+
+    it('shows the loading state before the response arrives, then the users without any further interaction after flush()', () => {
+      TestBed.configureTestingModule({
+        imports: [UsersAdminComponent],
+        providers: [provideHttpClient(), provideHttpClientTesting(), provideRouter([])],
+      });
+
+      const fixture = TestBed.createComponent(UsersAdminComponent);
+      fixture.detectChanges();
+
+      expect(fixture.componentInstance['usersState']).toBe('loading');
+      expect(fixture.nativeElement.querySelector('.empty-state')).toBeNull();
+      expect(fixture.nativeElement.querySelectorAll('.user-card').length).toBe(0);
+
+      const httpTestingController = TestBed.inject(HttpTestingController);
+      httpTestingController.expectOne('/api/v1/admin/users').flush(existingUsers);
+      fixture.detectChanges();
+
+      expect(fixture.componentInstance['usersState']).toBe('content');
+      const cards: NodeListOf<HTMLElement> = fixture.nativeElement.querySelectorAll('.user-card');
+      expect(cards.length).toBe(existingUsers.length);
+      expect(cards[0].textContent).toContain(existingUsers[0].name);
+
+      httpTestingController.verify();
+    });
+
+    it('shows the empty state only after the request resolved with an actually empty result, not while it is still pending', () => {
+      TestBed.configureTestingModule({
+        imports: [UsersAdminComponent],
+        providers: [provideHttpClient(), provideHttpClientTesting(), provideRouter([])],
+      });
+
+      const fixture = TestBed.createComponent(UsersAdminComponent);
+      fixture.detectChanges();
+
+      expect(fixture.nativeElement.querySelector('.empty-state')).toBeNull();
+
+      const httpTestingController = TestBed.inject(HttpTestingController);
+      httpTestingController.expectOne('/api/v1/admin/users').flush([]);
+      fixture.detectChanges();
+
+      expect(fixture.componentInstance['usersState']).toBe('empty');
+      expect(fixture.nativeElement.querySelector('.empty-state')?.textContent).toContain('Keine Nutzer angelegt.');
+
+      httpTestingController.verify();
+    });
   });
 });

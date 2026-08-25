@@ -66,10 +66,6 @@
   margin-top: var(--app-space-xs);
 }
 
-.empty-state {
-  color: var(--app-color-text-muted);
-}
-
 .field {
   display: flex;
   flex-direction: column;

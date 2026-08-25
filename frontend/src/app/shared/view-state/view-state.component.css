@@ -1,0 +1,18 @@
+/* US-050 / SPEC-00 §3: Skeleton-Platzhalter ersetzen Inhalte 1:1 in Form/Größe (kein
+   Spinner-Overlay), Farbe/Radius kommen zentral aus dem PrimeNG-Preset
+   (`slobsteak-preset.ts`, Tokens `color.surface-hover`/`radius.md`) — hier ausschließlich Layout,
+   keine Farb-/Radius-Werte. Einzige Stelle, an der das Empty-State-Textmuster (SPEC-00 §3) für
+   alle fünf Verwendungsstellen dieser Story gepflegt wird. */
+.view-state__skeletons {
+  display: flex;
+  flex-direction: column;
+  gap: var(--app-space-md);
+}
+
+.view-state__skeleton-row {
+  display: block;
+}
+
+.empty-state {
+  color: var(--app-color-text-muted);
+}
