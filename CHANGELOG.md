@@ -4,6 +4,34 @@ Alle nennenswerten Änderungen an diesem Projekt werden hier je User Story dokum
 
 ## [Unreleased]
 
+### US-050 — Verlässlicher Lade-Zustand statt fälschlicher Leer-/Stale-Darstellung auf Listen-/Übersichtsseiten
+
+- Neue, wiederverwendbare Komponente `AppViewStateComponent` (`frontend/src/app/shared/view-state/`)
+  kapselt einen diskreten `ViewState` (`'loading' | 'content' | 'empty' | 'error'`, SPEC-00 §3
+  Event-Handling-Grundsatz) samt `<p-skeleton>`-Platzhalter statt kombinierbarer
+  `isLoading && !hasData`-Flags — an fünf Stellen eingebunden: `/projects` „Meine Projekte“ +
+  „Alle Projekte“ (`ProjectOverviewComponent`), `/admin/users` Nutzerliste (`UsersAdminComponent`),
+  `/admin/projects` Projektliste (`ProjectsAdminComponent`), sowie in `ProjectMembershipManagerComponent`
+  die Liste potenzieller Nutzer und die Mitgliederliste (inkl. Reload nach „Hinzufügen“).
+- PrimeNG-Preset (`slobsteak-preset.ts`) um `components.skeleton.root.background` (`color.surface-hover`,
+  `#1D2536`) ergänzt, damit `<p-skeleton>` dieselben Design-Tokens nutzt wie der Rest des Frontends.
+- **Zusätzlich behobene, tiefer liegende Ursache:** Das Frontend läuft ohne `zone.js` faktisch
+  zoneless (Angular `^22.1.0`, kein `zone.js`-Polyfill in `angular.json`) — eine reine
+  Feldzuweisung in einem `HttpClient`-`subscribe()`-Callback außerhalb eines beobachteten
+  Nutzer-Events markiert die Komponente nicht automatisch für die nächste Change-Detection-Runde.
+  Das erklärt das eigentliche Symptom „Daten sind da, werden aber erst nach zufälliger
+  Interaktion sichtbar“ unabhängig vom Lade-Zustand. Alle vier betroffenen Komponenten rufen daher
+  zusätzlich `ChangeDetectorRef.markForCheck()` in den relevanten Lade-Callbacks auf — siehe
+  ausführliche Anmerkung des Dev-Agenten in
+  `docs/usecases/US-050-verlaesslicher-lade-zustand-listen.md`.
+- Story-Test `frontend/src/app/shared/view-state/us-050-verlaesslicher-lade-zustand-listen.spec.ts`
+  (ein Testfall je Akzeptanzkriterium, gleiche Reihenfolge wie im Story-Dokument), zusätzliche
+  Komponententests je betroffener Komponente (`*.component.spec.ts`) sowie
+  `view-state.component.spec.ts` für den neuen Baustein selbst. Bestehender US-044-Test
+  (`us-044-http-error-handling.spec.ts`) unverändert grün — `loadError` bleibt bestehen und
+  koexistiert mit dem neuen `ViewState`.
+- `ng test` (199/199) grün, `ng lint` ohne Befund.
+
 ### US-030 — Server-seitige Sichtbarkeitsregel für Rolle User (Assessment-Daten)
 
 - `GET /api/v1/stakeholders/{id}/assessments` liefert für Nutzer mit `project_membership.role =
