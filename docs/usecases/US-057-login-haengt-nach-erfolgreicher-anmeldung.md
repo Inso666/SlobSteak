@@ -3,7 +3,7 @@
 **Bounded Context / Domain:** Frontend-Shell (cross-cutting, analog zu US-043/US-044/US-050)
 **Abhängigkeiten:** US-009, US-043, US-050
 
-**Status:** offen
+**Status:** fertig (25.08.2026), PR siehe unten
 
 ---
 
@@ -21,12 +21,12 @@ Als **Nutzer** möchte ich nach erfolgreicher Anmeldung zuverlässig zur Projekt
 
 ### 3. Akzeptanzkriterien
 
-- [ ] Nach einer erfolgreichen Anmeldung (`mustChangePassword: false`) navigiert die Anwendung ohne jede weitere Nutzerinteraktion zuverlässig zu `/projects`.
-- [ ] Nach einer erfolgreichen Anmeldung mit `mustChangePassword: true` erscheint ohne weitere Nutzerinteraktion das `PasswordChangeModalComponent`.
-- [ ] Bei einer fehlgeschlagenen Anmeldung (z. B. `401`) verlässt der Button ohne weitere Nutzerinteraktion zuverlässig den Verarbeitungs-Zustand und die Fehlermeldung „E-Mail oder Passwort ist falsch.“ erscheint.
-- [ ] Ein automatisierter Test (`HttpTestingController`, analog zum in US-050 etablierten Muster) beweist für Erfolgs- **und** Fehlerfall: nach `flush()` **ohne** zusätzliche simulierte Interaktion zeigt das DOM den jeweils korrekten Endzustand (Navigation ausgelöst bzw. Fehlermeldung sichtbar, Button nicht mehr im Verarbeitungs-Zustand).
-- [ ] Bestehende Tests (`login-page.component.spec.ts`, `us-043-*.spec.ts` sofern dort Login-Bezug, `us-044-http-error-handling.spec.ts`) bleiben grün bzw. werden ergänzt, nicht ersetzt.
-- [ ] Story-Test gemäß `.claude/agents/qa.md`-Konvention (`us-057*.spec.ts`), ausschließlich gegen obige Akzeptanzkriterien, ein Testfall je Kriterium in Dokument-Reihenfolge.
+- [x] Nach einer erfolgreichen Anmeldung (`mustChangePassword: false`) navigiert die Anwendung ohne jede weitere Nutzerinteraktion zuverlässig zu `/projects`.
+- [x] Nach einer erfolgreichen Anmeldung mit `mustChangePassword: true` erscheint ohne weitere Nutzerinteraktion das `PasswordChangeModalComponent`.
+- [x] Bei einer fehlgeschlagenen Anmeldung (z. B. `401`) verlässt der Button ohne weitere Nutzerinteraktion zuverlässig den Verarbeitungs-Zustand und die Fehlermeldung „E-Mail oder Passwort ist falsch.“ erscheint.
+- [x] Ein automatisierter Test (`HttpTestingController`, analog zum in US-050 etablierten Muster) beweist für Erfolgs- **und** Fehlerfall: nach `flush()` **ohne** zusätzliche simulierte Interaktion zeigt das DOM den jeweils korrekten Endzustand (Navigation ausgelöst bzw. Fehlermeldung sichtbar, Button nicht mehr im Verarbeitungs-Zustand).
+- [x] Bestehende Tests (`login-page.component.spec.ts`, `us-043-*.spec.ts` sofern dort Login-Bezug, `us-044-http-error-handling.spec.ts`) bleiben grün bzw. werden ergänzt, nicht ersetzt.
+- [x] Story-Test gemäß `.claude/agents/qa.md`-Konvention (`us-057*.spec.ts`), ausschließlich gegen obige Akzeptanzkriterien, ein Testfall je Kriterium in Dokument-Reihenfolge.
 
 ### 4. Technische Hinweise für den Dev-Agenten
 
@@ -70,3 +70,24 @@ Diese Story wurde unmittelbar nach Abschluss von US-050 auf Empfehlung des QA-Ag
 **Tests:** `ng test` (gesamter Workspace) 207/207 grün (vorher 199/199 vor dieser Story, +8 neue Tests). `ng lint` fehlerfrei. `ng build` erfolgreich (einzige Auffälligkeit: vorbestehende, unveränderte Bundle-Budget-Warnung „Initial exceeded maximum budget … 275.14 kB“, Budget 900 kB — kein neuer Regressionsbefund).
 
 **Isolierter Story-Test-Befehl:** `ng test --include='**/us-057*.spec.ts'`
+
+### Anmerkungen des QA-Agenten (2026-08-25)
+
+**Unabhängige Verifikation:** Diff (`git diff origin/main HEAD`) gegen den tatsächlichen `main`-Stand geprüft (nicht nur die Übergabenotiz) — Umfang deckt sich mit der Übergabenotiz (`login-page.component.ts`, `login-page.component.spec.ts`, neuer Story-Test, Story-Doku, CHANGELOG). Jedes der 6 Akzeptanzkriterien einzeln gegen Code und Tests geprüft, siehe Checkliste oben — alle erfüllt.
+
+**Mutationstest (Wirksamkeitsnachweis, zusätzlich zur bereits vom Dev-Agenten durchgeführten Prüfung):** Beide `markForCheck()`-Aufrufe erneut testweise entfernt und `ng test --include='**/us-057*.spec.ts'` ausgeführt — Akzeptanzkriterium 2 und 4 des Story-Tests schlagen zuverlässig fehl (2 von 6), die übrigen vier bleiben grün (erwartbar, da AC1/3/5/6 nicht ausschließlich von der DOM-Aktualisierung nach `flush()` abhängen). Nach Wiederherstellung des Fixes wieder 6/6 grün. Bestätigt unabhängig, dass der Story-Test den Bug tatsächlich reproduziert.
+
+**Regression:** `ng test` (gesamter Workspace, nach `npm ci`) 207/207 grün. `ng lint` fehlerfrei. `ng build` erfolgreich, einzige Auffälligkeit die vorbestehende Bundle-Budget-Warnung (275.14 kB über 900 kB Budget) — kein neuer Regressionsbefund, identisch zum Stand vor dieser Story.
+
+**Story-Test-Konvention (qa.md Abschnitt 1):** Alle 6 Testfälle in `us-057-login-haengt-nach-erfolgreicher-anmeldung.spec.ts` liegen in Dokument-Reihenfolge vor. Anmerkung ohne Blocker-Charakter: Akzeptanzkriterium 5 („Bestehende Tests bleiben grün bzw. werden ergänzt“) und Akzeptanzkriterium 6 („Story-Test existiert gemäß Konvention“) sind im Story-Dokument prozessualer/selbstreferenzieller Natur und nicht direkt als eigenständige DOM-Assertion testbar. Der Dev-Agent hat für beide sinnvolle, thematisch verwandte Ersatzprüfungen ergänzt (AC5: Regressionsnachweis für US-043-Doppelsubmit-Schutz und US-044-Sitzungshinweis; AC6: zusätzlicher End-zu-Ende-Nachweis Fehlversuch→korrigierter Versuch) statt sie unkommentiert auszulassen — inhaltlich vertretbare Interpretation, aber nicht wörtlich das im Story-Dokument stehende Kriterium. Kein Blocker, da AC5 zusätzlich durch den vollständigen `ng test`-Lauf (207/207) und AC6 durch die reine Existenz dieses konventionsgemäß benannten und geordneten Testfiles bereits erfüllt ist.
+
+**Explorativer Test (Browser-Automatisierung gegen isolierten `docker-compose`-Stack, siehe unten):**
+- Mehrfaches schnelles Klicken (3×) auf „Anmelden“ während eines laufenden, gültigen Login-Requests: laut Netzwerk-Log exakt **ein** `POST /api/v1/auth/login` — Doppel-Submit-Schutz aus US-043 bleibt durch den Fix intakt.
+- **Neuer, aber außerhalb des Scopes dieser Story liegender Befund (Major, nicht blockierend für US-057):** Nach einer fehlgeschlagenen Anmeldung wird das `FormControl` des Passwort-Felds zwar programmatisch geleert (`Validators.required` greift nachweislich, Button bleibt korrekt gesperrt), das native `<input>`-Element des PrimeNG-`Password`-Feldes zeigt visuell jedoch weiterhin das zuvor eingegebene, falsche Passwort an (verifiziert per `document.getElementById('password').value` — Wert bleibt „wrong-password“ statt „“, obwohl `form.controls.password.value === ''`). Reproduktion: falsches Passwort eingeben, „Anmelden“ klicken, `401` abwarten — das Feld erscheint weiterhin mit Punkten befüllt; tippt man ohne vorheriges manuelles Leeren weiter, wird an den alten Wert angehängt statt ihn zu ersetzen. Betrifft ausschließlich die PrimeNG-`Password`-Komponente (ControlValueAccessor-Sync), nicht den in dieser Story behobenen `isSubmitting`/Verarbeitungs-Zustand — keines der 6 Akzeptanzkriterien von US-057 ist davon betroffen. Kein Regressions-Befund dieser Story (vor und nach dem Fix identisch reproduzierbar). Empfehlung: als eigenen Punkt in die von PO/Dev-Agent bereits vorgeschlagene Folge-Story „Zoneless-Reaktivität systematisch nachziehen“ aufnehmen, ggf. zusammen mit dem in der Dev-Agenten-Notiz oben dokumentierten `PasswordChangeModalComponent`-Fund.
+
+**Manueller Smoke-Check gegen laufendes System (eigenständiger, isolierter `docker-compose`-Stack `us057qa`, Ports 4245/5045/5545, per Browser-Automatisierung):**
+- Login mit Seed-Admin (`admin@example.com` / `ChangeMe123!`, `mustChangePassword: true`): `PasswordChangeModalComponent` erscheint sofort nach Klick auf „Anmelden“, ohne weitere Interaktion — verifiziert (Screenshot).
+- Login mit falschem Passwort: `POST /api/v1/auth/login` antwortet `401` (Netzwerk-Log verifiziert), Fehlermeldung „E-Mail oder Passwort ist falsch.“ erscheint sofort, Button zeigt wieder „Anmelden“ (kein Hängenbleiben) — verifiziert (Screenshot).
+- Stack nach Abschluss vollständig abgebaut (`docker compose down -v`), keine verbleibenden Container/Volumes.
+
+**Fazit:** Alle 6 Akzeptanzkriterien erfüllt, keine Blocker/Critical-Findings. Ein Major-Finding (Passwort-Feld-Sichtbarkeit nach Fehlversuch) dokumentiert, bewusst nicht in dieser Story behoben (out of scope, kein AC betroffen, kein Regressionsbefund). PR mit Auto-Merge eröffnet.
