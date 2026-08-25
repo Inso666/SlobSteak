@@ -1,4 +1,4 @@
-import { Component, OnInit, inject } from '@angular/core';
+import { ChangeDetectorRef, Component, OnInit, inject } from '@angular/core';
 import { HttpErrorResponse } from '@angular/common/http';
 import { FormBuilder, ReactiveFormsModule, Validators } from '@angular/forms';
 import { InputText } from 'primeng/inputtext';
@@ -8,6 +8,8 @@ import { AdminSubNavComponent } from '../admin-sub-nav/admin-sub-nav.component';
 import { AdminUser, AdminUsersService } from '../admin-users.service';
 import { LOAD_ERROR_MESSAGE } from '../../../core/messages/http-error-messages';
 import { ProcessingButtonComponent } from '../../../shared/processing-button/processing-button.component';
+import { ViewState, deriveListViewState } from '../../../shared/view-state/view-state';
+import { ViewStateComponent } from '../../../shared/view-state/view-state.component';
 
 /**
  * Admin-Bereich „Nutzerverwaltung“ (US-016, Screen S5 Sub-Bereich Nutzer): Liste aller Nutzer,
@@ -19,18 +21,21 @@ import { ProcessingButtonComponent } from '../../../shared/processing-button/pro
 @Component({
   selector: 'app-users-admin',
   standalone: true,
-  imports: [ReactiveFormsModule, AdminSubNavComponent, ProcessingButtonComponent, InputText, Message, Password],
+  imports: [ReactiveFormsModule, AdminSubNavComponent, ProcessingButtonComponent, ViewStateComponent, InputText, Message, Password],
   templateUrl: './users-admin.component.html',
   styleUrl: './users-admin.component.css',
 })
 export class UsersAdminComponent implements OnInit {
   private readonly formBuilder = inject(FormBuilder);
   private readonly adminUsersService = inject(AdminUsersService);
+  private readonly changeDetectorRef = inject(ChangeDetectorRef);
 
   protected users: AdminUser[] = [];
   protected createErrorMessage: string | null = null;
   protected resetPasswordMessage: string | null = null;
   protected loadError: string | null = null;
+  /** US-050: diskreter Ladezustand der Nutzerliste statt eines kombinierbaren `isLoading`-Flags. */
+  protected usersState: ViewState = 'loading';
   /** US-043 Akzeptanzkriterium 1/2/3/4: Verarbeitungs-Feedback + Doppel-Submit-Schutz. */
   protected isCreatingUser = false;
   protected readonly resettingUserIds = new Set<string>();
@@ -96,12 +101,27 @@ export class UsersAdminComponent implements OnInit {
   }
 
   /** US-044 Akzeptanzkriterium 4: konsistente Fehlermeldung statt stumm leerer Liste bei
-   * fehlgeschlagenem Laden. */
+   * fehlgeschlagenem Laden. US-050: zusätzlich ein diskreter `ViewState`, damit „lädt noch“
+   * sichtbar von „wirklich leer“ unterschieden wird.
+   *
+   * `changeDetectorRef.markForCheck()` behebt die eigentliche technische Ursache der Story: Das
+   * Frontend läuft ohne `zone.js`, eine reine Feldzuweisung in einem `subscribe()`-Callback
+   * markiert die Komponente sonst nicht automatisch für die nächste Change-Detection-Runde (siehe
+   * ausführliche Anmerkung in `project-overview.component.ts` bzw. der Story-Datei). */
   private loadUsers(): void {
     this.loadError = null;
+    this.usersState = 'loading';
     this.adminUsersService.listUsers().subscribe({
-      next: (users) => (this.users = users),
-      error: () => (this.loadError = LOAD_ERROR_MESSAGE),
+      next: (users) => {
+        this.users = users;
+        this.usersState = deriveListViewState(users.length);
+        this.changeDetectorRef.markForCheck();
+      },
+      error: () => {
+        this.loadError = LOAD_ERROR_MESSAGE;
+        this.usersState = 'error';
+        this.changeDetectorRef.markForCheck();
+      },
     });
   }
 

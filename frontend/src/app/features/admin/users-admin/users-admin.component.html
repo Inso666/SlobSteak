@@ -7,25 +7,25 @@
     <p class="load-error" role="alert">{{ loadError }}</p>
   }
 
-  <div class="user-cards" role="list">
-    @for (user of users; track user.id) {
-      <article class="user-card" role="listitem">
-        <div class="user-card__data">
-          <span class="user-card__name">{{ user.name }}</span>
-          <span class="user-card__email">{{ user.email }}</span>
-        </div>
-        <app-processing-button
-          type="button"
-          [isSubmitting]="resettingUserIds.has(user.id)"
-          label="Passwort zurücksetzen"
-          submittingLabel="Wird zurückgesetzt…"
-          (click)="onResetPassword(user)"
-        />
-      </article>
-    } @empty {
-      <p class="empty-state">Keine Nutzer angelegt.</p>
-    }
-  </div>
+  <app-view-state [state]="usersState" emptyMessage="Keine Nutzer angelegt." [skeletonCount]="3">
+    <div class="user-cards" role="list">
+      @for (user of users; track user.id) {
+        <article class="user-card" role="listitem">
+          <div class="user-card__data">
+            <span class="user-card__name">{{ user.name }}</span>
+            <span class="user-card__email">{{ user.email }}</span>
+          </div>
+          <app-processing-button
+            type="button"
+            [isSubmitting]="resettingUserIds.has(user.id)"
+            label="Passwort zurücksetzen"
+            submittingLabel="Wird zurückgesetzt…"
+            (click)="onResetPassword(user)"
+          />
+        </article>
+      }
+    </div>
+  </app-view-state>
 
   @if (resetPasswordMessage) {
     <p-message severity="success" styleClass="w-full" role="status">{{ resetPasswordMessage }}</p-message>
