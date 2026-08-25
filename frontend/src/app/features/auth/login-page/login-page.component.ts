@@ -1,4 +1,4 @@
-import { Component, OnInit, inject } from '@angular/core';
+import { ChangeDetectorRef, Component, OnInit, inject } from '@angular/core';
 import { FormBuilder, ReactiveFormsModule, Validators } from '@angular/forms';
 import { Router } from '@angular/router';
 import { Card } from 'primeng/card';
@@ -33,6 +33,7 @@ export class LoginPageComponent implements OnInit {
   private readonly authService = inject(AuthService);
   private readonly router = inject(Router);
   private readonly sessionNotice = inject(SessionNoticeService);
+  private readonly changeDetectorRef = inject(ChangeDetectorRef);
 
   protected errorMessage: string | null = null;
   protected sessionExpiredMessage: string | null = null;
@@ -48,6 +49,16 @@ export class LoginPageComponent implements OnInit {
     this.sessionExpiredMessage = this.sessionNotice.consume();
   }
 
+  /**
+   * US-057: `changeDetectorRef.markForCheck()` in beiden Callbacks behebt den Bug, dass der Button
+   * nach erfolgreicher Anmeldung dauerhaft im Verarbeitungs-Zustand hängen bleibt. Ursache ist
+   * exakt dasselbe, in US-050 an fünf anderen Stellen behobene Muster (siehe „Anmerkungen des
+   * Dev-Agenten“ dort): Dieses Frontend läuft ohne `zone.js` (zoneless), eine reine Feldzuweisung
+   * (`this.isSubmitting = false`) in einem `subscribe()`-Callback, der außerhalb eines von Angular
+   * beobachteten Nutzer-Events eintrifft, markiert die Komponente nicht automatisch für die nächste
+   * Change-Detection-Runde. `isSubmitting`/`app-processing-button` (US-043) bleiben unverändert —
+   * es fehlte ausschließlich diese Markierung.
+   */
   protected onSubmit(): void {
     // US-043 Akzeptanzkriterium 3/5: ein zweiter Trigger während eines laufenden Requests löst
     // nachweislich keinen zweiten HTTP-Request aus.
@@ -67,11 +78,13 @@ export class LoginPageComponent implements OnInit {
         } else {
           this.navigateToProjects();
         }
+        this.changeDetectorRef.markForCheck();
       },
       error: () => {
         this.isSubmitting = false;
         this.errorMessage = 'E-Mail oder Passwort ist falsch.';
         this.form.controls.password.setValue('');
+        this.changeDetectorRef.markForCheck();
       },
     });
   }
