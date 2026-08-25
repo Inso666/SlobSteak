@@ -18,10 +18,6 @@
   flex-wrap: wrap;
 }
 
-.empty-state {
-  color: var(--app-color-text-muted);
-}
-
 .project-cards {
   display: grid;
   grid-template-columns: repeat(auto-fill, minmax(14rem, 1fr));
