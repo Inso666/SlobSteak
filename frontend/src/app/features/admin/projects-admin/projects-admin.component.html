@@ -1,11 +1,11 @@
 <section class="admin-projects">
-  <app-admin-sub-nav />
-
-  <h1>Projektverwaltung</h1>
-
   @if (loadError) {
     <p class="load-error" role="alert">{{ loadError }}</p>
   }
+
+  <div class="admin-projects__toolbar">
+    <button type="button" pButton icon="pi pi-plus" (click)="openCreateDialog()">Projekt anlegen</button>
+  </div>
 
   <app-view-state [state]="projectsState" emptyMessage="Es existieren noch keine Projekte." [skeletonCount]="3">
     <div class="project-cards" role="list">
@@ -35,22 +35,26 @@
     </div>
   </app-view-state>
 
-  <h2>Projekt anlegen</h2>
-  <form [formGroup]="createForm" (ngSubmit)="onCreateProject()">
-    <div class="field">
-      <label for="name">Name</label>
-      <input pInputText id="name" formControlName="name" class="w-full" />
-    </div>
+  <p-dialog header="Projekt anlegen" [(visible)]="createDialogVisible" [modal]="true" [style]="{ width: '26rem', 'max-width': 'calc(100vw - 2rem)' }">
+    <form [formGroup]="createForm" (ngSubmit)="onCreateProject()">
+      <div class="field">
+        <label for="name">Name</label>
+        <input pInputText id="name" formControlName="name" class="w-full" />
+      </div>
 
-    <div class="field">
-      <label for="description">Beschreibung</label>
-      <input pInputText id="description" formControlName="description" class="w-full" />
-    </div>
+      <div class="field">
+        <label for="description">Beschreibung</label>
+        <input pInputText id="description" formControlName="description" class="w-full" />
+      </div>
 
-    @if (createErrorMessage) {
-      <p-message severity="error" styleClass="w-full" role="alert">{{ createErrorMessage }}</p-message>
-    }
+      @if (createErrorMessage) {
+        <p-message severity="error" styleClass="w-full" role="alert">{{ createErrorMessage }}</p-message>
+      }
+    </form>
 
-    <app-processing-button type="submit" [disabled]="createForm.invalid" [isSubmitting]="isCreatingProject" label="Projekt anlegen" submittingLabel="Wird angelegt…" />
-  </form>
+    <ng-template #footer>
+      <button type="button" pButton [text]="true" (click)="closeCreateDialog()">Abbrechen</button>
+      <app-processing-button type="button" [disabled]="createForm.invalid" [isSubmitting]="isCreatingProject" label="Projekt anlegen" submittingLabel="Wird angelegt…" (click)="onCreateProject()" />
+    </ng-template>
+  </p-dialog>
 </section>

@@ -8,9 +8,18 @@
   border-radius: var(--app-radius-md);
 }
 
-.membership-manager h3,
-.membership-manager h4 {
-  margin-top: 0;
+.membership-manager h3 {
+  margin: 0;
+}
+
+/* US-056: Button oeffnet das „Mitglied hinzufügen“-Formular seit dieser Story als p-dialog statt
+   dauerhaft sichtbarem Inline-Formular (Akzeptanzkriterium 2). */
+.membership-manager__head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--app-space-sm);
+  margin-bottom: var(--app-space-sm);
 }
 
 .member-rows {

@@ -1,0 +1,13 @@
+/* US-056: Rahmen des Tab-Host — Innenabstand/Überschrift analog zu den bisherigen
+   Admin-Unterseiten (vgl. users-admin.component.css), ausschließlich zentrale Tokens. */
+.admin-page {
+  padding: var(--app-space-md) 0;
+}
+
+.admin-page h1 {
+  margin-bottom: var(--app-space-lg);
+}
+
+.admin-page__tabs {
+  margin-bottom: var(--app-space-lg);
+}

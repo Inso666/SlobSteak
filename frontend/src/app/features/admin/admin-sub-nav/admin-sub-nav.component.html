@@ -1,9 +1,0 @@
-<nav class="admin-sub-nav" aria-label="Admin-Bereiche">
-  <ul class="tab-pills">
-    @for (link of links; track link.route) {
-      <li>
-        <a class="tab-pill" [routerLink]="link.route" routerLinkActive="active">{{ link.label }}</a>
-      </li>
-    }
-  </ul>
-</nav>

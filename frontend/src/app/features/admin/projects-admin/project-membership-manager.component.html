@@ -1,5 +1,8 @@
 <section class="membership-manager">
-  <h3>Mitglieder</h3>
+  <div class="membership-manager__head">
+    <h3>Mitglieder</h3>
+    <button type="button" pButton [text]="true" icon="pi pi-plus" (click)="openAssignDialog()">Mitglied hinzufügen</button>
+  </div>
 
   <app-view-state [state]="membershipsState" emptyMessage="Noch keine Mitglieder zugewiesen." [skeletonCount]="2">
     <div class="member-rows" role="list">
@@ -44,35 +47,39 @@
     <p-message severity="error" styleClass="w-full" role="alert">{{ errorMessage }}</p-message>
   }
 
-  <h4>Mitglied hinzufügen</h4>
-  <form [formGroup]="assignForm" (ngSubmit)="onAssignMember()" class="assign-form">
-    <div class="field">
-      <label for="userId">Nutzer</label>
-      @if (allUsersState === 'loading') {
-        <p-skeleton [height]="fieldSkeletonHeight" />
-      } @else {
-        <select id="userId" formControlName="userId">
-          @if (assignableUsers.length === 0) {
-            <option value="" disabled selected>Keine weiteren Nutzer verfügbar</option>
-          } @else {
-            <option value="" disabled>Nutzer wählen…</option>
-            @for (user of assignableUsers; track user.id) {
-              <option [value]="user.id">{{ user.name }} ({{ user.email }})</option>
+  <p-dialog header="Mitglied zuweisen" [(visible)]="assignDialogVisible" [modal]="true" [style]="{ width: '26rem', 'max-width': 'calc(100vw - 2rem)' }">
+    <form [formGroup]="assignForm" (ngSubmit)="onAssignMember()" class="assign-form">
+      <div class="field">
+        <label for="userId">Nutzer</label>
+        @if (allUsersState === 'loading') {
+          <p-skeleton [height]="fieldSkeletonHeight" />
+        } @else {
+          <select id="userId" formControlName="userId">
+            @if (assignableUsers.length === 0) {
+              <option value="" disabled selected>Keine weiteren Nutzer verfügbar</option>
+            } @else {
+              <option value="" disabled>Nutzer wählen…</option>
+              @for (user of assignableUsers; track user.id) {
+                <option [value]="user.id">{{ user.name }} ({{ user.email }})</option>
+              }
             }
+          </select>
+        }
+      </div>
+
+      <div class="field">
+        <label for="role">Rolle</label>
+        <select id="role" formControlName="role">
+          @for (role of roles; track role) {
+            <option [value]="role">{{ role }}</option>
           }
         </select>
-      }
-    </div>
+      </div>
+    </form>
 
-    <div class="field">
-      <label for="role">Rolle</label>
-      <select id="role" formControlName="role">
-        @for (role of roles; track role) {
-          <option [value]="role">{{ role }}</option>
-        }
-      </select>
-    </div>
-
-    <app-processing-button type="submit" [disabled]="assignForm.invalid" [isSubmitting]="isAssigning" label="Hinzufügen" submittingLabel="Wird hinzugefügt…" />
-  </form>
+    <ng-template #footer>
+      <button type="button" pButton [text]="true" (click)="closeAssignDialog()">Abbrechen</button>
+      <app-processing-button type="button" [disabled]="assignForm.invalid" [isSubmitting]="isAssigning" label="Hinzufügen" submittingLabel="Wird hinzugefügt…" (click)="onAssignMember()" />
+    </ng-template>
+  </p-dialog>
 </section>
