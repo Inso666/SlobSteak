@@ -4,6 +4,27 @@ Alle nennenswerten Änderungen an diesem Projekt werden hier je User Story dokum
 
 ## [Unreleased]
 
+### US-053 — App-Identität im Browser (Tab-Titel, Favicon, Marken-Icon)
+
+- `frontend/src/index.html`: `<title>` von „Frontend“ (Angular-CLI-Scaffold) auf „SlobSteak“
+  geändert; SVG-Favicon (`icon.svg`, von modernen Browsern bevorzugt) vor dem klassischen
+  `favicon.ico`-Fallback verlinkt.
+- `frontend/public/icon.svg` + `favicon.ico` (16/32/48 px): neues, aus dem Produktnamen und den
+  bereits in SPEC-00 definierten Rollenfarben abgeleitetes Markenzeichen (drei überlappende Kreise
+  in `color.role-pl/ct/ar`, dieselbe Farbsprache wie das Perspektiven-Radar) ersetzt das
+  Angular-CLI-Standardicon. `.ico` per einmaligem, nicht eingechecktem Node-Skript direkt aus der
+  SVG-Geometrie rasterisiert (kein Bildkonvertierungswerkzeug in dieser Umgebung verfügbar).
+- Neue, wiederverwendbare `BrandMarkComponent` (`frontend/src/app/shared/brand-mark/`) — dieselbe
+  Grafik als Angular-Bauteil; auf der Login-Seite eingesetzt (Markenblock analog
+  `SPEC-01-Login.md` §1.2, ohne die dort zusätzlich gezeigte Tagline/den Bootstrapping-Zustand,
+  die strukturelle Vollangleichung bleibt US-054 vorbehalten).
+- Story-Test `us-053-app-identitaet-browser.spec.ts` + `brand-mark.component.spec.ts`; `<title>`/
+  Favicon direkt am Build-Artefakt statt per Karma-Test verifiziert (außerhalb des von
+  Karma/TestBed geladenen Komponentenbaums).
+- `ng test` (221/221), `ng lint`, `ng build` grün; Build-Output enthält
+  `favicon.ico`/`icon.svg`/aktualisierten `<title>` korrekt. Manueller Smoke-Test (Produktions-Build
+  über lokalen Server, Browser-Automatisierung) bestätigt Tab-Titel und Markenblock visuell.
+
 ### US-052 — Stakeholderverwaltung nach Projektauswahl zuverlässig anzeigen
 
 - **Ursache war größer als ursprünglich diagnostiziert:** Die PO-Vermutung (redundanter, mit dem

@@ -9,6 +9,7 @@ import { Password } from 'primeng/password';
 import { AuthService } from '../auth.service';
 import { PasswordChangeModalComponent } from '../password-change-modal/password-change-modal.component';
 import { SessionNoticeService } from '../../../core/services/session-notice.service';
+import { BrandMarkComponent } from '../../../shared/brand-mark/brand-mark.component';
 import { ProcessingButtonComponent } from '../../../shared/processing-button/processing-button.component';
 
 /**
@@ -35,7 +36,7 @@ const SLOW_LOGIN_THRESHOLD_MS = 3000;
 @Component({
   selector: 'app-login-page',
   standalone: true,
-  imports: [ReactiveFormsModule, PasswordChangeModalComponent, ProcessingButtonComponent, Card, InputText, Message, Password],
+  imports: [ReactiveFormsModule, PasswordChangeModalComponent, BrandMarkComponent, ProcessingButtonComponent, Card, InputText, Message, Password],
   templateUrl: './login-page.component.html',
   styleUrl: './login-page.component.css',
 })
