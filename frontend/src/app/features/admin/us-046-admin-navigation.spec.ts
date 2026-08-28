@@ -1,3 +1,4 @@
+import { BreakpointObserver } from '@angular/cdk/layout';
 import { Component } from '@angular/core';
 import { TestBed } from '@angular/core/testing';
 import { Router, UrlTree, provideRouter } from '@angular/router';
@@ -77,6 +78,9 @@ describe('US-046: Admin-Bereich über globale Navigation erreichbar machen', () 
         ]),
         { provide: AdminUsersService, useValue: adminUsersServiceSpy },
         { provide: AdminProjectsService, useValue: adminProjectsServiceSpy },
+        // US-055: erzwingt die Desktop-Sidebar statt des mobilen Drawers, siehe Begründung in
+        // `app-navigation.component.spec.ts`.
+        { provide: BreakpointObserver, useValue: { observe: () => of({ matches: false }) } },
       ],
     });
     tokenStorage = TestBed.inject(TokenStorageService);

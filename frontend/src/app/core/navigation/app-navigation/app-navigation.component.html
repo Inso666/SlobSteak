@@ -1,22 +1,40 @@
 @if (isVisible()) {
-  <nav class="app-navigation" aria-label="Hauptnavigation">
+  <ng-template #sidebarContent>
     <span class="app-navigation__brand">SlobSteak</span>
 
-    <ul class="app-navigation__links">
-      @for (link of navLinks; track link.route) {
-        <li>
-          <a [routerLink]="link.route" routerLinkActive="active">{{ link.label }}</a>
-        </li>
-      }
-      @if (isAdmin()) {
-        <li>
-          <a [routerLink]="adminLink.route" routerLinkActive="active">{{ adminLink.label }}</a>
-        </li>
-      }
-    </ul>
+    <nav aria-label="Hauptnavigation">
+      <ul class="app-navigation__links">
+        @for (link of navLinks; track link.route) {
+          <li>
+            <a [routerLink]="link.route" routerLinkActive="active" (click)="drawerOpen.set(false)">{{ link.label }}</a>
+          </li>
+        }
+        @if (isAdmin()) {
+          <li>
+            <a [routerLink]="adminLink.route" routerLinkActive="active" (click)="drawerOpen.set(false)">{{ adminLink.label }}</a>
+          </li>
+        }
+      </ul>
+    </nav>
 
     <button type="button" class="app-navigation__logout" (click)="onLogout()">
       {{ logoutLabel }}
     </button>
-  </nav>
+  </ng-template>
+
+  @if (isMobileNav()) {
+    <!-- US-055 Akzeptanzkriterium 3 / SPEC-02 §1.3: unterhalb 960px klappt die Sidebar zu einem
+         `p-drawer` mit Hamburger-Trigger zusammen — identischer Navigations-Inhalt wie die
+         Desktop-Sidebar, per `ngTemplateOutlet` wiederverwendet statt dupliziert (Akzeptanzkriterium 4). -->
+    <button type="button" class="app-navigation__menu-trigger" (click)="drawerOpen.set(true)" aria-label="Menü öffnen">
+      <i class="pi pi-bars" aria-hidden="true"></i>
+    </button>
+    <p-drawer [(visible)]="drawerOpen" position="left">
+      <ng-container [ngTemplateOutlet]="sidebarContent" />
+    </p-drawer>
+  } @else {
+    <aside class="app-navigation" aria-label="Hauptnavigation">
+      <ng-container [ngTemplateOutlet]="sidebarContent" />
+    </aside>
+  }
 }
