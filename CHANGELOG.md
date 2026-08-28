@@ -4,6 +4,32 @@ Alle nennenswerten Änderungen an diesem Projekt werden hier je User Story dokum
 
 ## [Unreleased]
 
+### US-056 — Admin-Bereich gemäß SPEC-07 angleichen (Tab-Host mit Dialog-Formularen)
+
+- Neuer Tab-Host `AdminPageComponent` unter gemeinsamer Elternroute `/admin` (`adminGuard`
+  einmalig hier statt dupliziert): `admin/users`/`admin/projects` bleiben als bookmarkbare
+  Kind-Routen erhalten (analog `ProjectWorkspaceLayoutComponent`-Muster) statt SPEC-07s Vorschlag
+  einer einzigen Route mit clientseitigem Tab-State — begründete Routing-Entscheidung, siehe
+  Story-Datei „Anmerkungen des Agenten“.
+- `AdminSubNavComponent` entfernt — Sub-Navigation lebt jetzt einmalig im Tab-Host statt
+  dupliziert in beiden Admin-Unterseiten. Bewusst weiterhin das bestehende `.tab-pills`-Muster
+  (SPEC-00 §1.3) statt PrimeNGs `<p-tabs>` — Konsistenz mit jeder anderen Tab-Navigation dieser
+  Anwendung (US-019, US-046), begründete Abweichung von SPEC-07 §1.2.
+- „Nutzer anlegen“, „Projekt anlegen“ und „Mitglied zuweisen“ öffnen jetzt als `p-dialog` über
+  einen Button statt dauerhaft sichtbar unterhalb der jeweiligen Liste — Formularfelder,
+  Validierung und Verhalten aus US-012/US-014/US-015/US-016/US-017 unverändert.
+- Bestehende Tests (`us-046-admin-navigation.spec.ts`,
+  `us-050-verlaesslicher-lade-zustand-listen.spec.ts`,
+  `project-membership-manager.component.spec.ts`) an die neue Struktur angepasst, nicht entfernt.
+  Ausnahme: `admin-sub-nav.component.spec.ts` wurde gelöscht, da die getestete Komponente selbst
+  entfernt wurde — Verhaltensabdeckung in `us-046-admin-navigation.spec.ts` konsolidiert
+  (begründete Abweichung, siehe Story-Datei).
+- Neuer Story-Test `us-056-admin-bereich-spec07-angleichen.spec.ts` (9 Testfälle: Tab-Host-Routing
+  inkl. `adminGuard`-Regression, alle drei Dialoge geschlossen/öffnen/Formularverhalten/Schließen
+  nach Erfolg).
+- `ng test` (243/243), `ng lint`, `ng build` grün; `dotnet test` unverändert grün (kein
+  Backend-Anteil). Zusätzlich end-to-end in einem isolierten `docker-compose`-Stack verifiziert.
+
 ### US-055 — Globale Navigation als vertikale Sidebar statt horizontaler Kopfleiste
 
 - `AppNavigationComponent`: von horizontaler Kopfleiste (US-045) zu fester, vertikaler
