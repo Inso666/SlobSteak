@@ -48,6 +48,17 @@
           <p-message severity="error" styleClass="w-full" role="alert">{{ errorMessage }}</p-message>
         }
 
+        @if (isTakingLonger) {
+          <p-message
+            severity="info"
+            styleClass="w-full login-taking-longer-notice"
+            role="status"
+            data-testid="login-taking-longer-notice"
+          >
+            Die Anmeldung dauert ungewöhnlich lange. Bitte warte einen Moment oder versuche es gleich erneut.
+          </p-message>
+        }
+
         <app-processing-button type="submit" [disabled]="form.invalid" [isSubmitting]="isSubmitting" label="Anmelden" submittingLabel="Wird angemeldet…" />
       </form>
     </p-card>

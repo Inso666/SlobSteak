@@ -24,3 +24,10 @@
   margin-bottom: var(--app-space-md);
   display: block;
 }
+
+/* US-049 Akzeptanzkriterium 5: p-message severity="info" trägt bereits die Info-Farbe aus dem
+   Preset; gleicher Abstand wie die übrigen Hinweis-Banner dieser Seite. */
+.login-taking-longer-notice {
+  margin-bottom: var(--app-space-md);
+  display: block;
+}

@@ -130,7 +130,7 @@ Vom Projektverantwortlichen gemeldete Bugs (`docs/bugs/bugs.md`), vom Product Ow
 
 | ID | Titel | Bounded Context | Abhängigkeiten | Datei | Status |
 |---|---|---|---|---|---|
-| US-049 | Verlässliche Antwortzeit & Statusrückmeldung beim ersten Request nach Systemstart | Shared Kernel / Infrastructure | US-001, US-006, US-009 | [US-049-kaltstart-performance-erster-request.md](US-049-kaltstart-performance-erster-request.md) | offen |
+| US-049 | Verlässliche Antwortzeit & Statusrückmeldung beim ersten Request nach Systemstart | Shared Kernel / Infrastructure | US-001, US-006, US-009 | [US-049-kaltstart-performance-erster-request.md](US-049-kaltstart-performance-erster-request.md) | fertig (28.08.2026) |
 | US-050 | Verlässlicher Lade-Zustand statt fälschlicher Leer-/Stale-Darstellung auf Listen-/Übersichtsseiten | Frontend-Shell | US-016, US-017, US-018, US-044 | [US-050-verlaesslicher-lade-zustand-listen.md](US-050-verlaesslicher-lade-zustand-listen.md) | fertig (25.08.2026) |
 | US-051 | „Passwort zurücksetzen“ in der Nutzerverwaltung schließt zuverlässig ab | IdentityAccess | US-013, US-016, US-043 | [US-051-passwort-reset-abschliessen.md](US-051-passwort-reset-abschliessen.md) | offen |
 | US-052 | Stakeholderverwaltung nach Projektauswahl zuverlässig anzeigen | ProjectManagement / StakeholderManagement | US-019, US-025, US-026, US-044 | [US-052-stakeholderverwaltung-nach-projektklick.md](US-052-stakeholderverwaltung-nach-projektklick.md) | offen |

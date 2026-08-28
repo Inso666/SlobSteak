@@ -4,6 +4,71 @@ Alle nennenswerten Änderungen an diesem Projekt werden hier je User Story dokum
 
 ## [Unreleased]
 
+### US-049 — Verlässliche Antwortzeit & Statusrückmeldung beim ersten Request nach Systemstart (Backend-Anteil)
+
+- Reale Zeitmessung (isolierter `docker-compose`-Stack, eigener Projektname, umgemappte Ports,
+  frisches Volume) statt reinem Code-Review: Migration+Seed-Admin summieren sich konsistent auf
+  unter 1 Sekunde, .NET-Kaltstart auf ~1,2–1,4 s gesamt — beide vom PO vermuteten Hypothesen damit
+  als dominante Ursache widerlegt. Tatsächlich dominanter, bisher nicht identifizierter Faktor:
+  Postgres-Erstinitialisierung auf leerem Volume (5,7–7,0 s). Details siehe Story-Datei
+  „Anmerkungen des Agenten“.
+- `docker-compose.yml`: `healthcheck` für `api` gegen `/api/v1/health` ergänzt, `frontend` wartet
+  jetzt auf `condition: service_healthy` statt auf den bloßen Containerstart von `api` — das vorher
+  gemessene ~1,2–1,4 s-Fenster, in dem Login-Requests gegen ein noch nicht bereites Backend liefen,
+  ist damit auf 0 reduziert (siehe ADR-0010 für die `start_period`-Erkenntnis). `db`-Healthcheck-
+  Intervall von 5s auf 2s verkürzt.
+- `src/SlobSteak.Api/Program.cs` und `Bootstrap/SeedAdminHostedService.cs`: Start-/Ende-
+  Zeitstempel-Logging um Migration, Seed-Admin-Bootstrap und „Anwendung bereit für Requests“ ergänzt
+  — rein diagnostisch, keine Verhaltensänderung, macht künftige Regressionen sofort im Log sichtbar.
+- `src/SlobSteak.Api/Dockerfile`: `curl` im Runtime-Image ergänzt (für den neuen Healthcheck).
+- Story-Test `tests/SlobSteak.Api.Tests/UserStories/US049_KaltstartPerformanceErsterRequestTests.cs`
+  (AC 1–4; AC 5 ist Frontend-Scope, AC 6 wird durch den grünen Gesamtlauf nachgewiesen).
+- `dotnet test` (327/327) grün, `dotnet format --verify-no-changes` fehlerfrei.
+- **Übergabe an Frontend-Agent (AC 5, gleicher Branch):** `LoginPageComponent`/
+  `ProcessingButtonComponent` kennen aktuell nur den binären Zustand `isSubmitting` — kein Zustand
+  für „Request läuft bereits > 3s“. Kein globaler `HttpClient`-Timeout konfiguriert. Details und ein
+  konkreter Umsetzungsvorschlag in der Story-Datei „Anmerkungen des Agenten“.
+
+### US-049 — Verlässliche Antwortzeit & Statusrückmeldung beim ersten Request nach Systemstart (Frontend-Anteil)
+
+- `LoginPageComponent` (`frontend/src/app/features/auth/login-page/`): neuer technischer Zustand
+  `isTakingLonger` (Akzeptanzkriterium 5) — startet in `onSubmit()` einen `setTimeout(..., 3000)`,
+  der bei einem noch laufenden Request nach 3s greift und im Template einen zusätzlichen,
+  sichtbaren Hinweis (`p-message severity="info"`, `data-testid="login-taking-longer-notice"`)
+  einblendet; Timer wird in beiden `subscribe`-Callbacks sowie in einem neuen `ngOnDestroy()`
+  aufgeräumt. Reines textbasiertes Feedback, kein neues Design — das visuelle Redesign dieses
+  Zustands bleibt US-054 vorbehalten.
+- Zusätzlich mit übernommen (Befund des Backend-Agenten, direkt zu AC 5 gehörig): `onSubmit()`
+  zeigte bislang bei jedem Fehler pauschal „E-Mail oder Passwort ist falsch.“ — jetzt Unterscheidung
+  nach Statuscode (`HttpErrorResponse.status === 401`); jeder andere Fehler (Netzwerkfehler, `5xx`,
+  `0`, z. B. ein noch nicht bereites Backend) zeigt die in `SPEC-01-Login.md` §3.1 vorgesehene
+  Meldung „Anmeldung derzeit nicht möglich. Bitte später erneut versuchen.“
+- Tests in `login-page.component.spec.ts` ergänzt/angepasst (jetzt 15 Tests): realistischer
+  `HttpErrorResponse` statt generischem `Error` im bestehenden 401-Test, neuer Test für den
+  technischen 502-Fall, zwei neue `HttpTestingController`-Tests für `isTakingLonger` (inkl. Beleg,
+  dass der Timer bei rechtzeitigem Request-Ende tatsächlich per `clearTimeout()` aufgeräumt wird).
+  `fakeAsync()`/`tick()` sind in diesem zonelosen Projekt nicht nutzbar — `jasmine.clock()`
+  verwendet.
+- `ng test` (gesamter Workspace, 210/210) und `ng lint` grün.
+
+### US-049 — Verlässliche Antwortzeit & Statusrückmeldung beim ersten Request nach Systemstart (QA-Anteil)
+
+- Unabhängig verifiziert: `dotnet test` 327/327 grün, `dotnet format --verify-no-changes` fehlerfrei,
+  `ng test` 210/210 grün, `ng lint` fehlerfrei — deckt sich mit den Backend-/Frontend-Berichten.
+- Story-Test-Konventionslücke geschlossen: Akzeptanzkriterium 5 (Frontend) war nur als zwei
+  zusätzliche Tests in der generischen `login-page.component.spec.ts` abgedeckt, kein dedizierter
+  Story-Test. Neue Datei `frontend/src/app/features/auth/login-page/us-049-kaltstart-performance-erster-request.spec.ts`
+  angelegt (analog zu `us-057-login-haengt-nach-erfolgreicher-anmeldung.spec.ts`), die beiden Tests
+  dorthin verschoben. Jetzt je ein dedizierter Story-Test pro Seite (Backend: AC 1–4, Frontend: AC 5).
+- End-to-End-Smoke-Test gegen einen echten, isoliert hochgefahrenen `docker-compose`-Stack (eigener
+  Projektname/Ports, kein Konflikt mit dem `steakholder-*`-Stack des Nutzers): `db`/`api`/`frontend`
+  starten sauber in der erwarteten Healthcheck-Reihenfolge, Login über den nginx-Proxy erfolgreich.
+  Zusätzlich per Browser-Automatisierung verifiziert: `api`-Container während eines laufenden
+  Login-Requests pausiert — nach > 3 s erscheint sichtbar „Die Anmeldung dauert ungewöhnlich lange.
+  …“, nach Fortsetzen löst der Request normal auf (kein hängender Zustand).
+- Alle 6 Akzeptanzkriterien geprüft und erfüllt, keine Blocker/Critical-Findings. Details siehe
+  Story-Datei „Anmerkungen des QA-Agenten“.
+
 ### US-057 — Login-Flow bleibt nach erfolgreicher Anmeldung dauerhaft im Verarbeitungs-Zustand hängen
 
 - Bugfix in `LoginPageComponent.onSubmit()` (`frontend/src/app/features/auth/login-page/login-page.component.ts`):
