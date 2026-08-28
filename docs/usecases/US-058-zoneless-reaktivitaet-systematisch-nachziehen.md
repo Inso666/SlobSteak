@@ -22,22 +22,22 @@ Als **Nutzer** möchte ich, dass jede Aktion im Admin- und Stakeholder-Bereich (
   1. `frontend/src/app/features/admin/users-admin/users-admin.component.ts` — `onCreateUser` (`error`-Zweig ohne jeden Folgeaufruf, bleibt ohne fremde Interaktion dauerhaft hängen; `next`-Zweig heilt sich aktuell nur indirekt über den darin ausgelösten `loadUsers()`-Folgerequest, dessen eigener `subscribe()` bereits `markForCheck()` aufruft — trotzdem der Konsistenz halber mitzuziehen).
   2. `frontend/src/app/features/admin/projects-admin/projects-admin.component.ts` — `onCreateProject` (`error`-Zweig; `next`-Zweig analog Punkt 1 indirekt selbstheilend).
   3. `frontend/src/app/features/admin/projects-admin/project-membership-manager.component.ts` — `onAssignMember`, `onChangeRole`, `onRemoveMember` (jeweils `error`-Zweig ohne Folgeaufruf; `next`-Zweig analog Punkt 1 indirekt selbstheilend über `loadMemberships()`).
-  4. `frontend/src/app/features/workspace/project-workspace-layout/project-workspace-layout.component.ts` — initialer `projectsService.getProject(...).subscribe(...)` (`next`/`error`), keinerlei `ChangeDetectorRef` in der Komponente injiziert.
-  5. `frontend/src/app/features/stakeholders/stakeholder-list/stakeholder-list.component.ts` — `getProject(...).subscribe(...)`, `restoreStakeholder(...).subscribe(...)` (`next`/`error`), `listStakeholders(...).subscribe(...)` an beiden Aufrufstellen (Papierkorb-Filter und regulärer Such-/Typ-Filter, jeweils `next`/`error`); keinerlei `ChangeDetectorRef` injiziert.
-  6. `frontend/src/app/features/auth/password-change-modal/password-change-modal.component.ts` — `authService.changePassword(...).subscribe(...)` (`next`/`error`).
+  4. `frontend/src/app/features/stakeholders/stakeholder-list/stakeholder-list.component.ts` — `getProject(...).subscribe(...)`, `restoreStakeholder(...).subscribe(...)` (`next`/`error`), `listStakeholders(...).subscribe(...)` an beiden Aufrufstellen (Papierkorb-Filter und regulärer Such-/Typ-Filter, jeweils `next`/`error`); keinerlei `ChangeDetectorRef` injiziert.
+  5. `frontend/src/app/features/auth/password-change-modal/password-change-modal.component.ts` — `authService.changePassword(...).subscribe(...)` (`next`/`error`).
+  6. ~~`frontend/src/app/features/workspace/project-workspace-layout/project-workspace-layout.component.ts`~~ — **bereits behoben** im Rahmen von US-052 (`markForCheck()` im initialen `getProject(...).subscribe(...)` ergänzt), da bei dessen Live-Verifikation real reproduziert und dieselbe Methode ohnehin geändert wurde. Kein Umsetzungsbedarf mehr für diese Story.
 - **Relevant für DDD:** Ausschließlich Presentation-Schicht, keine Änderung an Application-Services, Endpunkten oder Validierungsregeln.
 
 ### 3. Akzeptanzkriterien
 
-- [ ] Alle sechs oben unter Punkt 2 gelisteten Komponenten injizieren `ChangeDetectorRef` (soweit nicht bereits vorhanden) und rufen `changeDetectorRef.markForCheck()` in jedem `next`- und `error`-Zweig der genannten `subscribe()`-Aufrufe auf — analog zum bereits etablierten Muster in `loadUsers()`/`loadProjects()`/`loadMemberships()`/`LoginPageComponent.onSubmit()`.
-- [ ] Für jede der sechs Komponenten belegt ein automatisierter Test (Angular `TestBed` + `HttpTestingController`, Antwort ausschließlich per `flush()` nach dem ursprünglichen Aufruf, danach ausschließlich der reguläre `fixture.detectChanges()`-Zyklus ohne zusätzliche simulierte Interaktion) den korrekten Endzustand nach Erfolg **und** nach Fehler.
-- [ ] Bestehende Tests aller sechs betroffenen Komponenten (inkl. `us-050-*`/`us-057-*`/`us-051-*`-Story-Tests) bleiben grün bzw. werden dort ergänzt, wo sie den jetzt gefixten Zustand bereits (unbewusst) mitgeprüft haben.
+- [ ] Alle fünf verbleibenden (Punkt 1–5) oben unter Punkt 2 gelisteten Komponenten injizieren `ChangeDetectorRef` (soweit nicht bereits vorhanden) und rufen `changeDetectorRef.markForCheck()` in jedem `next`- und `error`-Zweig der genannten `subscribe()`-Aufrufe auf — analog zum bereits etablierten Muster in `loadUsers()`/`loadProjects()`/`loadMemberships()`/`LoginPageComponent.onSubmit()`.
+- [ ] Für jede der fünf Komponenten belegt ein automatisierter Test (Angular `TestBed` + `HttpTestingController`, Antwort ausschließlich per `flush()` nach dem ursprünglichen Aufruf, danach ausschließlich der reguläre `fixture.detectChanges()`-Zyklus ohne zusätzliche simulierte Interaktion) den korrekten Endzustand nach Erfolg **und** nach Fehler.
+- [ ] Bestehende Tests aller fünf betroffenen Komponenten (inkl. `us-050-*`/`us-057-*`/`us-051-*`/`us-052-*`-Story-Tests) bleiben grün bzw. werden dort ergänzt, wo sie den jetzt gefixten Zustand bereits (unbewusst) mitgeprüft haben.
 - [ ] Story-Test gemäß `.claude/agents/qa.md`-Konvention (`us-058*.spec.ts`, ggf. mehrere Dateien nahe den betroffenen Komponenten, siehe qa.md Abschnitt 1 zu mehrteiligen Frontend-Stories), ausschließlich gegen obige Akzeptanzkriterien.
 - [ ] Kein bestehender Test wird gebrochen; `ng test` bleibt grün.
 
 ### 4. Technische Hinweise für den Dev-Agenten
 
-**Zu ändernde Dateien:** siehe die sechs Fundstellen in Abschnitt 2, Punkt „Bereits per Code-Review konkret bestätigte Fundstellen“ — dort jeweils mit exakter Methode/Zeile benannt.
+**Zu ändernde Dateien:** siehe die fünf verbleibenden Fundstellen (Punkt 1–5) in Abschnitt 2, Punkt „Bereits per Code-Review konkret bestätigte Fundstellen“ — dort jeweils mit exakter Methode/Zeile benannt. Punkt 6 (`project-workspace-layout.component.ts`) ist bereits erledigt (siehe dort).
 
 **Wichtige Invarianten:**
 - Reine Presentation-/Reaktivitäts-Änderung, kein neues Ladezustands-Muster — `isCreatingUser`/`isCreatingProject`/`isAssigning`/`changingRoleUserIds`/`removingMemberUserIds`/`ViewState` (US-043/US-050) bleiben unverändert in ihrer Bedeutung, es wird ausschließlich die fehlende Change-Detection-Markierung ergänzt.
