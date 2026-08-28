@@ -6,14 +6,20 @@
   padding: var(--app-space-lg);
 }
 
-/* US-053: Markenblock (SPEC-01-Login.md §1.2), analog des dortigen `.flex align-items-center
-   gap-2`-Musters. */
+/* US-053/US-054: Markenblock (SPEC-01-Login.md §1.2), analog des dortigen `.flex flex-column
+   align-items-center gap-2`-Musters — Icon+Schriftzug-Zeile, darunter zentriert die Tagline. */
 .brand-block {
   display: flex;
+  flex-direction: column;
   align-items: center;
-  justify-content: center;
-  gap: var(--app-space-sm);
+  gap: var(--app-space-xs);
   margin-bottom: var(--app-space-lg);
+}
+
+.brand-block__row {
+  display: flex;
+  align-items: center;
+  gap: var(--app-space-sm);
 }
 
 .brand-wordmark {
@@ -21,6 +27,27 @@
   font-size: var(--app-font-size-card-title);
   font-weight: 600;
   color: var(--app-color-text);
+}
+
+.brand-tagline {
+  font-size: var(--app-font-size-body);
+  color: var(--app-color-text-muted);
+}
+
+/* US-054 Akzeptanzkriterium 3 / SPEC-01 §3.1: Bootstrap-Skeleton ersetzt Titel+Formular 1:1 in
+   Form und Größe (SPEC-00 §3 „kein Layout-Sprung"). */
+.bootstrap-skeleton {
+  display: flex;
+  flex-direction: column;
+  gap: var(--app-space-md);
+}
+
+.login-footnote {
+  display: block;
+  margin-top: var(--app-space-md);
+  text-align: center;
+  font-size: var(--app-font-size-meta);
+  color: var(--app-color-text-muted);
 }
 
 .field {

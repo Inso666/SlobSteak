@@ -46,6 +46,7 @@ describe('PasswordChangeModalComponent', () => {
     const emitSpy = spyOn(component.passwordChanged, 'emit');
 
     component['form'].controls.newPassword.setValue('new-super-secret');
+    component['form'].controls.confirmPassword.setValue('new-super-secret');
     component['onSubmit']();
 
     expect(authServiceSpy.changePassword).toHaveBeenCalledWith('new-super-secret');
@@ -58,8 +59,31 @@ describe('PasswordChangeModalComponent', () => {
     const component = fixture.componentInstance;
 
     component['form'].controls.newPassword.setValue('new-super-secret');
+    component['form'].controls.confirmPassword.setValue('new-super-secret');
     component['onSubmit']();
 
     expect(component['errorMessage']).toBeTruthy();
+  });
+
+  it('US-054: should mark the form invalid when confirmPassword does not match newPassword', () => {
+    const fixture = TestBed.createComponent(PasswordChangeModalComponent);
+    const component = fixture.componentInstance;
+
+    component['form'].controls.newPassword.setValue('new-super-secret');
+    component['form'].controls.confirmPassword.setValue('something-else');
+
+    expect(component['form'].invalid).toBeTrue();
+    expect(component['form'].controls.confirmPassword.errors?.['passwordMismatch']).toBeTrue();
+  });
+
+  it('US-054: should not call AuthService.changePassword when confirmPassword does not match', () => {
+    const fixture = TestBed.createComponent(PasswordChangeModalComponent);
+    const component = fixture.componentInstance;
+
+    component['form'].controls.newPassword.setValue('new-super-secret');
+    component['form'].controls.confirmPassword.setValue('something-else');
+    component['onSubmit']();
+
+    expect(authServiceSpy.changePassword).not.toHaveBeenCalled();
   });
 });
