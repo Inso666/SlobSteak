@@ -1,5 +1,5 @@
 import { TestBed } from '@angular/core/testing';
-import { ActivatedRouteSnapshot, CanActivateFn, UrlTree, provideRouter } from '@angular/router';
+import { ActivatedRouteSnapshot, CanActivateFn, RouterStateSnapshot, UrlTree, provideRouter } from '@angular/router';
 import { of } from 'rxjs';
 import { ProjectOverviewItem, ProjectsService } from './features/projects/projects.service';
 import { routes } from './app.routes';
@@ -41,11 +41,18 @@ describe('app.routes: Map-Route Zugriffsschutz (US-030 AC4, Frontend-Anteil)', (
     return { id: 'project-1', name: 'Projekt', role, stakeholderCount: 0 };
   }
 
+  /** US-052: `roleGuard` liest inzwischen `state.url` (Schutz gegen einen Redirect auf sich
+   * selbst, siehe dortige Anmerkung) — ein `{}`-Fake ohne `url` ist daher kein realistisches
+   * `RouterStateSnapshot` mehr. */
+  function stateWithUrl(url: string): RouterStateSnapshot {
+    return { url } as unknown as RouterStateSnapshot;
+  }
+
   it('should deny activation of the map route for role User (redirect to access-denied)', (done) => {
     projectsServiceSpy.getProject.and.returnValue(of(projectWithRole('User')));
 
     const guard = mapRouteGuard();
-    const result$ = TestBed.runInInjectionContext(() => guard(routeSnapshotWithId('project-1'), {} as never));
+    const result$ = TestBed.runInInjectionContext(() => guard(routeSnapshotWithId('project-1'), stateWithUrl('/projects/project-1/map')));
 
     (result$ as ReturnType<typeof of>).subscribe((result: unknown) => {
       expect((result as UrlTree).toString()).toBe('/projects/project-1/access-denied');
@@ -57,7 +64,7 @@ describe('app.routes: Map-Route Zugriffsschutz (US-030 AC4, Frontend-Anteil)', (
     projectsServiceSpy.getProject.and.returnValue(of(projectWithRole('PL')));
 
     const guard = mapRouteGuard();
-    const result$ = TestBed.runInInjectionContext(() => guard(routeSnapshotWithId('project-1'), {} as never));
+    const result$ = TestBed.runInInjectionContext(() => guard(routeSnapshotWithId('project-1'), stateWithUrl('/projects/project-1/map')));
 
     (result$ as ReturnType<typeof of>).subscribe((result: unknown) => {
       expect(result).toBeTrue();

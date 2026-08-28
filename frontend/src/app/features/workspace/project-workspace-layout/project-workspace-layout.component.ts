@@ -1,5 +1,5 @@
-import { Component, OnInit, inject } from '@angular/core';
-import { ActivatedRoute, RouterLink, RouterLinkActive, RouterOutlet } from '@angular/router';
+import { ChangeDetectorRef, Component, OnInit, inject } from '@angular/core';
+import { ActivatedRoute, Router, RouterLink, RouterLinkActive, RouterOutlet } from '@angular/router';
 import { ProjectOverviewItem, ProjectsService } from '../../projects/projects.service';
 import { LOAD_ERROR_MESSAGE } from '../../../core/messages/http-error-messages';
 
@@ -19,13 +19,27 @@ import { LOAD_ERROR_MESSAGE } from '../../../core/messages/http-error-messages';
 })
 export class ProjectWorkspaceLayoutComponent implements OnInit {
   private readonly route = inject(ActivatedRoute);
+  private readonly router = inject(Router);
   private readonly projectsService = inject(ProjectsService);
+  private readonly changeDetectorRef = inject(ChangeDetectorRef);
 
   protected project: ProjectOverviewItem | null = null;
   protected loadError: string | null = null;
 
   /** US-044 Akzeptanzkriterium 4: konsistente Fehlermeldung statt einer dauerhaft leeren Shell bei
-   * fehlgeschlagenem Laden. */
+   * fehlgeschlagenem Laden.
+   *
+   * US-052: `changeDetectorRef.markForCheck()` in beiden Zweigen behebt eine bei der
+   * Live-Verifikation dieser Story zusätzlich real reproduzierte, bis dahin unentdeckte
+   * Ausprägung des aus US-050/US-057 bekannten Musters — exakt in dieser Methode, die die Story
+   * ohnehin ändert: Ohne `zone.js` markiert die reine Feldzuweisung `this.project = project` im
+   * `subscribe()`-Callback die Komponente nicht automatisch für die nächste
+   * Change-Detection-Runde. Gegen einen echten laufenden Stack blieb dadurch Header/Tab-Navigation
+   * für einen BERECHTIGTEN Nutzer dauerhaft unsichtbar (Akzeptanzkriterium 1 verletzt), obwohl
+   * `project` intern korrekt gesetzt war — Unit-Tests mit synchronem `of(...)` deckten das nicht
+   * auf, da die erste, ohnehin fällige Change-Detection-Runde die synchron eintreffende Antwort
+   * noch mit erfasst; erst die tatsächliche Async-Latenz eines echten HTTP-Requests legt die
+   * fehlende Markierung offen. */
   ngOnInit(): void {
     const projectId = this.route.snapshot.paramMap.get('id');
     if (!projectId) {
@@ -33,9 +47,30 @@ export class ProjectWorkspaceLayoutComponent implements OnInit {
     }
 
     this.projectsService.getProject(projectId).subscribe({
-      next: (project) => (this.project = project),
-      error: () => (this.loadError = LOAD_ERROR_MESSAGE),
+      next: (project) => {
+        this.project = project;
+        this.changeDetectorRef.markForCheck();
+      },
+      error: () => {
+        this.loadError = LOAD_ERROR_MESSAGE;
+        this.changeDetectorRef.markForCheck();
+      },
     });
+  }
+
+  /**
+   * US-052: `roleGuard` hat für einen nicht berechtigten Nutzer die Navigation bereits vor der
+   * Instanziierung dieser Komponente auf die Kind-Route `access-denied` umgeleitet (siehe
+   * `role.guard.ts`) — `AccessDeniedComponent` erklärt die Situation dort bereits konkret und
+   * verständlich. Der eigene, redundante `getProject()`-Aufruf oben schlägt für denselben Nutzer
+   * ebenfalls fehl und würde ohne diese Prüfung zusätzlich die generische, nichtssagende
+   * {@link LOAD_ERROR_MESSAGE} über `AccessDeniedComponent` legen — genau die in der Story
+   * beschriebene Verdopplung. `router.url` ist zu diesem Zeitpunkt bereits die final aufgelöste
+   * Ziel-URL (Guards inkl. Redirects laufen vollständig ab, bevor diese Komponente erzeugt wird),
+   * daher ist kein zusätzlicher Navigations-Listener nötig.
+   */
+  protected get showLoadError(): boolean {
+    return this.loadError !== null && !this.router.url.endsWith('/access-denied');
   }
 
   /** Map-Tab ist für Rolle `User` ausgeblendet (Akzeptanzkriterium 3). */

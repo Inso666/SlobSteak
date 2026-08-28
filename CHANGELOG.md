@@ -4,6 +4,35 @@ Alle nennenswerten Änderungen an diesem Projekt werden hier je User Story dokum
 
 ## [Unreleased]
 
+### US-052 — Stakeholderverwaltung nach Projektauswahl zuverlässig anzeigen
+
+- **Ursache war größer als ursprünglich diagnostiziert:** Die PO-Vermutung (redundanter, mit dem
+  Guard doppelter `getProject()`-Aufruf blockiert `router-outlet` via `@if(project)`) traf zu,
+  war aber nicht die dominante Ursache. Live-Verifikation gegen einen echten `docker-compose`-Stack
+  deckte eine **Endlosschleife aus Redirects** auf: `roleGuard` hängt auf der Elternroute
+  `projects/:id`, deren eigenes Kind `access-denied` sein Umleitungsziel bei fehlender
+  Berechtigung ist — der Guard re-evaluierte sich dadurch für jede Navigation zu seinem eigenen
+  Umleitungsziel erneut. Real reproduziert: über 1000 identische
+  `GET /api/v1/projects/{id}`-Requests binnen weniger Sekunden, Seite blieb dauerhaft leer.
+- `frontend/src/app/core/guards/role.guard.ts`: Guard erlaubt Aktivierung jetzt sofort (ohne
+  eigenen `getProject()`-Aufruf), wenn die Ziel-URL bereits `/access-denied` ist — behebt die
+  Endlosschleife an der Wurzel.
+- `frontend/src/app/features/workspace/project-workspace-layout/project-workspace-layout.component.ts`
+  / `.html`: `<router-outlet>` liegt jetzt außerhalb von `@if (project)` (Kind-Routen rendern
+  unabhängig vom eigenen, redundanten Ladevorgang); generische Lade-Fehlermeldung wird gezielt
+  unterdrückt, wenn bereits auf `/access-denied` navigiert wurde. Zusätzlich `markForCheck()` im
+  `getProject()`-`subscribe()` ergänzt (bei Live-Verifikation entdeckt: Header/Tabs blieben für
+  berechtigte Nutzer gegen echte Async-Latenz unsichtbar, gleiches Muster wie US-050/US-057/US-051)
+  — entsprechend aus der Fundstellen-Liste von US-058 entfernt.
+- Story-Test `frontend/.../us-052-stakeholderverwaltung-nach-projektklick.spec.ts` (4 Testfälle,
+  `RouterTestingHarness` für echte verschachtelte Outlet-Komposition) + neuer Testfall in
+  `role.guard.spec.ts`; bestehende `role.guard.spec.ts`/`app.routes.spec.ts`-Fakes auf ein
+  realistisches `RouterStateSnapshot` präzisiert.
+- `ng test` (218/218), `ng lint`, `ng build` grün; `dotnet test` (169/169) unverändert grün (kein
+  Backend-Anteil). Manueller Smoke-Test gegen isolierten `docker-compose`-Stack (Backend-Netzwerklog
+  + UI per Browser-Automatisierung) bestätigt sowohl den Erfolgs- als auch den Access-Denied-Pfad
+  End-to-End, inkl. bestätigter Endlosschleifen-Behebung (2 statt >1000 Requests).
+
 ### US-051 — „Passwort zurücksetzen“ in der Nutzerverwaltung schließt zuverlässig ab
 
 - Ursache ermittelt: Backend unauffällig (PBKDF2-Hashing + EF-Core-Save, real gemessen ~33 ms,
