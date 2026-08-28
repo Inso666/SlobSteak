@@ -23,6 +23,7 @@ public class SlobSteakApiFactory : WebApplicationFactory<Program>
 {
     private readonly string? _connectionStringOverride;
     private readonly IReadOnlyDictionary<string, string?>? _additionalConfiguration;
+    private readonly string _environmentName;
 
     /// <summary>Parameterloser Konstruktor, benötigt für die Aktivierung über xUnits
     /// <see cref="IClassFixture{TFixture}"/> (keine Datenbank-Interaktion). xUnit lässt pro
@@ -30,27 +31,38 @@ public class SlobSteakApiFactory : WebApplicationFactory<Program>
     /// (Testcontainers-)PostgreSQL-Instanz verwenden daher <see cref="WithConnectionString"/>.</summary>
     public SlobSteakApiFactory()
     {
+        _environmentName = "Testing";
     }
 
-    private SlobSteakApiFactory(string connectionStringOverride, IReadOnlyDictionary<string, string?>? additionalConfiguration)
+    private SlobSteakApiFactory(
+        string connectionStringOverride,
+        IReadOnlyDictionary<string, string?>? additionalConfiguration,
+        string environmentName)
     {
         _connectionStringOverride = connectionStringOverride;
         _additionalConfiguration = additionalConfiguration;
+        _environmentName = environmentName;
     }
 
     /// <summary>Erstellt eine Factory, deren <see cref="SlobSteakDbContext"/>-Registrierung durch
     /// <paramref name="connectionString"/> ersetzt ist (z. B. eine Testcontainers-PostgreSQL-Instanz).
     /// <paramref name="additionalConfiguration"/> überschreibt/ergänzt optional einzelne
     /// Konfigurationswerte (z. B. <c>SEED_ADMIN_EMAIL</c>/<c>SEED_ADMIN_PASSWORD</c> für US-005),
-    /// ohne echte Prozess-Umgebungsvariablen zu setzen.</summary>
+    /// ohne echte Prozess-Umgebungsvariablen zu setzen. <paramref name="environmentName"/>
+    /// überschreibt optional das standardmäßig verwendete Hosting-Environment <c>"Testing"</c> —
+    /// benötigt von US-049, um den echten, nur unter <c>IsDevelopment()</c> laufenden
+    /// Migrations-/Seed-Admin-Startpfad aus <c>Program.cs</c> gezielt gegen eine echte
+    /// Testcontainers-Instanz zu durchlaufen (statt des sonst für DB-lose Tests bewusst
+    /// übersprungenen Pfads, siehe Klassendokumentation oben).</summary>
     public static SlobSteakApiFactory WithConnectionString(
         string connectionString,
-        IReadOnlyDictionary<string, string?>? additionalConfiguration = null) =>
-        new(connectionString, additionalConfiguration);
+        IReadOnlyDictionary<string, string?>? additionalConfiguration = null,
+        string environmentName = "Testing") =>
+        new(connectionString, additionalConfiguration, environmentName);
 
     protected override void ConfigureWebHost(IWebHostBuilder builder)
     {
-        builder.UseEnvironment("Testing");
+        builder.UseEnvironment(_environmentName);
 
         if (_additionalConfiguration is not null)
         {

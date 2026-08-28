@@ -19,6 +19,13 @@ RUN dotnet publish src/SlobSteak.Api/SlobSteak.Api.csproj -c Release -o /app/pub
 
 FROM mcr.microsoft.com/dotnet/aspnet:8.0 AS runtime
 WORKDIR /app
+
+# US-049: curl wird ausschließlich für den docker-compose-Healthcheck gegen /api/v1/health benötigt
+# (Akzeptanzkriterium 2) — das Basis-Image (Debian bookworm-slim) bringt weder curl noch wget mit.
+RUN apt-get update \
+    && apt-get install -y --no-install-recommends curl \
+    && rm -rf /var/lib/apt/lists/*
+
 COPY --from=build /app/publish .
 
 ENV ASPNETCORE_URLS=http://+:8080
