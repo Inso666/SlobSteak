@@ -4,6 +4,30 @@ Alle nennenswerten Änderungen an diesem Projekt werden hier je User Story dokum
 
 ## [Unreleased]
 
+### US-051 — „Passwort zurücksetzen“ in der Nutzerverwaltung schließt zuverlässig ab
+
+- Ursache ermittelt: Backend unauffällig (PBKDF2-Hashing + EF-Core-Save, real gemessen ~33 ms,
+  kein Hängen) — der PO-Verdacht eines serverseitigen Problems hat sich nicht bestätigt.
+  Tatsächliche Ursache clientseitig, exakt dasselbe in US-050/US-057 dokumentierte Muster: fehlendes
+  `ChangeDetectorRef.markForCheck()` in `UsersAdminComponent.onResetPassword` (zoneless Frontend),
+  der Button blieb optisch dauerhaft im Verarbeitungs-Zustand hängen, obwohl `resettingUserIds`
+  intern bereits korrekt geleert war.
+- `frontend/src/app/features/admin/users-admin/users-admin.component.ts`: `markForCheck()` in
+  beiden `subscribe()`-Zweigen von `onResetPassword` ergänzt, analog zum bereits etablierten Muster
+  in `loadUsers()`.
+- Story-Tests: `tests/SlobSteak.Api.Tests/UserStories/US051_PasswortResetAbschliessenTests.cs`
+  (Backend, 3 Facts) und `frontend/.../us-051-passwort-reset-abschliessen.spec.ts` (Frontend, 3
+  Testfälle) — per Mutationstest (Fix testweise entfernt) verifiziert, dass sie den Bug tatsächlich
+  reproduzieren.
+- `dotnet test` (169/169), `ng test` (213/213), `ng lint`, `dotnet format --verify-no-changes` alle
+  grün. Manueller Smoke-Test gegen isolierten `docker-compose`-Stack (Backend-`curl` + UI per
+  Browser-Automatisierung) bestätigt den Fix End-to-End.
+- Neue Folge-Story `US-058` angelegt (`docs/usecases/US-058-zoneless-reaktivitaet-systematisch-nachziehen.md`)
+  für dasselbe, während der Ursachenanalyse an mehreren weiteren Stellen bestätigte Muster
+  (`onCreateUser`, `onCreateProject`, `onAssignMember`/`onChangeRole`/`onRemoveMember`,
+  `project-workspace-layout.component.ts`, `stakeholder-list.component.ts`,
+  `password-change-modal.component.ts`) — bewusst nicht in dieser Story mitgefixt (Scope-Grenze).
+
 ### US-049 — Verlässliche Antwortzeit & Statusrückmeldung beim ersten Request nach Systemstart (Backend-Anteil)
 
 - Reale Zeitmessung (isolierter `docker-compose`-Stack, eigener Projektname, umgemappte Ports,
