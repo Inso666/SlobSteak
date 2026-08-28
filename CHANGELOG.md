@@ -51,6 +51,23 @@ Alle nennenswerten Änderungen an diesem Projekt werden hier je User Story dokum
   verwendet.
 - `ng test` (gesamter Workspace, 210/210) und `ng lint` grün.
 
+### US-049 — Verlässliche Antwortzeit & Statusrückmeldung beim ersten Request nach Systemstart (QA-Anteil)
+
+- Unabhängig verifiziert: `dotnet test` 327/327 grün, `dotnet format --verify-no-changes` fehlerfrei,
+  `ng test` 210/210 grün, `ng lint` fehlerfrei — deckt sich mit den Backend-/Frontend-Berichten.
+- Story-Test-Konventionslücke geschlossen: Akzeptanzkriterium 5 (Frontend) war nur als zwei
+  zusätzliche Tests in der generischen `login-page.component.spec.ts` abgedeckt, kein dedizierter
+  Story-Test. Neue Datei `frontend/src/app/features/auth/login-page/us-049-kaltstart-performance-erster-request.spec.ts`
+  angelegt (analog zu `us-057-login-haengt-nach-erfolgreicher-anmeldung.spec.ts`), die beiden Tests
+  dorthin verschoben. Jetzt je ein dedizierter Story-Test pro Seite (Backend: AC 1–4, Frontend: AC 5).
+- End-to-End-Smoke-Test gegen einen echten, isoliert hochgefahrenen `docker-compose`-Stack (eigener
+  Projektname/Ports, kein Konflikt mit dem `steakholder-*`-Stack des Nutzers): `db`/`api`/`frontend`
+  starten sauber in der erwarteten Healthcheck-Reihenfolge, Login über den nginx-Proxy erfolgreich.
+  Zusätzlich per Browser-Automatisierung verifiziert: `api`-Container während eines laufenden
+  Login-Requests pausiert — nach > 3 s erscheint sichtbar „Die Anmeldung dauert ungewöhnlich lange.
+  …“, nach Fortsetzen löst der Request normal auf (kein hängender Zustand).
+- Alle 6 Akzeptanzkriterien geprüft und erfüllt, keine Blocker/Critical-Findings. Details siehe
+  Story-Datei „Anmerkungen des QA-Agenten“.
 
 ### US-057 — Login-Flow bleibt nach erfolgreicher Anmeldung dauerhaft im Verarbeitungs-Zustand hängen
 
