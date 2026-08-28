@@ -77,6 +77,12 @@ export class UsersAdminComponent implements OnInit {
     });
   }
 
+  /** US-051: `changeDetectorRef.markForCheck()` behebt hier dieselbe Root Cause wie bei
+   * {@link loadUsers} (siehe dortiger Kommentar) — ohne `zone.js` markiert eine reine
+   * Feldzuweisung/`Set`-Mutation in einem `subscribe()`-Callback die Komponente nicht automatisch
+   * für die nächste Change-Detection-Runde. Bisher fehlte der Aufruf in beiden Zweigen dieses
+   * `subscribe()`, wodurch der Button nach Abschluss des Requests dauerhaft im
+   * Verarbeitungs-Zustand sichtbar blieb, obwohl `resettingUserIds` intern bereits korrekt war. */
   protected onResetPassword(user: AdminUser): void {
     // US-043 Akzeptanzkriterium 3: ein zweiter Trigger während eines laufenden Requests löst
     // nachweislich keinen zweiten HTTP-Request aus.
@@ -92,10 +98,12 @@ export class UsersAdminComponent implements OnInit {
       next: () => {
         this.resettingUserIds.delete(user.id);
         this.resetPasswordMessage = `Passwort für ${user.name} wurde zurückgesetzt. Temporäres Passwort: ${temporaryPassword}`;
+        this.changeDetectorRef.markForCheck();
       },
       error: () => {
         this.resettingUserIds.delete(user.id);
         this.resetPasswordMessage = `Passwort für ${user.name} konnte nicht zurückgesetzt werden.`;
+        this.changeDetectorRef.markForCheck();
       },
     });
   }
