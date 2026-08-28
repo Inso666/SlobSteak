@@ -3,7 +3,6 @@ import { FormBuilder, ReactiveFormsModule, Validators } from '@angular/forms';
 import { ButtonDirective } from 'primeng/button';
 import { InputText } from 'primeng/inputtext';
 import { Message } from 'primeng/message';
-import { AdminSubNavComponent } from '../admin-sub-nav/admin-sub-nav.component';
 import { AdminProject, AdminProjectsService } from '../admin-projects.service';
 import { ProjectMembershipManagerComponent } from './project-membership-manager.component';
 import { LOAD_ERROR_MESSAGE } from '../../../core/messages/http-error-messages';
@@ -18,8 +17,10 @@ import { ViewStateComponent } from '../../../shared/view-state/view-state.compon
  * (Akzeptanzkriterium 3/4) übernimmt die ausgelagerte
  * {@link ProjectMembershipManagerComponent}, sichtbar für das per Klick ausgewählte Projekt.
  *
- * US-046: Zeigt zusätzlich {@link AdminSubNavComponent}, damit ein Systemadmin von hier zum
- * Sub-Bereich „Nutzer“ wechseln kann (Akzeptanzkriterium 4).
+ * US-056: Wird seit dieser Story unter der Kind-Route `admin/projects` innerhalb des Tab-Host
+ * {@link AdminPageComponent} gerendert — die vormals hier eingebettete Sub-Navigation
+ * ({@link AdminSubNavComponent}) sowie die eigene Seitenüberschrift entfallen, da der Tab-Host
+ * beides bereits einmalig für beide Admin-Unterseiten stellt (Akzeptanzkriterium 1).
  */
 @Component({
   selector: 'app-projects-admin',
@@ -27,7 +28,6 @@ import { ViewStateComponent } from '../../../shared/view-state/view-state.compon
   imports: [
     ReactiveFormsModule,
     ProjectMembershipManagerComponent,
-    AdminSubNavComponent,
     ProcessingButtonComponent,
     ViewStateComponent,
     ButtonDirective,

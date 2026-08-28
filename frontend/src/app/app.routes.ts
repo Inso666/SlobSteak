@@ -1,5 +1,6 @@
 import { Routes } from '@angular/router';
 import { adminGuard } from './features/admin/admin.guard';
+import { AdminPageComponent } from './features/admin/admin-page/admin-page.component';
 import { UsersAdminComponent } from './features/admin/users-admin/users-admin.component';
 import { ProjectsAdminComponent } from './features/admin/projects-admin/projects-admin.component';
 import { authGuard } from './features/auth/auth.guard';
@@ -28,6 +29,12 @@ const ALL_PROJECT_ROLES = ['PL', 'Coreteam', 'Architect', 'User'] as const;
  * `access-denied` (Akzeptanzkriterium 5). `/admin/users` und `/admin/projects` sind durch
  * `adminGuard` clientseitig geschützt (US-016/US-017 Akzeptanzkriterium 4/5).
  *
+ * US-056: `/admin` ist seit dieser Story eine gemeinsame Elternroute mit `AdminPageComponent`
+ * (Tab-Host, `adminGuard` einmalig hier statt dupliziert auf beiden Kindern) — analog zum bereits
+ * etablierten Muster von `ProjectWorkspaceLayoutComponent`. `/admin/users` und `/admin/projects`
+ * bleiben als eigenständige, bookmarkbare Kind-Routen bestehen (siehe Doc-Kommentar an
+ * `AdminPageComponent`).
+ *
  * US-025: `stakeholders` rendert seit dieser Story `StakeholderListComponent` (löst den
  * bisherigen `CreateStakeholderFormComponent`-Platzhalter aus US-021 ab) — serverseitig geladene
  * Liste mit Suche/Filter, inkl. eingebettetem Anlage-Formular.
@@ -53,7 +60,15 @@ export const routes: Routes = [
       { path: 'access-denied', component: AccessDeniedComponent },
     ],
   },
-  { path: 'admin/users', component: UsersAdminComponent, canActivate: [adminGuard] },
-  { path: 'admin/projects', component: ProjectsAdminComponent, canActivate: [adminGuard] },
+  {
+    path: 'admin',
+    component: AdminPageComponent,
+    canActivate: [adminGuard],
+    children: [
+      { path: '', redirectTo: 'users', pathMatch: 'full' },
+      { path: 'users', component: UsersAdminComponent },
+      { path: 'projects', component: ProjectsAdminComponent },
+    ],
+  },
   { path: '', redirectTo: 'login', pathMatch: 'full' },
 ];

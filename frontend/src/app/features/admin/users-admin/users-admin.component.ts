@@ -4,7 +4,6 @@ import { FormBuilder, ReactiveFormsModule, Validators } from '@angular/forms';
 import { InputText } from 'primeng/inputtext';
 import { Message } from 'primeng/message';
 import { Password } from 'primeng/password';
-import { AdminSubNavComponent } from '../admin-sub-nav/admin-sub-nav.component';
 import { AdminUser, AdminUsersService } from '../admin-users.service';
 import { LOAD_ERROR_MESSAGE } from '../../../core/messages/http-error-messages';
 import { ProcessingButtonComponent } from '../../../shared/processing-button/processing-button.component';
@@ -15,13 +14,15 @@ import { ViewStateComponent } from '../../../shared/view-state/view-state.compon
  * Admin-Bereich „Nutzerverwaltung“ (US-016, Screen S5 Sub-Bereich Nutzer): Liste aller Nutzer,
  * Formular zum Anlegen neuer Nutzer, Aktion zum Zurücksetzen eines Passworts je Zeile.
  *
- * US-046: Zeigt zusätzlich {@link AdminSubNavComponent}, damit ein Systemadmin von hier zum
- * Sub-Bereich „Projekte“ wechseln kann (Akzeptanzkriterium 4).
+ * US-056: Wird seit dieser Story unter der Kind-Route `admin/users` innerhalb des Tab-Host
+ * {@link AdminPageComponent} gerendert — die vormals hier eingebettete Sub-Navigation
+ * ({@link AdminSubNavComponent}) sowie die eigene Seitenüberschrift entfallen, da der Tab-Host
+ * beides bereits einmalig für beide Admin-Unterseiten stellt (Akzeptanzkriterium 1).
  */
 @Component({
   selector: 'app-users-admin',
   standalone: true,
-  imports: [ReactiveFormsModule, AdminSubNavComponent, ProcessingButtonComponent, ViewStateComponent, InputText, Message, Password],
+  imports: [ReactiveFormsModule, ProcessingButtonComponent, ViewStateComponent, InputText, Message, Password],
   templateUrl: './users-admin.component.html',
   styleUrl: './users-admin.component.css',
 })
