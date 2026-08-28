@@ -1,4 +1,5 @@
-import { ChangeDetectorRef, Component, OnInit, inject } from '@angular/core';
+import { HttpErrorResponse } from '@angular/common/http';
+import { ChangeDetectorRef, Component, OnDestroy, OnInit, inject } from '@angular/core';
 import { FormBuilder, ReactiveFormsModule, Validators } from '@angular/forms';
 import { Router } from '@angular/router';
 import { Card } from 'primeng/card';
@@ -9,6 +10,16 @@ import { AuthService } from '../auth.service';
 import { PasswordChangeModalComponent } from '../password-change-modal/password-change-modal.component';
 import { SessionNoticeService } from '../../../core/services/session-notice.service';
 import { ProcessingButtonComponent } from '../../../shared/processing-button/processing-button.component';
+
+/**
+ * US-049 Akzeptanzkriterium 5: Schwellenwert, ab dem ein noch laufender Login-Request als „dauert
+ * ungewöhnlich lange" markiert wird (statt für den Nutzer nur wie hängengeblieben zu wirken). Der
+ * eigentliche visuelle Ladezustand dafür (SPEC-01 §1.2 `bootstrapping`-Skeleton bzw. ein
+ * ausgearbeiteter Hinweis) ist Aufgabe von US-054 — diese Story liefert ausschließlich den
+ * technischen Anknüpfungspunkt/Zustand (`isTakingLonger`), siehe Story „Anmerkungen des Agenten
+ * (Backend, US-049)".
+ */
+const SLOW_LOGIN_THRESHOLD_MS = 3000;
 
 /**
  * Login-Screen (US-009, Screen S1). Bei Erfolg mit `mustChangePassword = true` wird unmittelbar
@@ -28,7 +39,7 @@ import { ProcessingButtonComponent } from '../../../shared/processing-button/pro
   templateUrl: './login-page.component.html',
   styleUrl: './login-page.component.css',
 })
-export class LoginPageComponent implements OnInit {
+export class LoginPageComponent implements OnInit, OnDestroy {
   private readonly formBuilder = inject(FormBuilder);
   private readonly authService = inject(AuthService);
   private readonly router = inject(Router);
@@ -38,7 +49,13 @@ export class LoginPageComponent implements OnInit {
   protected errorMessage: string | null = null;
   protected sessionExpiredMessage: string | null = null;
   protected isSubmitting = false;
+  /** US-049 Akzeptanzkriterium 5: `true`, sobald ein laufender Login-Request länger als
+   * {@link SLOW_LOGIN_THRESHOLD_MS} andauert — technischer Zustand für den in US-054 umzusetzenden
+   * visuellen Ladezustand. */
+  protected isTakingLonger = false;
   protected mustChangePassword = false;
+
+  private takingLongerTimer: ReturnType<typeof setTimeout> | null = null;
 
   protected readonly form = this.formBuilder.nonNullable.group({
     email: ['', Validators.required],
@@ -49,6 +66,12 @@ export class LoginPageComponent implements OnInit {
     this.sessionExpiredMessage = this.sessionNotice.consume();
   }
 
+  ngOnDestroy(): void {
+    // US-049: verhindert, dass ein noch laufender Timer nach Verlassen der Seite (z. B. Redirect
+    // während eines laufenden Login-Requests) verspätet auf der zerstörten Komponente feuert.
+    this.clearTakingLongerTimer();
+  }
+
   /**
    * US-057: `changeDetectorRef.markForCheck()` in beiden Callbacks behebt den Bug, dass der Button
    * nach erfolgreicher Anmeldung dauerhaft im Verarbeitungs-Zustand hängen bleibt. Ursache ist
@@ -57,7 +80,8 @@ export class LoginPageComponent implements OnInit {
    * (`this.isSubmitting = false`) in einem `subscribe()`-Callback, der außerhalb eines von Angular
    * beobachteten Nutzer-Events eintrifft, markiert die Komponente nicht automatisch für die nächste
    * Change-Detection-Runde. `isSubmitting`/`app-processing-button` (US-043) bleiben unverändert —
-   * es fehlte ausschließlich diese Markierung.
+   * es fehlte ausschließlich diese Markierung. Aus demselben Grund braucht auch der neue,
+   * verzögerte `setTimeout`-Callback für `isTakingLonger` (US-049) sein eigenes `markForCheck()`.
    */
   protected onSubmit(): void {
     // US-043 Akzeptanzkriterium 3/5: ein zweiter Trigger während eines laufenden Requests löst
@@ -67,12 +91,26 @@ export class LoginPageComponent implements OnInit {
     }
 
     this.isSubmitting = true;
+    this.isTakingLonger = false;
     this.errorMessage = null;
     const { email, password } = this.form.getRawValue();
 
+    // US-049 Akzeptanzkriterium 5: technischer Anknüpfungspunkt für einen erkennbaren Unterschied
+    // zwischen „Request läuft" und „Request läuft bereits ungewöhnlich lange" — kein globaler
+    // HttpClient-Timeout vorhanden, mit dem dieser Timer kollidieren könnte (siehe Story
+    // „Anmerkungen des Agenten (Backend, US-049)"). Wird in beiden subscribe()-Callbacks
+    // aufgeräumt, damit ein rechtzeitig abgeschlossener Request keinen verspäteten Zustandswechsel
+    // mehr auslösen kann.
+    this.takingLongerTimer = setTimeout(() => {
+      this.isTakingLonger = true;
+      this.changeDetectorRef.markForCheck();
+    }, SLOW_LOGIN_THRESHOLD_MS);
+
     this.authService.login(email, password).subscribe({
       next: ({ mustChangePassword }) => {
+        this.clearTakingLongerTimer();
         this.isSubmitting = false;
+        this.isTakingLonger = false;
         if (mustChangePassword) {
           this.mustChangePassword = true;
         } else {
@@ -80,9 +118,20 @@ export class LoginPageComponent implements OnInit {
         }
         this.changeDetectorRef.markForCheck();
       },
-      error: () => {
+      error: (error: unknown) => {
+        this.clearTakingLongerTimer();
         this.isSubmitting = false;
-        this.errorMessage = 'E-Mail oder Passwort ist falsch.';
+        this.isTakingLonger = false;
+        // US-049: der Backend-Agent hat angemerkt, dass diese Meldung zuvor unterschiedslos für
+        // JEDEN Fehler (auch technische Fehler wie ein noch nicht bereites Backend, `502`) die
+        // fachlich falsche „Zugangsdaten falsch"-Meldung zeigte. Differenzierung nach Statuscode
+        // gemäß SPEC-01-Login.md §3.1 (dort für genau diesen Fall vorgesehene Formulierung für
+        // technische/Server-Fehler): nur ein `401` gilt als „Zugangsdaten falsch", jeder andere
+        // Fehler (Netzwerkfehler, `5xx`, `0`) als „Anmeldung derzeit nicht möglich".
+        this.errorMessage =
+          error instanceof HttpErrorResponse && error.status === 401
+            ? 'E-Mail oder Passwort ist falsch.'
+            : 'Anmeldung derzeit nicht möglich. Bitte später erneut versuchen.';
         this.form.controls.password.setValue('');
         this.changeDetectorRef.markForCheck();
       },
@@ -96,5 +145,12 @@ export class LoginPageComponent implements OnInit {
 
   private navigateToProjects(): void {
     void this.router.navigate(['/projects']);
+  }
+
+  private clearTakingLongerTimer(): void {
+    if (this.takingLongerTimer !== null) {
+      clearTimeout(this.takingLongerTimer);
+      this.takingLongerTimer = null;
+    }
   }
 }

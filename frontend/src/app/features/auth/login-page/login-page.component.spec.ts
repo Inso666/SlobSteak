@@ -1,4 +1,4 @@
-import { provideHttpClient } from '@angular/common/http';
+import { HttpErrorResponse, provideHttpClient } from '@angular/common/http';
 import { HttpTestingController, provideHttpClientTesting } from '@angular/common/http/testing';
 import { TestBed } from '@angular/core/testing';
 import { provideRouter, Router } from '@angular/router';
@@ -101,7 +101,9 @@ describe('LoginPageComponent', () => {
   });
 
   it('should show a non-blocking error and clear the password field on 401', () => {
-    authServiceSpy.login.and.returnValue(throwError(() => new Error('Unauthorized')));
+    authServiceSpy.login.and.returnValue(
+      throwError(() => new HttpErrorResponse({ status: 401, statusText: 'Unauthorized' })),
+    );
     const fixture = TestBed.createComponent(LoginPageComponent);
     const component = fixture.componentInstance;
 
@@ -111,6 +113,28 @@ describe('LoginPageComponent', () => {
     expect(component['errorMessage']).toBe('E-Mail oder Passwort ist falsch.');
     expect(component['form'].controls.password.value).toBe('');
     expect(component['mustChangePassword']).toBeFalse();
+  });
+
+  /**
+   * US-049: der Backend-Agent hat angemerkt, dass der Fehler-Handler zuvor unterschiedslos für
+   * JEDEN Fehler (auch einen 502 durch ein noch nicht bereites Backend) die fachlich falsche
+   * „Zugangsdaten falsch"-Meldung zeigte. Dieser Test belegt die Differenzierung nach Statuscode
+   * gemäß SPEC-01-Login.md §3.1.
+   */
+  it('should show a generic technical-error message (not "Zugangsdaten falsch") for a non-401 error such as a 502', () => {
+    authServiceSpy.login.and.returnValue(
+      throwError(() => new HttpErrorResponse({ status: 502, statusText: 'Bad Gateway' })),
+    );
+    const fixture = TestBed.createComponent(LoginPageComponent);
+    const component = fixture.componentInstance;
+
+    component['form'].setValue({ email: 'user@example.com', password: 'correct-horse' });
+    component['onSubmit']();
+
+    expect(component['errorMessage']).toBe('Anmeldung derzeit nicht möglich. Bitte später erneut versuchen.');
+    expect(component['form'].controls.password.value).toBe('');
+    expect(component['isSubmitting']).toBeFalse();
+    expect(component['isTakingLonger']).toBeFalse();
   });
 
   /**
@@ -175,6 +199,70 @@ describe('LoginPageComponent', () => {
       const button: HTMLButtonElement = fixture.nativeElement.querySelector('button.app-processing-button');
       expect(button.getAttribute('aria-busy')).toBe('false');
       expect(fixture.nativeElement.textContent).toContain('E-Mail oder Passwort ist falsch.');
+    });
+
+    /**
+     * US-049 Akzeptanzkriterium 5: technischer Anknüpfungspunkt für einen erkennbaren Unterschied
+     * zwischen „Request läuft" und „Request läuft bereits ungewöhnlich lange" — belegt mit einem
+     * echten, noch ausstehenden Request (kein flush() vor Ablauf des Schwellenwerts), analog zum
+     * bug-reproduzierenden Muster der übrigen Tests in diesem describe-Block.
+     */
+    it('should mark the login request as taking longer than usual once it has been pending for 3s (US-049)', () => {
+      jasmine.clock().install();
+      try {
+        const fixture = TestBed.createComponent(LoginPageComponent);
+        fixture.detectChanges();
+        fixture.componentInstance['form'].setValue({ email: 'user@example.com', password: 'correct-horse' });
+        fixture.componentInstance['onSubmit']();
+
+        expect(fixture.componentInstance['isTakingLonger']).toBeFalse();
+
+        jasmine.clock().tick(2999);
+        fixture.detectChanges();
+        expect(fixture.componentInstance['isTakingLonger']).toBeFalse();
+
+        jasmine.clock().tick(1);
+        fixture.detectChanges();
+        expect(fixture.componentInstance['isTakingLonger']).toBeTrue();
+        const notice: HTMLElement | null = fixture.nativeElement.querySelector('[data-testid="login-taking-longer-notice"]');
+        expect(notice).not.toBeNull();
+        expect(notice?.textContent).toContain('dauert ungewöhnlich lange');
+
+        http.expectOne('/api/v1/auth/login').flush({ token: 'fake-jwt-token', mustChangePassword: false });
+        fixture.detectChanges();
+
+        expect(fixture.componentInstance['isTakingLonger']).toBeFalse();
+      } finally {
+        jasmine.clock().uninstall();
+      }
+    });
+
+    it('should NOT mark the login request as taking longer than usual when it resolves before the 3s threshold, and clears the pending timer (US-049)', () => {
+      jasmine.clock().install();
+      try {
+        const fixture = TestBed.createComponent(LoginPageComponent);
+        fixture.detectChanges();
+        fixture.componentInstance['form'].setValue({ email: 'user@example.com', password: 'correct-horse' });
+        fixture.componentInstance['onSubmit']();
+
+        jasmine.clock().tick(50);
+        http.expectOne('/api/v1/auth/login').flush({ token: 'fake-jwt-token', mustChangePassword: false });
+        fixture.detectChanges();
+
+        expect(fixture.componentInstance['isTakingLonger']).toBeFalse();
+        let notice: HTMLElement | null = fixture.nativeElement.querySelector('[data-testid="login-taking-longer-notice"]');
+        expect(notice).toBeNull();
+
+        // Belegt, dass der Timer beim Aufräumen tatsächlich per clearTimeout() entfernt wurde:
+        // ohne clearTimeout() würde dieser Tick den Zustand nachträglich noch auf "true" kippen.
+        jasmine.clock().tick(5000);
+        fixture.detectChanges();
+        expect(fixture.componentInstance['isTakingLonger']).toBeFalse();
+        notice = fixture.nativeElement.querySelector('[data-testid="login-taking-longer-notice"]');
+        expect(notice).toBeNull();
+      } finally {
+        jasmine.clock().uninstall();
+      }
     });
   });
 });

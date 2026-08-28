@@ -29,6 +29,29 @@ Alle nennenswerten Änderungen an diesem Projekt werden hier je User Story dokum
   für „Request läuft bereits > 3s“. Kein globaler `HttpClient`-Timeout konfiguriert. Details und ein
   konkreter Umsetzungsvorschlag in der Story-Datei „Anmerkungen des Agenten“.
 
+### US-049 — Verlässliche Antwortzeit & Statusrückmeldung beim ersten Request nach Systemstart (Frontend-Anteil)
+
+- `LoginPageComponent` (`frontend/src/app/features/auth/login-page/`): neuer technischer Zustand
+  `isTakingLonger` (Akzeptanzkriterium 5) — startet in `onSubmit()` einen `setTimeout(..., 3000)`,
+  der bei einem noch laufenden Request nach 3s greift und im Template einen zusätzlichen,
+  sichtbaren Hinweis (`p-message severity="info"`, `data-testid="login-taking-longer-notice"`)
+  einblendet; Timer wird in beiden `subscribe`-Callbacks sowie in einem neuen `ngOnDestroy()`
+  aufgeräumt. Reines textbasiertes Feedback, kein neues Design — das visuelle Redesign dieses
+  Zustands bleibt US-054 vorbehalten.
+- Zusätzlich mit übernommen (Befund des Backend-Agenten, direkt zu AC 5 gehörig): `onSubmit()`
+  zeigte bislang bei jedem Fehler pauschal „E-Mail oder Passwort ist falsch.“ — jetzt Unterscheidung
+  nach Statuscode (`HttpErrorResponse.status === 401`); jeder andere Fehler (Netzwerkfehler, `5xx`,
+  `0`, z. B. ein noch nicht bereites Backend) zeigt die in `SPEC-01-Login.md` §3.1 vorgesehene
+  Meldung „Anmeldung derzeit nicht möglich. Bitte später erneut versuchen.“
+- Tests in `login-page.component.spec.ts` ergänzt/angepasst (jetzt 15 Tests): realistischer
+  `HttpErrorResponse` statt generischem `Error` im bestehenden 401-Test, neuer Test für den
+  technischen 502-Fall, zwei neue `HttpTestingController`-Tests für `isTakingLonger` (inkl. Beleg,
+  dass der Timer bei rechtzeitigem Request-Ende tatsächlich per `clearTimeout()` aufgeräumt wird).
+  `fakeAsync()`/`tick()` sind in diesem zonelosen Projekt nicht nutzbar — `jasmine.clock()`
+  verwendet.
+- `ng test` (gesamter Workspace, 210/210) und `ng lint` grün.
+
+
 ### US-057 — Login-Flow bleibt nach erfolgreicher Anmeldung dauerhaft im Verarbeitungs-Zustand hängen
 
 - Bugfix in `LoginPageComponent.onSubmit()` (`frontend/src/app/features/auth/login-page/login-page.component.ts`):
