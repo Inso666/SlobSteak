@@ -1,8 +1,8 @@
 # System Context: Projekt „SlobSteak“
 
-Diese Datei ist verbindlicher, rollenübergreifender Systemkontext für **jeden** Agenten, der an diesem Repository arbeitet. Sie gilt für jede Iteration, in der eine User Story aus `docs/usecases/BACKLOG.md` umgesetzt wird — ausnahmslos.
+Diese Datei ist verbindlicher Systemkontext für den Agenten, der an diesem Repository arbeitet. Sie gilt für jede Iteration, in der eine User Story aus `docs/usecases/BACKLOG.md` umgesetzt wird — ausnahmslos.
 
-Für konkrete Architektur-, Test- und Coding-Regeln liest jeder Agent zusätzlich die für seine Rolle zuständige Datei unter `.claude/agents/` (siehe Abschnitt 1). Diese Datei hier enthält nur, was für **alle** Rollen gleichermaßen gilt.
+Eine Story wird vollständig von **einem** Agenten bearbeitet, unabhängig davon, welche Disziplin(en) sie berührt — es gibt keine separaten Rollen-Agenten mehr. Für konkrete Architektur-, Test- und Coding-Regeln liest der Agent zusätzlich jede für die Story zutreffende Rollendatei unter `.claude/agents/` (siehe Abschnitt 1). Diese Datei hier enthält nur, was für **alle** Disziplinen gleichermaßen gilt.
 
 Referenzdokumente, die vor jeder Story gelesen werden müssen — rollenunabhängig:
 - `docs/PRD-SlobSteak.md` — fachliche Quelle der Wahrheit
@@ -23,20 +23,22 @@ Kein anderer Stack, kein anderes ORM, keine andere Frontend-Technologie wird ohn
 
 ---
 
-## 1. Rollen
+## 1. Rollen(-disziplinen)
 
-Dieses Projekt wird von mehreren spezialisierten Agenten bearbeitet. Jeder Agent liest **zusätzlich** zu dieser Datei die für ihn zuständige Rollendatei, bevor er an einer Story arbeitet:
+Kein separater Agent pro Rolle mehr. **Ein** Agent bearbeitet jede User Story vollständig, von Anfang bis Ende — inklusive aller Disziplinen, die die Story berührt.
 
-| Rolle | Datei | Verantwortung |
+Vor Story-Start ermittelt der Agent anhand der Story-Datei (`docs/usecases/US-[NNN]-*.md`), welche der folgenden Disziplinen betroffen sind, und liest **zusätzlich** zu dieser Datei jede zutreffende Rollendatei vollständig, bevor er an der Story arbeitet:
+
+| Disziplin | Datei | Verantwortung |
 |---|---|---|
 | Backend | `.claude/agents/backend.md` | .NET/DDD-Domänenlogik, Application-Services, API, Persistenz |
 | Frontend | `.claude/agents/frontend.md` | Angular-Umsetzung, Komponenten, State, Services |
 | QA | `.claude/agents/qa.md` | Story-Tests, Testpyramide, Regression, E2E, Testabdeckung |
 | UX/UI | `.claude/agents/ux-ui.md` | Interaktions- und Visualdesign, Usability, Barrierefreiheit, Wording |
 
-Eine Story kann mehrere Rollen betreffen (z. B. UX/UI → Frontend → QA, oder Backend + Frontend). Jeder Agent bearbeitet nur den Anteil seiner Rolle und übergibt nachvollziehbar an die nächste (Abschnitt 3.1).
+Eine Story kann mehrere Disziplinen betreffen (z. B. UX/UI → Frontend → QA, oder Backend + Frontend). In diesem Fall arbeitet der Agent alle zutreffenden Rollendateien in fachlich sinnvoller Reihenfolge ab (siehe 3.1) — innerhalb eines durchgehenden Arbeitsschritts, ohne Übergabe an einen anderen Agenten. Für jeden Disziplin-Anteil gelten die Regeln der jeweils zutreffenden Rollendatei uneingeschränkt; bei widersprüchlichen Vorgaben zwischen Rollendateien entscheidet, was für die konkrete Story fachlich korrekt ist, und die Abweichung wird nach Abschnitt 6 dokumentiert.
 
-Rollenübergreifend gilt: **Du triffst keine stillen Abweichungen vom PRD.** Wenn eine Story fachlich unklar oder widersprüchlich zum PRD ist, hältst du inne und dokumentierst die Unklarheit (Abschnitt 6), statt zu raten.
+Disziplinübergreifend gilt: **Du triffst keine stillen Abweichungen vom PRD.** Wenn eine Story fachlich unklar oder widersprüchlich zum PRD ist, hältst du inne und dokumentierst die Unklarheit (Abschnitt 6), statt zu raten.
 
 ---
 
@@ -75,11 +77,12 @@ Diese Regeln sind nicht verhandelbar — die konkrete Umsetzung je Rolle steht i
 - [ ] Alle Commits sind gepusht und ein PR mit aktiviertem Auto-Merge ist eröffnet (Abschnitt 4) — die Aufgabe des Agenten gilt bereits damit als abgeschlossen.
 - [ ] Führt die Story neue Komponenten ein (neue Test-Projekte, E2E-Tests, Migrationen), ist `.github/workflows/pr-checks.yml` im selben PR entsprechend erweitert (Abschnitt 5.1).
 
-### 3.1 Zusammenarbeit zwischen Rollen
+### 3.1 Zusammenarbeit zwischen Disziplinen
 
-- Eine Story mit mehreren betroffenen Rollen wird trotzdem in **einem** gemeinsamen Feature-Branch und **einem** gemeinsamen PR abgeschlossen — nicht in separaten PRs je Rolle (siehe „ein PR pro Story“ in Abschnitt 4).
-- UX/UI-Vorgaben (falls die Story welche erfordert) liegen vor Beginn der Frontend-Umsetzung vor oder werden gemeinsam mit ihr abgestimmt. Backend-Contracts (DTOs/Endpunkte) sind vor Beginn der Frontend-Integration stabil oder werden innerhalb derselben Story gemeinsam festgelegt.
-- Wird eine Story von mehreren Agenten nacheinander bearbeitet, hinterlässt jeder Agent eine kurze Übergabenotiz im PR-Beschreibungstext, damit der nächste Agent den Stand nachvollziehen kann.
+- Eine Story mit mehreren betroffenen Disziplinen wird trotzdem in **einem** gemeinsamen Feature-Branch und **einem** gemeinsamen PR abgeschlossen — nicht in separaten PRs je Disziplin (siehe „ein PR pro Story“ in Abschnitt 4).
+- UX/UI-Vorgaben (falls die Story welche erfordert) liegen vor Beginn der Frontend-Umsetzung vor oder werden im selben Arbeitsschritt vorab festgelegt. Backend-Contracts (DTOs/Endpunkte) sind vor Beginn der Frontend-Integration stabil oder werden innerhalb derselben Story vorab festgelegt.
+- Empfohlene Reihenfolge innerhalb einer Story mit mehreren Disziplinen: UX/UI-Vorgaben (falls nötig) → Backend-Contracts/-Logik → Frontend-Integration → QA/Story-Test. Abweichungen sind zulässig, wenn fachlich sinnvoller.
+- Der PR-Beschreibungstext hält kurz fest, welche Disziplinen (Backend/Frontend/QA/UX-UI) die Story berührt und bearbeitet hat — als Nachvollziehbarkeit für spätere Reviews, nicht als Übergabe zwischen Agenten.
 
 ---
 
@@ -108,7 +111,7 @@ Diese Regeln sind nicht verhandelbar — die konkrete Umsetzung je Rolle steht i
   - Nachweis der lokalen Verifizierbarkeit (Testergebnisse `dotnet test` / `ng test`, Smoke-Check),
   - ggf. Abweichungen/Anmerkungen gemäß Abschnitt 6,
   - ggf. Hinweise auf enthaltene EF-Core-Migrationen,
-  - ggf. Übergabenotizen zwischen Rollen (Abschnitt 3.1).
+  - ggf. Hinweis, welche Disziplinen (Backend/Frontend/QA/UX-UI) bearbeitet wurden (Abschnitt 3.1).
   - Pro Story wird genau **ein** PR eröffnet; mehrere Stories werden nie in einem gemeinsamen PR zusammengefasst.
 - **Auto-Merge — verbindlich für jeden Story-PR (seit ADR-0003).** Der PR wird nicht nur eröffnet, sondern zwingend mit aktiviertem GitHub-Auto-Merge und Squash-Merge-Strategie erstellt, sodass er automatisch nach `main` gemerged wird, sobald alle sechs in `.github/workflows/pr-checks.yml` definierten Required Status Checks (Branch-Protection-Regel auf `main`, siehe README.md „PR-Checks / Required Status Checks“) grün sind. Ab dem Zeitpunkt der PR-Erstellung findet **kein manuelles Review mehr statt, bevor gemerged wird** — die CI-Jobs sind das alleinige Merge-Gate.
   - Mit der GitHub CLI: `gh pr create --base main --head feature/US-[NNN]-kurzbeschreibung --title "feat(US-[NNN]): <Story-Titel>" --body "<siehe oben>" --auto --squash` (fällt die installierte `gh`-Version zurück, weil sie `--auto`/`--squash` nicht an `pr create` kennt, ersatzweise unmittelbar danach `gh pr merge --auto --squash` auf denselben PR anwenden).
