@@ -3,7 +3,7 @@
 **Bounded Context / Domain:** Shared Kernel / Infrastructure (cross-cutting, betrifft Backend-Start und Frontend-Login gleichermaßen)
 **Abhängigkeiten:** US-001, US-006, US-009
 
-**Status:** fertig (28.08.2026), PR siehe unten
+**Status:** fertig (28.08.2026), PR #50 (Auto-Merge aktiviert)
 
 ---
 
