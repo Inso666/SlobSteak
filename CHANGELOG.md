@@ -4,6 +4,30 @@ Alle nennenswerten Änderungen an diesem Projekt werden hier je User Story dokum
 
 ## [Unreleased]
 
+### US-055 — Globale Navigation als vertikale Sidebar statt horizontaler Kopfleiste
+
+- `AppNavigationComponent`: von horizontaler Kopfleiste (US-045) zu fester, vertikaler
+  `<aside>`-Sidebar am linken Rand umgebaut — alle bisherigen Sechs Feature-Spec-Dateien
+  (SPEC-02–SPEC-07) gehen übereinstimmend von genau dieser Sidebar-Struktur als App-Shell aus.
+  Bestehende Navigationspunkte (Projektübersicht, Admin, Abmelden) unverändert funktional
+  erhalten.
+- Unterhalb 960px (Angular CDK `BreakpointObserver`, exakte Custom-Query gemäß SPEC-02 §1.4
+  „Variante A", keine PrimeFlex-Default-Breakpoints) klappt die Sidebar zu einem `p-drawer` mit
+  Hamburger-Trigger zusammen — identischer Navigationsinhalt wie die Desktop-Sidebar, per
+  `ngTemplateOutlet` wiederverwendet statt dupliziert (kein Screen-lokales Overriding).
+- `app.html`/`.css`: Gesamtlayout auf Flex-Shell (Sidebar + Main-Content) umgestellt.
+- Bestehende Tests (`app-navigation.component.spec.ts`, `us-045-*.spec.ts`,
+  `us-046-*.spec.ts`) um einen `BreakpointObserver`-Stub ergänzt — Chrome Headless startet in
+  dieser Umgebung standardmäßig mit einem 800×600px-Fenster, unterhalb des neuen 960px-Breakpoints,
+  ohne den Stub hätten alle drei Dateien plötzlich den (initial geschlossenen) mobilen Drawer statt
+  der Desktop-Sidebar getroffen.
+- Neuer Story-Test `us-055-vertikale-navigation-sidebar.spec.ts` (5 Testfälle, kontrolliertes
+  `Subject` statt echter Fenstergröße für deterministisches Desktop-/Mobile-Testen).
+- `ng test` (237/237), `ng lint`, `ng build` grün; `dotnet test` unverändert grün (kein
+  Backend-Anteil). Bundle-Budget-Warnung durch zwei neue Abhängigkeiten (`@angular/cdk/layout`,
+  `primeng/drawer`) von ca. 277 kB auf 300 kB über Budget gewachsen (weiterhin nur Warnung, kein
+  Build-Fehler).
+
 ### US-054 — Login- und Passwort-Änderungs-Masken gemäß SPEC-01 angleichen
 
 - Login-Seite: Markenblock um Tagline „Stakeholder-Management für Projektteams“ ergänzt, Footnote

@@ -1,46 +1,61 @@
-/* US-047: die globale Navigations-Shell (US-045) ist auf jedem Screen sichtbar und daher für die
-   visuelle Konsistenz über S1–S5 hinweg (Akzeptanzkriterium 4) besonders relevant — obwohl nicht
-   explizit in der Story-Dateiliste genannt, wird sie hier mitmigriert (siehe Anmerkungen des
-   Dev-Agenten, Begründung „US-043–046 führen neue UI-Bausteine ein, die sonst ein zweites Mal
-   migriert werden müssten"). Ausschließlich zentrale Tokens. */
+/* US-055 / SPEC-02 §1.2: vertikale, feste Sidebar statt horizontaler Kopfleiste (US-045).
+   Sidebar-Breite ist eine konkrete Struktur-Dimension, kein Farb-/Radius-/Abstands-Wert aus
+   SPEC-00 §1.2 — analog zu anderen bereits im Projekt üblichen konkreten Größen (z. B.
+   `.icon-badge` 2.5rem, Dialog-Breite `w-25rem`), daher direkt hier statt als globaler Token. */
 .app-navigation {
   display: flex;
-  align-items: center;
-  gap: var(--app-space-lg);
-  padding: var(--app-space-sm) var(--app-space-lg);
+  flex-direction: column;
+  width: 16rem;
+  height: 100vh;
+  position: sticky;
+  top: 0;
+  flex-shrink: 0;
+  padding: var(--app-space-lg) var(--app-space-md);
   background: var(--app-color-surface);
-  border-bottom: 1px solid var(--app-color-border);
+  border-right: 1px solid var(--app-color-border);
   font-family: var(--app-font-family-body);
+  box-sizing: border-box;
 }
 
 .app-navigation__brand {
+  display: block;
   font-family: var(--app-font-family-display);
   font-weight: 600;
   color: var(--app-color-text);
-  margin-right: auto;
+  margin-bottom: var(--app-space-xl);
+  padding: 0 var(--app-space-sm);
 }
 
 .app-navigation__links {
   display: flex;
-  align-items: center;
-  gap: var(--app-space-md);
+  flex-direction: column;
+  gap: var(--app-space-xs);
   list-style: none;
   margin: 0;
   padding: 0;
 }
 
 .app-navigation__links a {
+  display: block;
+  padding: var(--app-space-sm);
+  border-radius: var(--app-radius-md);
   text-decoration: none;
   color: var(--app-color-text-muted);
   font-size: var(--app-font-size-body);
 }
 
+.app-navigation__links a:hover {
+  background: var(--app-color-surface-hover);
+}
+
 .app-navigation__links a.active {
   color: var(--app-color-text);
+  background: var(--app-color-surface-hover);
   font-weight: 600;
 }
 
 .app-navigation__logout {
+  margin-top: auto;
   padding: var(--app-space-xs) var(--app-space-md);
   border: 1px solid var(--app-color-border);
   border-radius: var(--app-radius-md);
@@ -51,5 +66,28 @@
 }
 
 .app-navigation__logout:hover {
+  background: var(--app-color-surface-hover);
+}
+
+/* US-055 Akzeptanzkriterium 3: Hamburger-Trigger unterhalb 960px, ersetzt die feste Sidebar
+   (die in diesem Zustand gar nicht gerendert wird, siehe Template). */
+.app-navigation__menu-trigger {
+  position: fixed;
+  top: var(--app-space-sm);
+  left: var(--app-space-sm);
+  z-index: 10;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 2.5rem;
+  height: 2.5rem;
+  border: 1px solid var(--app-color-border);
+  border-radius: var(--app-radius-md);
+  background: var(--app-color-surface);
+  color: var(--app-color-text);
+  cursor: pointer;
+}
+
+.app-navigation__menu-trigger:hover {
   background: var(--app-color-surface-hover);
 }
