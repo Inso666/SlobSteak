@@ -6,6 +6,23 @@
   padding: var(--app-space-lg);
 }
 
+/* US-053: Markenblock (SPEC-01-Login.md §1.2), analog des dortigen `.flex align-items-center
+   gap-2`-Musters. */
+.brand-block {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: var(--app-space-sm);
+  margin-bottom: var(--app-space-lg);
+}
+
+.brand-wordmark {
+  font-family: var(--app-font-family-display);
+  font-size: var(--app-font-size-card-title);
+  font-weight: 600;
+  color: var(--app-color-text);
+}
+
 .field {
   display: flex;
   flex-direction: column;

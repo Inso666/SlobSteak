@@ -1,5 +1,13 @@
 @if (!mustChangePassword) {
   <main class="login">
+    <!-- US-053: Markenblock (SPEC-01-Login.md §1.2) — bewusst nur Icon + Schriftzug, ohne die dort
+         zusätzlich gezeigte Tagline/den Bootstrapping-Zustand, die strukturelle/visuelle
+         Vollangleichung an SPEC-01 bleibt US-054 vorbehalten. -->
+    <div class="brand-block">
+      <app-brand-mark />
+      <span class="brand-wordmark">SlobSteak</span>
+    </div>
+
     <p-card>
       <h1 id="login-title">Anmelden</h1>
 
