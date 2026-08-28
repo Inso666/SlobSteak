@@ -6,6 +6,7 @@ import { Card } from 'primeng/card';
 import { InputText } from 'primeng/inputtext';
 import { Message } from 'primeng/message';
 import { Password } from 'primeng/password';
+import { Skeleton } from 'primeng/skeleton';
 import { AuthService } from '../auth.service';
 import { PasswordChangeModalComponent } from '../password-change-modal/password-change-modal.component';
 import { SessionNoticeService } from '../../../core/services/session-notice.service';
@@ -36,7 +37,7 @@ const SLOW_LOGIN_THRESHOLD_MS = 3000;
 @Component({
   selector: 'app-login-page',
   standalone: true,
-  imports: [ReactiveFormsModule, PasswordChangeModalComponent, BrandMarkComponent, ProcessingButtonComponent, Card, InputText, Message, Password],
+  imports: [ReactiveFormsModule, PasswordChangeModalComponent, BrandMarkComponent, ProcessingButtonComponent, Card, InputText, Message, Password, Skeleton],
   templateUrl: './login-page.component.html',
   styleUrl: './login-page.component.css',
 })
@@ -56,6 +57,27 @@ export class LoginPageComponent implements OnInit, OnDestroy {
   protected isTakingLonger = false;
   protected mustChangePassword = false;
 
+  /**
+   * US-054 / SPEC-01 §3.1: `bootstrapping = true` beim allerersten Rendern, Skeleton statt
+   * Formular (Akzeptanzkriterium 3), auf `false` gesetzt in `ngOnInit`, sobald die
+   * Initialisierung der Seite abgeschlossen ist. Diese Anwendung hat aktuell keinen echten
+   * asynchronen Session-Check — `TokenStorageService`/`authGuard` lesen synchron aus
+   * `localStorage`, kein Netzwerk-Roundtrip nötig — daher ist dieser Übergang hier synchron
+   * innerhalb desselben `ngOnInit`-Aufrufs abgeschlossen (bewusst KEIN künstlich verzögerter
+   * `setTimeout`: das würde denselben Zustandsübergang wie das in US-050/US-057/US-051
+   * dokumentierte zoneless-Muster erfordern und obendrein jeden bestehenden, synchron
+   * arbeitenden Test dieser Komponente brechen, ohne einen echten fachlichen Ladevorgang
+   * abzubilden). Der in SPEC-01 §3.1 zusätzlich beschriebene automatische Redirect bereits
+   * angemeldeter Nutzer:innen weg von `/login` ist dort selbst ausdrücklich „außerhalb dieser
+   * Spec" markiert und wird hier bewusst NICHT ergänzt (CLAUDE.md Abschnitt 3: nur an dieser
+   * Story arbeiten, kein stiller Scope-Zuwachs auf Routing-Verhalten). Der Zustand bleibt damit
+   * ein realer, korrekt verdrahteter technischer Anknüpfungspunkt (analog `isTakingLonger`,
+   * US-049) für eine künftige echte, tatsächlich asynchrone Session-Prüfung — sichtbar wird er
+   * heute nur, solange Angular selbst noch initialisiert (z. B. bei einem sehr langsamen
+   * initialen Bundle-Ladevorgang), nicht als künstlich verlängerter Zustand.
+   */
+  protected bootstrapping = true;
+
   private takingLongerTimer: ReturnType<typeof setTimeout> | null = null;
 
   protected readonly form = this.formBuilder.nonNullable.group({
@@ -65,6 +87,7 @@ export class LoginPageComponent implements OnInit, OnDestroy {
 
   ngOnInit(): void {
     this.sessionExpiredMessage = this.sessionNotice.consume();
+    this.bootstrapping = false;
   }
 
   ngOnDestroy(): void {

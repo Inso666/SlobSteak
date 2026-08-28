@@ -5,14 +5,21 @@ import { Message } from 'primeng/message';
 import { Password } from 'primeng/password';
 import { AuthService } from '../auth.service';
 import { ProcessingButtonComponent } from '../../../shared/processing-button/processing-button.component';
+import { passwordsMatchValidator } from '../../../shared/validators/passwords-match.validator';
 
 /**
  * Blockierendes Passwort-Änderungs-Modal (US-008, Screen S1). Wird nach einem Login mit
  * `mustChangePassword = true` angezeigt; erst nach erfolgreichem Absenden emittiert die
  * Komponente {@link passwordChanged}, woraufhin die einbettende Shell (US-009) die restliche
- * Anwendung freigibt. Reaktives Formular (`ReactiveFormsModule`) gemäß CLAUDE.md Abschnitt 3.7 —
- * die Mindestlänge (8 Zeichen) spiegelt die serverseitige Regel aus `PasswordTooShortError`; die
- * eigentliche Durchsetzung bleibt serverseitig (`PATCH /api/v1/auth/password`).
+ * Anwendung freigibt. Reaktives Formular (`ReactiveFormsModule`) gemäß CLAUDE.md Abschnitt 3.7.
+ *
+ * US-054 / SPEC-01 §2.2: Mindestlänge bewusst bei **8** Zeichen belassen (nicht auf die dort
+ * vorgegebenen 10 geändert) — sie spiegelt die tatsächlich serverseitig durchgesetzte Regel aus
+ * `PasswordTooShortError.MinimumLength` (Backend, `SlobSteak.Domain`). Ein abweichender
+ * Frontend-Grenzwert würde Nutzer:innen ein Passwort verbieten, das der Server anschließend
+ * anstandslos akzeptieren würde — CLAUDE.md Abschnitt 6: dokumentierte, bewusste Abweichung von
+ * SPEC-01 zugunsten der bestehenden, verbindlichen Backend-Invariante statt stiller Übernahme des
+ * Wireframe-Werts.
  */
 @Component({
   selector: 'app-password-change-modal',
@@ -30,9 +37,13 @@ export class PasswordChangeModalComponent {
   protected errorMessage: string | null = null;
   protected isSubmitting = false;
 
-  protected readonly form = this.formBuilder.nonNullable.group({
-    newPassword: ['', [Validators.required, Validators.minLength(8)]],
-  });
+  protected readonly form = this.formBuilder.nonNullable.group(
+    {
+      newPassword: ['', [Validators.required, Validators.minLength(8)]],
+      confirmPassword: ['', [Validators.required]],
+    },
+    { validators: passwordsMatchValidator('newPassword', 'confirmPassword') },
+  );
 
   protected onSubmit(): void {
     // US-043 Akzeptanzkriterium 3/5: ein zweiter Trigger während eines laufenden Requests löst

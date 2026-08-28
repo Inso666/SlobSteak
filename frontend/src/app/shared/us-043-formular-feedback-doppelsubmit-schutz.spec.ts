@@ -491,6 +491,10 @@ describe('US-043 Einheitliches Verarbeitungs-Feedback & Doppel-Submit-Schutz', (
       fixture.detectChanges();
       const component = fixture.componentInstance;
       component['form'].controls.newPassword.setValue('new-super-secret');
+      // US-054: `confirmPassword` ist seither ein Pflichtfeld (Bestätigungsabgleich) — ohne
+      // übereinstimmenden Wert bliebe das Formular ungültig und `onSubmit()` würde vor
+      // `isSubmitting = true` bereits zurückkehren.
+      component['form'].controls.confirmPassword.setValue('new-super-secret');
       fixture.detectChanges();
 
       // Ein echter Klick (statt eines direkten Methodenaufrufs) löst den nativen `submit`-Event

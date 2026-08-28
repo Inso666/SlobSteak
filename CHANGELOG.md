@@ -4,6 +4,34 @@ Alle nennenswerten Änderungen an diesem Projekt werden hier je User Story dokum
 
 ## [Unreleased]
 
+### US-054 — Login- und Passwort-Änderungs-Masken gemäß SPEC-01 angleichen
+
+- Login-Seite: Markenblock um Tagline „Stakeholder-Management für Projektteams“ ergänzt, Footnote
+  „Kein eigenes Konto? Ein Administrator richtet deinen Zugang ein.“ ergänzt, Bootstrapping-
+  Skeleton-Zustand (SPEC-00 §3 `<p-skeleton>`-Baustein) ergänzt.
+- Passwort-Änderungs-Dialog: amberfarbener Icon-Badge (Schloss-Icon, SPEC-00-Tokens
+  `color.attention`/`color.attention-bg`), Titel/Kontext-Text/Hinweistext gemäß SPEC-01
+  übernommen, durchgängig informelle Anrede („du“ statt „Sie“).
+- **Funktionale Ergänzung, nicht nur optisch:** neues Pflichtfeld „Passwort bestätigen“
+  (`confirmPassword`) mit neuem, wiederverwendbarem `passwordsMatchValidator`
+  (`frontend/src/app/shared/validators/`) — ein Formular-Submit ist bei ungleichen Werten nicht
+  mehr möglich, verständliche Fehlermeldung direkt am Feld.
+- Mindestlänge bewusst bei 8 Zeichen belassen (nicht auf die in SPEC-01 vorgegebenen 10 geändert)
+  — spiegelt die tatsächlich serverseitig durchgesetzte `PasswordTooShortError.MinimumLength`-Regel;
+  dokumentierte, bewusste Abweichung statt stiller Übernahme des Wireframe-Werts.
+- Umfang bewusst auf die in der Story konkret benannten SPEC-01-Deltas begrenzt — bereits durch
+  neuere Stories etablierte Bausteine (`app-processing-button` aus US-043, SPEC-00-Tokens aus
+  US-047) bleiben unverändert, statt auf SPEC-01s älteres Component-Tree-Beispiel zurückgebaut zu
+  werden.
+- Story-Test `us-054-login-passwortaendern-spec01-angleichen.spec.ts` (9 Testfälle, deckt beide
+  Komponenten ab); bestehende `password-change-modal.component.spec.ts` und
+  `us-043-formular-feedback-doppelsubmit-schutz.spec.ts` um den neuen Pflichtfall ergänzt statt
+  ersetzt.
+- `ng test` (232/232), `ng lint`, `ng build` grün; `dotnet test` unverändert grün (kein
+  Backend-Anteil). Manueller Smoke-Test (Browser-Automatisierung gegen echten
+  `docker-compose`-Stack) bestätigt Markenblock, Dialog-Icon, Live-Validierung des
+  Bestätigungsfelds und den kompletten Passwort-Änderungs-Fluss End-to-End.
+
 ### US-053 — App-Identität im Browser (Tab-Titel, Favicon, Marken-Icon)
 
 - `frontend/src/index.html`: `<title>` von „Frontend“ (Angular-CLI-Scaffold) auf „SlobSteak“
