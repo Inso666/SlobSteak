@@ -4,6 +4,31 @@ Alle nennenswerten Änderungen an diesem Projekt werden hier je User Story dokum
 
 ## [Unreleased]
 
+### US-049 — Verlässliche Antwortzeit & Statusrückmeldung beim ersten Request nach Systemstart (Backend-Anteil)
+
+- Reale Zeitmessung (isolierter `docker-compose`-Stack, eigener Projektname, umgemappte Ports,
+  frisches Volume) statt reinem Code-Review: Migration+Seed-Admin summieren sich konsistent auf
+  unter 1 Sekunde, .NET-Kaltstart auf ~1,2–1,4 s gesamt — beide vom PO vermuteten Hypothesen damit
+  als dominante Ursache widerlegt. Tatsächlich dominanter, bisher nicht identifizierter Faktor:
+  Postgres-Erstinitialisierung auf leerem Volume (5,7–7,0 s). Details siehe Story-Datei
+  „Anmerkungen des Agenten“.
+- `docker-compose.yml`: `healthcheck` für `api` gegen `/api/v1/health` ergänzt, `frontend` wartet
+  jetzt auf `condition: service_healthy` statt auf den bloßen Containerstart von `api` — das vorher
+  gemessene ~1,2–1,4 s-Fenster, in dem Login-Requests gegen ein noch nicht bereites Backend liefen,
+  ist damit auf 0 reduziert (siehe ADR-0010 für die `start_period`-Erkenntnis). `db`-Healthcheck-
+  Intervall von 5s auf 2s verkürzt.
+- `src/SlobSteak.Api/Program.cs` und `Bootstrap/SeedAdminHostedService.cs`: Start-/Ende-
+  Zeitstempel-Logging um Migration, Seed-Admin-Bootstrap und „Anwendung bereit für Requests“ ergänzt
+  — rein diagnostisch, keine Verhaltensänderung, macht künftige Regressionen sofort im Log sichtbar.
+- `src/SlobSteak.Api/Dockerfile`: `curl` im Runtime-Image ergänzt (für den neuen Healthcheck).
+- Story-Test `tests/SlobSteak.Api.Tests/UserStories/US049_KaltstartPerformanceErsterRequestTests.cs`
+  (AC 1–4; AC 5 ist Frontend-Scope, AC 6 wird durch den grünen Gesamtlauf nachgewiesen).
+- `dotnet test` (327/327) grün, `dotnet format --verify-no-changes` fehlerfrei.
+- **Übergabe an Frontend-Agent (AC 5, gleicher Branch):** `LoginPageComponent`/
+  `ProcessingButtonComponent` kennen aktuell nur den binären Zustand `isSubmitting` — kein Zustand
+  für „Request läuft bereits > 3s“. Kein globaler `HttpClient`-Timeout konfiguriert. Details und ein
+  konkreter Umsetzungsvorschlag in der Story-Datei „Anmerkungen des Agenten“.
+
 ### US-057 — Login-Flow bleibt nach erfolgreicher Anmeldung dauerhaft im Verarbeitungs-Zustand hängen
 
 - Bugfix in `LoginPageComponent.onSubmit()` (`frontend/src/app/features/auth/login-page/login-page.component.ts`):
