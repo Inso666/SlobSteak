@@ -4,12 +4,12 @@
   padding: var(--app-space-md) 0;
 }
 
-.admin-projects h1 {
-  margin-bottom: var(--app-space-lg);
-}
-
-.admin-projects h2 {
-  margin-top: var(--app-space-xl);
+/* US-056: Button oeffnet das „Projekt anlegen“-Formular seit dieser Story als p-dialog statt
+   dauerhaft sichtbarem Inline-Formular (Akzeptanzkriterium 2). */
+.admin-projects__toolbar {
+  display: flex;
+  justify-content: flex-end;
+  margin-bottom: var(--app-space-md);
 }
 
 .project-cards {

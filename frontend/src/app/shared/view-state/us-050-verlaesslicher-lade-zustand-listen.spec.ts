@@ -90,6 +90,11 @@ describe('US-050: Verlässlicher Lade-Zustand statt fälschlicher Leer-/Stale-Da
     fixture = TestBed.createComponent(ProjectMembershipManagerComponent);
     fixture.componentRef.setInput('projectId', 'project-1');
     fixture.detectChanges();
+    // US-056: Das Nutzer-Auswahlfeld lebt seit dieser Story in einem per Button geöffneten
+    // `p-dialog` statt dauerhaft sichtbar zu sein — der Dialog wird hier geöffnet, um denselben
+    // Lade-/Empty-Zustand des Auswahlfelds wie zuvor zu prüfen (Verhalten selbst unverändert).
+    (fixture.componentInstance as ProjectMembershipManagerComponent)['openAssignDialog']();
+    fixture.detectChanges();
     expect(fixture.nativeElement.querySelector('select#userId')).toBeNull();
     expect(fixture.nativeElement.querySelector('.empty-state')).toBeNull();
     http = TestBed.inject(HttpTestingController);
@@ -189,6 +194,10 @@ describe('US-050: Verlässlicher Lade-Zustand statt fälschlicher Leer-/Stale-Da
     });
     const fixture = TestBed.createComponent(ProjectMembershipManagerComponent);
     fixture.componentRef.setInput('projectId', 'project-1');
+    fixture.detectChanges();
+    // US-056: Auswahlfeld lebt seit dieser Story im per Button geöffneten `p-dialog` — geöffnet,
+    // um dasselbe „beim ersten Öffnen bereits gefüllt“-Verhalten wie zuvor zu prüfen.
+    fixture.componentInstance['openAssignDialog']();
     fixture.detectChanges();
     const http = TestBed.inject(HttpTestingController);
 

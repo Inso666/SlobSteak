@@ -3,6 +3,10 @@
     <p class="load-error" role="alert">{{ loadError }}</p>
   }
 
+  <div class="admin-users__toolbar">
+    <button type="button" pButton icon="pi pi-plus" (click)="openCreateDialog()">Nutzer anlegen</button>
+  </div>
+
   <app-view-state [state]="usersState" emptyMessage="Keine Nutzer angelegt." [skeletonCount]="3">
     <div class="user-cards" role="list">
       @for (user of users; track user.id) {
@@ -27,35 +31,44 @@
     <p-message severity="success" styleClass="w-full" role="status">{{ resetPasswordMessage }}</p-message>
   }
 
-  <h2>Nutzer anlegen</h2>
-  <form [formGroup]="createForm" (ngSubmit)="onCreateUser()">
-    <div class="field">
-      <label for="name">Name</label>
-      <input pInputText id="name" formControlName="name" class="w-full" />
-    </div>
+  <p-dialog
+    header="Nutzer anlegen"
+    [(visible)]="createDialogVisible"
+    [modal]="true"
+    [style]="{ width: '26rem', 'max-width': 'calc(100vw - 2rem)' }"
+  >
+    <form [formGroup]="createForm" (ngSubmit)="onCreateUser()">
+      <div class="field">
+        <label for="name">Name</label>
+        <input pInputText id="name" formControlName="name" class="w-full" />
+      </div>
 
-    <div class="field">
-      <label for="email">E-Mail</label>
-      <input
-        pInputText
-        id="email"
-        type="email"
-        formControlName="email"
-        class="w-full"
-        [class.ng-invalid]="!!createErrorMessage"
-        [attr.aria-invalid]="createErrorMessage ? true : null"
-        [attr.aria-describedby]="createErrorMessage ? 'create-user-error' : null"
-      />
-      @if (createErrorMessage) {
-        <p-message id="create-user-error" severity="error" styleClass="w-full" role="alert">{{ createErrorMessage }}</p-message>
-      }
-    </div>
+      <div class="field">
+        <label for="email">E-Mail</label>
+        <input
+          pInputText
+          id="email"
+          type="email"
+          formControlName="email"
+          class="w-full"
+          [class.ng-invalid]="!!createErrorMessage"
+          [attr.aria-invalid]="createErrorMessage ? true : null"
+          [attr.aria-describedby]="createErrorMessage ? 'create-user-error' : null"
+        />
+        @if (createErrorMessage) {
+          <p-message id="create-user-error" severity="error" styleClass="w-full" role="alert">{{ createErrorMessage }}</p-message>
+        }
+      </div>
 
-    <div class="field">
-      <label for="initialPassword">Initiales Passwort</label>
-      <p-password inputId="initialPassword" formControlName="initialPassword" [toggleMask]="true" [feedback]="false" styleClass="w-full" [inputStyle]="{ width: '100%' }" />
-    </div>
+      <div class="field">
+        <label for="initialPassword">Initiales Passwort</label>
+        <p-password inputId="initialPassword" formControlName="initialPassword" [toggleMask]="true" [feedback]="false" styleClass="w-full" [inputStyle]="{ width: '100%' }" />
+      </div>
+    </form>
 
-    <app-processing-button type="submit" [disabled]="createForm.invalid" [isSubmitting]="isCreatingUser" label="Nutzer anlegen" submittingLabel="Wird angelegt…" />
-  </form>
+    <ng-template #footer>
+      <button type="button" pButton [text]="true" (click)="closeCreateDialog()">Abbrechen</button>
+      <app-processing-button type="button" [disabled]="createForm.invalid" [isSubmitting]="isCreatingUser" label="Nutzer anlegen" submittingLabel="Wird angelegt…" (click)="onCreateUser()" />
+    </ng-template>
+  </p-dialog>
 </section>

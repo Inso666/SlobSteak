@@ -8,8 +8,12 @@
   margin-bottom: var(--app-space-lg);
 }
 
-.admin-users h2 {
-  margin-top: var(--app-space-xl);
+/* US-056: Button oeffnet das „Nutzer anlegen“-Formular seit dieser Story als p-dialog statt
+   dauerhaft sichtbarem Inline-Formular (Akzeptanzkriterium 2). */
+.admin-users__toolbar {
+  display: flex;
+  justify-content: flex-end;
+  margin-bottom: var(--app-space-md);
 }
 
 .user-cards {

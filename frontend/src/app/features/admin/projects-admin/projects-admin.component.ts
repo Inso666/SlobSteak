@@ -1,6 +1,7 @@
-import { ChangeDetectorRef, Component, OnInit, inject } from '@angular/core';
+import { ChangeDetectorRef, Component, OnInit, inject, signal } from '@angular/core';
 import { FormBuilder, ReactiveFormsModule, Validators } from '@angular/forms';
 import { ButtonDirective } from 'primeng/button';
+import { Dialog } from 'primeng/dialog';
 import { InputText } from 'primeng/inputtext';
 import { Message } from 'primeng/message';
 import { AdminProject, AdminProjectsService } from '../admin-projects.service';
@@ -20,7 +21,11 @@ import { ViewStateComponent } from '../../../shared/view-state/view-state.compon
  * US-056: Wird seit dieser Story unter der Kind-Route `admin/projects` innerhalb des Tab-Host
  * {@link AdminPageComponent} gerendert — die vormals hier eingebettete Sub-Navigation
  * ({@link AdminSubNavComponent}) sowie die eigene Seitenüberschrift entfallen, da der Tab-Host
- * beides bereits einmalig für beide Admin-Unterseiten stellt (Akzeptanzkriterium 1).
+ * beides bereits einmalig für beide Admin-Unterseiten stellt (Akzeptanzkriterium 1). Das
+ * „Projekt anlegen“-Formular öffnet seit dieser Story als `p-dialog` über einen Button statt
+ * dauerhaft sichtbar unterhalb der Liste (Akzeptanzkriterium 2, SPEC-07 §1.4) — Formularfelder,
+ * Validierung und Verhalten bleiben aus US-014/US-017 unverändert, nur die Präsentation ändert
+ * sich.
  */
 @Component({
   selector: 'app-projects-admin',
@@ -31,6 +36,7 @@ import { ViewStateComponent } from '../../../shared/view-state/view-state.compon
     ProcessingButtonComponent,
     ViewStateComponent,
     ButtonDirective,
+    Dialog,
     InputText,
     Message,
   ],
@@ -50,6 +56,10 @@ export class ProjectsAdminComponent implements OnInit {
   protected projectsState: ViewState = 'loading';
   /** US-043 Akzeptanzkriterium 1/2/3/4: Verarbeitungs-Feedback + Doppel-Submit-Schutz. */
   protected isCreatingProject = false;
+  /** US-056 Akzeptanzkriterium 2: `p-dialog` erfordert ein `WritableSignal` für `[(visible)]`
+   * (`Dialog.visible` ist ein `ModelSignal<boolean>`, siehe PrimeNG-Typdeklaration), daher hier
+   * bewusst ein Signal statt eines einfachen Felds wie bei den übrigen Zuständen dieser Klasse. */
+  protected readonly createDialogVisible = signal(false);
 
   protected readonly createForm = this.formBuilder.nonNullable.group({
     name: ['', Validators.required],
@@ -58,6 +68,18 @@ export class ProjectsAdminComponent implements OnInit {
 
   ngOnInit(): void {
     this.loadProjects();
+  }
+
+  protected openCreateDialog(): void {
+    this.createErrorMessage = null;
+    this.createForm.reset();
+    this.createDialogVisible.set(true);
+  }
+
+  protected closeCreateDialog(): void {
+    this.createDialogVisible.set(false);
+    this.createErrorMessage = null;
+    this.createForm.reset();
   }
 
   protected onCreateProject(): void {
@@ -75,6 +97,7 @@ export class ProjectsAdminComponent implements OnInit {
       next: () => {
         this.isCreatingProject = false;
         this.createForm.reset();
+        this.createDialogVisible.set(false);
         this.loadProjects();
       },
       error: () => {
