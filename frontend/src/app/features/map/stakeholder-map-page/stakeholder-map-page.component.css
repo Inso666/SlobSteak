@@ -1,0 +1,33 @@
+.stakeholder-map-page {
+  display: flex;
+  flex-direction: column;
+  gap: var(--app-space-lg);
+}
+
+.toolbar {
+  display: flex;
+  align-items: center;
+  gap: var(--app-space-md);
+  flex-wrap: wrap;
+}
+
+.field {
+  display: flex;
+  align-items: center;
+  gap: var(--app-space-sm);
+}
+
+/* `.load-error` selbst (Farbe/Schriftgröße) ist bereits global in `styles.css` definiert
+   (US-044) — hier ausschließlich das zusätzliche Flex-Layout für den „Erneut versuchen"-Button
+   dieses Screens, keine erneute Farbdefinition. */
+.load-error {
+  display: flex;
+  align-items: center;
+  gap: var(--app-space-md);
+}
+
+.empty-state {
+  color: var(--app-color-text-muted);
+  text-align: center;
+  padding: var(--app-space-xl) 0;
+}

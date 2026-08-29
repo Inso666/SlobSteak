@@ -4,6 +4,28 @@ Alle nennenswerten Änderungen an diesem Projekt werden hier je User Story dokum
 
 ## [Unreleased]
 
+### US-032 — Map-UI Quadranten-Diagramm mit Perspektiv-Dropdown
+
+- Neues Feature `frontend/src/app/features/map`: `MapService` (HTTP-Client für den US-031-Endpoint
+  `GET /api/v1/projects/{projectId}/map?perspective=...`), `QuadrantChartComponent`
+  (Einfluss-/Interesse-Quadranten-Diagramm, 0–100, vier bei 50/50 getrennte, beschriftete Quadranten
+  „Eng betreuen“/„Zufriedenstellen“/„Informiert halten“/„Beobachten“ nach der klassischen
+  Stakeholder-Matrix) und `StakeholderMapPageComponent` (Perspektiv-Dropdown „Meine Sicht“, Default
+  = eigene Projekt-Rolle, Loading-/Empty-/Error-State).
+- Klick auf einen Map-Punkt navigiert zur Stakeholder-Detailseite (US-026).
+- `app.routes.ts`: Route `map` lädt `StakeholderMapPageComponent` per `loadComponent` (lazy) statt
+  des bisherigen `MapPlaceholderComponent`-Platzhalters aus US-019; Rollen-Guard
+  (`roleGuard(['PL','Coreteam','Architect'])`) unverändert. Tab-Sichtbarkeit für Rolle `User`
+  bereits seit US-019 vorhanden, hier lediglich erneut per Story-Test verifiziert.
+- Komponententests für Leerzustand und ≥1 Punkt (`quadrant-chart.component.spec.ts`,
+  `stakeholder-map-page.component.spec.ts`) sowie dedizierter Story-Test
+  `frontend/src/app/features/map/us-032-map-ui.spec.ts` (ein Test je Akzeptanzkriterium).
+- Manueller Smoke-Test gegen den über `docker-compose up` laufenden Gesamtstack durchgeführt;
+  dabei ein bestehendes, story-fremdes Rendering-Problem in `StakeholderDetailComponent`
+  entdeckt und als [Issue #61](https://github.com/Inso666/SlobSteak/issues/61) dokumentiert statt
+  im Rahmen dieser Story mitbehoben.
+- `ng test` (270/270), `ng lint` und `ng build` laufen grün.
+
 ### US-031 — Map-Query-API je Perspektive
 
 - Neuer Endpoint `GET /api/v1/projects/{projectId}/map?perspective={PL|Coreteam|Architect}`

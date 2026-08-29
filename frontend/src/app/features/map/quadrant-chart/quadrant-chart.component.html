@@ -1,0 +1,40 @@
+<div class="quadrant-chart" role="group" [attr.aria-label]="chartAriaLabel">
+  <span class="axis-title axis-title--y" aria-hidden="true">Interesse →</span>
+
+  <div class="y-ticks mono" aria-hidden="true">
+    @for (tick of yAxisTicks; track tick) {
+      <span>{{ tick }}</span>
+    }
+  </div>
+
+  <div class="plot-col">
+    <div class="plot-area">
+      <div class="grid-line grid-line--x" aria-hidden="true"></div>
+      <div class="grid-line grid-line--y" aria-hidden="true"></div>
+
+      <span class="quadrant-label quadrant-label--top-left">Informiert halten</span>
+      <span class="quadrant-label quadrant-label--top-right">Eng betreuen</span>
+      <span class="quadrant-label quadrant-label--bottom-left">Beobachten</span>
+      <span class="quadrant-label quadrant-label--bottom-right">Zufriedenstellen</span>
+
+      @for (point of points; track point.stakeholderId) {
+        <button
+          type="button"
+          class="map-point"
+          [class]="'map-point--' + roleClass"
+          [style.left.%]="point.influence"
+          [style.bottom.%]="point.interest"
+          [attr.aria-label]="pointAriaLabel(point)"
+          (click)="onSelect(point)"
+        ></button>
+      }
+    </div>
+
+    <div class="x-ticks mono" aria-hidden="true">
+      @for (tick of xAxisTicks; track tick) {
+        <span>{{ tick }}</span>
+      }
+    </div>
+    <span class="axis-title axis-title--x" aria-hidden="true">Einfluss →</span>
+  </div>
+</div>
