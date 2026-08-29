@@ -27,3 +27,48 @@ Content-Type: application/json
 }
 
 ###
+
+### Kommunikationsart anlegen (US-037) — Systemadmin-Token in {{adminToken}}, liefert 201 Created
+POST {{SlobSteak.Api_HostAddress}}/api/v1/admin/communication-types
+Content-Type: application/json
+Authorization: Bearer {{adminToken}}
+
+{
+  "name": "Newsletter"
+}
+
+###
+
+### Kommunikationsart umbenennen (US-037 Akzeptanzkriterium 2)
+PATCH {{SlobSteak.Api_HostAddress}}/api/v1/admin/communication-types/{{communicationTypeId}}
+Content-Type: application/json
+Authorization: Bearer {{adminToken}}
+
+{
+  "name": "Statusbericht"
+}
+
+###
+
+### Kommunikationsart deaktivieren (US-037 Akzeptanzkriterium 3) — Datensatz bleibt erhalten
+PATCH {{SlobSteak.Api_HostAddress}}/api/v1/admin/communication-types/{{communicationTypeId}}
+Content-Type: application/json
+Authorization: Bearer {{adminToken}}
+
+{
+  "isActive": false
+}
+
+###
+
+### Kommunikationsarten-Katalog lesen (US-037 Akzeptanzkriterium 4) — nur aktive Einträge, für jeden angemeldeten Nutzer
+GET {{SlobSteak.Api_HostAddress}}/api/v1/communication-types?activeOnly=true
+Authorization: Bearer {{userToken}}
+
+###
+
+### Kommunikationsarten-Katalog lesen — alle Einträge inkl. deaktivierter (historische Anzeige)
+GET {{SlobSteak.Api_HostAddress}}/api/v1/communication-types
+Authorization: Bearer {{userToken}}
+
+###
