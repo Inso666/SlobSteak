@@ -145,6 +145,23 @@ Vom Projektverantwortlichen gemeldete Bugs (`docs/bugs/bugs.md`), vom Product Ow
 
 **Hinweis zu US-057:** Kein Befund aus dem ursprünglichen Bug-Report, sondern während der QA-Verifikation von US-050 neu entdeckt (Login hängt nach erfolgreicher Anmeldung dauerhaft im Verarbeitungs-Zustand, gleiche Root Cause wie US-050 — fehlendes `ChangeDetectorRef.markForCheck()` im zoneless Frontend). Als eigene, hochpriorisierte Story angelegt statt nachträglich in US-050 eingemischt, da `LoginPageComponent` nicht zu den dort benannten Fundstellen gehörte.
 
+### Phase 11 — Bugfixing (GitHub Issues #61, #67–#71, PO-Review vom 29.08.2026)
+
+Aus den offenen GitHub-Issues abgeleitete Stories (kein neuer Bug-Report in `docs/bugs/bugs.md` — die Issues stammen aus dem QA-Design-Abgleich von Phase 5 sowie, für US-059, zusätzlich aus einem vom Projektverantwortlichen gemeldeten und in Issue #61 verlinkten Endnutzer-Bug). US-059 ist hochpriorisiert (blockiert die praktische Nutzbarkeit von Assessment **und** Map, siehe dortige Story-Datei), die übrigen fünf betreffen ausschließlich die Stakeholder Map und sind bewusst sequenziell verkettet, um parallele Änderungen an denselben Dateien (`quadrant-chart.component.ts`/`.css`, `draggable-point.component.ts`/`.css`) zu vermeiden.
+
+| ID | Titel | Bounded Context | Abhängigkeiten | Datei | Status |
+|---|---|---|---|---|---|
+| US-059 | StakeholderDetailComponent zuverlässig rendern (Assessment-Bereich, Stammdaten) statt leerem Inhaltsbereich | StakeholderManagement / StakeholderAssessment | US-026, US-029, US-030 | [US-059-stakeholder-detail-markforcheck.md](US-059-stakeholder-detail-markforcheck.md) | offen |
+| US-060 | Zoom-Cluster-Buttons auf der Map sichtbar und auffindbar machen | StakeholderMap | US-036 | [US-060-map-zoom-buttons-sichtbar.md](US-060-map-zoom-buttons-sichtbar.md) | offen |
+| US-061 | Map-Zoom skaliert Positionen statt Punkt-Marker unverhältnismäßig zu vergrößern | StakeholderMap | US-036, US-060 | [US-061-map-zoom-skalierung.md](US-061-map-zoom-skalierung.md) | offen |
+| US-062 | Tastatur-Positionierung eigener Map-Punkte für Screenreader-Nutzer:innen zuverlässig ankündigen | StakeholderMap | US-036, US-061 | [US-062-map-tastatur-positionierung-ankuendigen.md](US-062-map-tastatur-positionierung-ankuendigen.md) | offen |
+| US-063 | Toolbar-Hinweistext „X von Y Stakeholdern sichtbar“ auf der Map ergänzen | StakeholderMap | US-032, US-062 | [US-063-map-toolbar-sichtbarkeits-hinweis.md](US-063-map-toolbar-sichtbarkeits-hinweis.md) | offen |
+| US-064 | Einheitlicher, tokenisierter Opacity-Wert für gesperrte Map-Punkte | StakeholderMap | US-034, US-036, US-063 | [US-064-map-opacity-token-vereinheitlichen.md](US-064-map-opacity-token-vereinheitlichen.md) | offen |
+
+**Hinweis zu US-059:** Kein neues GitHub-Issue angelegt — der vom Projektverantwortlichen gemeldete Endnutzer-Bug wurde als Kommentar an das bereits bestehende, unabhängig von QA gefundene Issue #61 angehängt (identische Root Cause, siehe dortiger Kommentar sowie „Anmerkungen des Product Owners“ in der Story-Datei).
+
+**Hinweis zu US-062:** Der Issue-Titel (#69) suggeriert eine vollständig fehlende Tastatursteuerung; Code-Review vor Story-Anlage zeigt, dass die Kernmechanik (Pfeiltasten, Bestätigen, Verwerfen) in `DraggablePointComponent` bereits existiert (US-036) — nur die Screenreader-Ankündigung während einer laufenden Bewegung ist lückenhaft. Scope entsprechend präzisiert statt den ursprünglichen Befund unkritisch zu übernehmen (CLAUDE.md Abschnitt 6).
+
 ## Hinweise zur Nutzung durch den Dev-Agenten
 
 Jede Story wird in genau einer isolierten Iteration umgesetzt. Vor Beginn einer Story müssen alle in „Abhängigkeiten“ genannten Stories bereits abgeschlossen und deren Akzeptanzkriterien grün sein. Die Reihenfolge innerhalb einer Phase ist ebenfalls verbindlich, da spätere Stories einer Phase häufig auf den unmittelbar vorangehenden aufbauen (z. B. US-023 Soft-Delete vor US-024 Restore). Domain-Invarianten aus Abschnitt 4.3 des PRD (`stakeholder_assessments` max. 1 je Rolle, `project_memberships` max. 1 je Nutzer, Rollen-Schreibrechte, `deleted_at`-Filterung, Sichtbarkeitsregel für Rolle User) sind kontextübergreifend gültig und werden in mehreren Stories wiederholt referenziert — sie dürfen in keiner Story verletzt werden, auch wenn eine einzelne Story sie nicht explizit als Akzeptanzkriterium führt.
