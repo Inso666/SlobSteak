@@ -1,5 +1,6 @@
 using Microsoft.Extensions.DependencyInjection;
 using SlobSteak.Application.Assessments;
+using SlobSteak.Application.Communications;
 using SlobSteak.Application.Identity;
 using SlobSteak.Application.Map;
 using SlobSteak.Application.Projects;
@@ -36,6 +37,9 @@ public static class ServiceCollectionExtensions
         services.AddScoped<GetStakeholderAssessmentsQuery>();
         services.AddScoped<StakeholderMapQuery>();
         services.AddScoped<StakeholderMapComparisonQuery>();
+        services.AddScoped<CreateCommunicationTypeService>();
+        services.AddScoped<UpdateCommunicationTypeService>();
+        services.AddScoped<ListCommunicationTypesQuery>();
 
         return services;
     }
