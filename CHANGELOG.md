@@ -4,6 +4,30 @@ Alle nennenswerten Änderungen an diesem Projekt werden hier je User Story dokum
 
 ## [Unreleased]
 
+### US-036 — Drag & Drop UI inkl. Zoom/Pan
+
+- Neue `DraggablePointComponent` (`frontend/src/app/features/map/draggable-point/`): rendert einen
+  Map-Punkt als natives `<button>`, unterstützt Maus-Drag (Pointer Events) und die
+  Tastatur-Alternative aus SPEC-04 §2.3 (Pfeiltasten ±1/±10, `Enter`/`blur` bestätigt, `Escape`
+  verwirft), zeigt während einer aktiven Positionsänderung die umgerechneten Einfluss-/
+  Interesse-Werte live an und markiert nicht-ziehbare Punkte visuell (`.map-point--locked`:
+  reduzierte Deckkraft/gesperrter Cursor).
+- `QuadrantChartComponent` um `currentUserRole`-Input (tatsächliche Projekt-Rolle, getrennt von der
+  frei wählbaren „Meine Sicht"-Perspektive), Zoom/Pan (`zoomIn()`/`zoomOut()`/`resetView()`,
+  Zoom-Cluster-Buttons, Pan per Drag auf leerer Canvas-Fläche) und den neuen `pointMoved`-Output
+  erweitert. Draggability eigener Punkte: `perspective === currentUserRole`; Vergleichspunkte
+  (Diamanten) sind hart nie draggable.
+- `AssessmentsService.updatePosition(...)` löst eine Drag-Position über den bestehenden
+  `PUT .../assessments/{role}`-Endpoint (US-028/US-035) auf — holt die aktuelle Assessment-Version
+  unmittelbar vor dem Schreiben über `GET .../assessments` nach, da der aggregierte
+  Map-Response-Contract (US-031/US-033) bewusst keine Version transportiert (siehe „Anmerkungen des
+  Agenten" in der Story-Datei).
+- `StakeholderMapPageComponent` übernimmt eine gemeldete Positionsänderung optimistisch in die
+  lokale Datenquelle, macht sie bei einem Speicherfehler wieder rückgängig und zeigt bei `409` den
+  wiederverwendeten `AssessmentConflictDialogComponent` (US-029) — bei sonstigen Fehlern eine
+  inline Fehlermeldung (`.drag-error`, dokumentierte Abweichung von SPEC-04 §3.7, siehe Story-Datei).
+- `ng test` (gesamter Angular-Workspace), `ng lint` und `ng build` laufen grün.
+
 ### US-035 — Drag & Drop Update-API mit Konfliktregel
 
 - Kein neuer Endpoint und keine Produktionscode-Änderung: verifiziert, dass Drag & Drop denselben

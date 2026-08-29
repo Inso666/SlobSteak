@@ -8,6 +8,19 @@
     </p>
   }
 
+  @if (dragErrorMessage) {
+    <p class="drag-error" role="alert">{{ dragErrorMessage }}</p>
+  }
+
+  @if (dragConflict) {
+    <app-assessment-conflict-dialog
+      [modifiedBy]="dragConflict.modifiedBy"
+      [modifiedAt]="dragConflict.modifiedAt"
+      (overwrite)="onDragConflictOverwrite()"
+      (cancelled)="onDragConflictCancelled()"
+    />
+  }
+
   <form [formGroup]="filterForm" class="toolbar">
     <div class="field">
       <label for="ownPerspective">Meine Sicht:</label>
@@ -50,10 +63,12 @@
           <app-quadrant-chart
             [points]="points"
             [perspective]="selectedPerspective"
+            [currentUserRole]="currentUserRole"
             [compareMode]="filterForm.controls.compareMode.value"
             [comparisonEntries]="comparisonEntries"
             [comparePerspective]="filterForm.controls.comparePerspective.value"
             (pointSelected)="onPointSelected($event)"
+            (pointMoved)="onPointMoved($event)"
           />
         }
       }

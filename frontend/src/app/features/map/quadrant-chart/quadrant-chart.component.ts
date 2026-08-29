@@ -1,7 +1,27 @@
-import { ChangeDetectionStrategy, Component, EventEmitter, Input, Output } from '@angular/core';
+import { ChangeDetectionStrategy, Component, ElementRef, EventEmitter, Input, Output, ViewChild } from '@angular/core';
+import { ButtonDirective } from 'primeng/button';
 import { MapComparisonEntry, MapComparisonValue, MapPoint, PerspectiveRole } from '../map.service';
 import { ConnectionDiff, ConnectionLineTooltipComponent } from '../connection-line-tooltip/connection-line-tooltip.component';
+import { DragPosition, DraggablePointComponent } from '../draggable-point/draggable-point.component';
 import { MAP_LEGEND_CONNECTION_LABEL, MAP_LEGEND_NOTE, MAP_LEGEND_TITLE } from '../map-messages';
+import { clamp } from '../../../shared/utils/clamp';
+
+/** Grenzwerte des Zoom-Reglers (US-036 Akzeptanzkriterium 5). Kein Token in SPEC-00 §1.2 dafür
+ * vorgesehen (reiner Präsentations-/Interaktions-State, kein Design-Token) — als benannte
+ * Konstanten statt magischer Zahlen gehalten. */
+const MIN_ZOOM = 1;
+const MAX_ZOOM = 4;
+const ZOOM_STEP = 0.5;
+
+/** Ein per Drag&Drop verschobener Punkt (US-036 Akzeptanzkriterium 3): identischer Contract zum
+ * `pointDragEnd`-Output aus SPEC-04 §1, ergänzt um `perspectiveRole` (die aufrufende Seite kennt
+ * die Rolle sonst nur indirekt über die aktuelle Perspektivauswahl). */
+export interface PointMovedEvent {
+  stakeholderId: string;
+  perspectiveRole: PerspectiveRole;
+  influence: number;
+  interest: number;
+}
 
 /** CSS-Modifier-Klasse je Rolle, referenziert dieselben zentralen Rollenfarb-Tokens
  * (`--app-role-pl/ct/ar`, SPEC-00 §1.2) wie der `.role-badge`-Baustein aus US-047 — keine zweite,
@@ -69,7 +89,7 @@ interface RenderedConnection {
 @Component({
   selector: 'app-quadrant-chart',
   standalone: true,
-  imports: [ConnectionLineTooltipComponent],
+  imports: [ConnectionLineTooltipComponent, DraggablePointComponent, ButtonDirective],
   templateUrl: './quadrant-chart.component.html',
   styleUrl: './quadrant-chart.component.css',
   changeDetection: ChangeDetectionStrategy.OnPush,
@@ -77,6 +97,13 @@ interface RenderedConnection {
 export class QuadrantChartComponent {
   @Input({ required: true }) points: MapPoint[] = [];
   @Input({ required: true }) perspective!: PerspectiveRole;
+  /** US-036 Akzeptanzkriterium 1/6: die tatsächliche, serverseitig zugewiesene Projekt-Rolle des
+   * angemeldeten Nutzers — bewusst getrennt von {@link perspective} (der frei wählbaren „Meine
+   * Sicht"-Auswahl, siehe `StakeholderMapPageComponent`). Ein Nutzer kann „Meine Sicht" auf eine
+   * fremde Perspektive stellen, ohne dadurch deren Punkte ziehbar zu machen (Story-Edge-Case:
+   * Coreteam betrachtet Architect). `null`, solange die Projekt-Rolle noch nicht geladen ist —
+   * in diesem Zwischenzustand ist konsequent nichts ziehbar. */
+  @Input() currentUserRole: PerspectiveRole | null = null;
 
   /** US-034 Akzeptanzkriterium 1: Vergleichsmodus aktiv. Ist dieser Flag `true`, rendert die
    * Komponente ausschließlich aus {@link comparisonEntries} — {@link points} bleibt unbeachtet
@@ -90,6 +117,22 @@ export class QuadrantChartComponent {
   @Input() comparePerspective: PerspectiveRole | null = null;
 
   @Output() pointSelected = new EventEmitter<string>();
+  /** US-036 Akzeptanzkriterium 3: nach Bestätigung einer Positionsänderung (Maus-Loslassen oder
+   * Tastatur-Bestätigung) — die aufrufende Seite persistiert über den bestehenden
+   * Assessment-Update-Endpoint (US-028/US-035). */
+  @Output() pointMoved = new EventEmitter<PointMovedEvent>();
+
+  /** Zoom/Pan-transformierter Container (US-036 Akzeptanzkriterium 5) — dient sowohl als
+   * CSS-Transform-Ziel als auch als Referenzfläche für die Pixel→Prozent-Umrechnung in
+   * `DraggablePointComponent`. */
+  @ViewChild('plotSurface', { static: true }) protected plotSurfaceRef!: ElementRef<HTMLDivElement>;
+
+  /** Reiner Präsentations-State, nicht persistiert (SPEC-04 §3.4) — wird beim Neuladen der
+   * Komponente (Tab-Wechsel) implizit zurückgesetzt, da die Komponente dabei neu instanziiert wird. */
+  protected zoomLevel = MIN_ZOOM;
+  private panPx = { x: 0, y: 0 };
+  private isPanning = false;
+  private panPointerStart = { x: 0, y: 0 };
 
   protected readonly yAxisTicks = [100, 75, 50, 25, 0];
   protected readonly xAxisTicks = [0, 25, 50, 75, 100];
@@ -103,6 +146,25 @@ export class QuadrantChartComponent {
    * verschwindet. */
   protected hoveredConnectionId: string | null = null;
   protected selectedConnectionId: string | null = null;
+
+  /** US-036 Akzeptanzkriterium 1/6: eigene Punkte (Kreise) sind ausschließlich draggable, wenn die
+   * aktuell als „Meine Sicht"/primär gezeigte Perspektive {@link perspective} tatsächlich der
+   * eigenen Projekt-Rolle {@link currentUserRole} des Nutzers entspricht. Da {@link ownPoints}
+   * per Definition immer aus der primären Perspektive stammt (nie aus der sekundären
+   * Vergleichsperspektive, siehe deren separate, stets `draggable=false`-Darstellung im Template),
+   * deckt dieser einzelne Vergleich beide Teilbedingungen aus Akzeptanzkriterium 1 ab: „eigene
+   * Rolle" UND „primäre Perspektive im Vergleichsmodus" — Letzteres ist für alles in
+   * {@link ownPoints} automatisch erfüllt. */
+  protected get ownPointsDraggable(): boolean {
+    return this.currentUserRole !== null && this.perspective === this.currentUserRole;
+  }
+
+  protected get surfaceTransform(): string {
+    // Reihenfolge bewusst `translate() scale()`: Pan bleibt dadurch unabhängig vom Zoom-Faktor in
+    // echten Bildschirm-Pixeln 1:1 zur Zeigerbewegung (siehe CSS-Kommentar in
+    // `quadrant-chart.component.css`).
+    return `translate(${this.panPx.x}px, ${this.panPx.y}px) scale(${this.zoomLevel})`;
+  }
 
   protected get roleClass(): string {
     return ROLE_CLASS[this.perspective];
@@ -227,5 +289,75 @@ export class QuadrantChartComponent {
    * (US-034 Akzeptanzkriterium 5 — auch per Tastatur erreichbar, nicht nur per Hover). */
   protected onConnectionActivate(connection: RenderedConnection): void {
     this.selectedConnectionId = this.selectedConnectionId === connection.stakeholderId ? null : connection.stakeholderId;
+  }
+
+  /** US-036 Akzeptanzkriterium 3: `DraggablePointComponent` hat eine Positionsänderung bestätigt
+   * (Maus-Loslassen oder Tastatur-Bestätigung) — emittiert die neuen Werte zusammen mit
+   * `stakeholderId`/`perspectiveRole` an die aufrufende Seite, die den Assessment-Update-Endpoint
+   * aufruft (US-028/US-035). */
+  protected onDragEnd(point: RenderedPoint, position: DragPosition): void {
+    this.pointMoved.emit({
+      stakeholderId: point.stakeholderId,
+      perspectiveRole: this.perspective,
+      influence: position.influence,
+      interest: position.interest,
+    });
+  }
+
+  /** US-036 Akzeptanzkriterium 5 (Zoom): von den externen `+`/`−`/Reset-Buttons im Template
+   * aufgerufen (SPEC-04 §1 „Öffentliche Methoden für die externen Zoom-Buttons"). */
+  protected zoomIn(): void {
+    this.setZoom(this.zoomLevel + ZOOM_STEP);
+  }
+
+  protected zoomOut(): void {
+    this.setZoom(this.zoomLevel - ZOOM_STEP);
+  }
+
+  protected resetView(): void {
+    this.zoomLevel = MIN_ZOOM;
+    this.panPx = { x: 0, y: 0 };
+  }
+
+  private setZoom(next: number): void {
+    this.zoomLevel = Math.min(MAX_ZOOM, Math.max(MIN_ZOOM, next));
+    this.clampPan();
+  }
+
+  /** US-036 Akzeptanzkriterium 5 (Pan): startet nur auf leerer Canvas-Fläche — ein Pointerdown auf
+   * einem Punkt hat die Propagation bereits in `DraggablePointComponent` gestoppt (SPEC-04 §3.4:
+   * „Pan erfolgt zusätzlich per Maus-Drag auf leerer Canvas-Fläche, nicht auf einem Punkt"). */
+  protected onSurfacePointerDown(event: PointerEvent): void {
+    this.isPanning = true;
+    this.panPointerStart = { x: event.clientX - this.panPx.x, y: event.clientY - this.panPx.y };
+    (event.currentTarget as Element).setPointerCapture(event.pointerId);
+  }
+
+  protected onSurfacePointerMove(event: PointerEvent): void {
+    if (!this.isPanning) {
+      return;
+    }
+    this.panPx = { x: event.clientX - this.panPointerStart.x, y: event.clientY - this.panPointerStart.y };
+    this.clampPan();
+  }
+
+  protected onSurfacePointerUp(): void {
+    this.isPanning = false;
+  }
+
+  /** Begrenzt den Pan-Versatz näherungsweise auf den durch den aktuellen Zoom-Faktor entstandenen
+   * Überstand (`(zoomLevel − 1) / 2` je Achse) — verhindert, dass die Fläche komplett aus dem
+   * sichtbaren Bereich herausgeschoben werden kann. Verwendet die feste, nicht transformierte
+   * `plot-area`-Box (über `plotSurfaceRef.nativeElement.parentElement`) als Referenzgröße. */
+  private clampPan(): void {
+    const plotArea = this.plotSurfaceRef?.nativeElement.parentElement;
+    if (!plotArea) {
+      return;
+    }
+
+    const rect = plotArea.getBoundingClientRect();
+    const maxX = (rect.width * (this.zoomLevel - 1)) / 2;
+    const maxY = (rect.height * (this.zoomLevel - 1)) / 2;
+    this.panPx = { x: clamp(this.panPx.x, -maxX, maxX), y: clamp(this.panPx.y, -maxY, maxY) };
   }
 }

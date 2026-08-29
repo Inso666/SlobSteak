@@ -26,6 +26,15 @@
   gap: var(--app-space-md);
 }
 
+/* US-036: dieselben Fehler-Tokens wie das globale `.load-error` (US-044, `styles.css`), aber ein
+   eigener, scoped Klassenname — semantisch ein Schreibfehler (Drag-Speichern), kein Lesefehler,
+   damit beide Zustände (US-036 Akzeptanzkriterium 4 / Ladefehler) unabhängig voneinander im DOM
+   unterscheidbar bleiben. */
+.drag-error {
+  color: var(--app-color-error);
+  font-size: var(--app-font-size-body);
+}
+
 .empty-state {
   color: var(--app-color-text-muted);
   text-align: center;

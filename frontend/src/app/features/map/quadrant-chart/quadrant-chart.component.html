@@ -9,80 +9,95 @@
     </div>
 
     <div class="plot-col">
-      <div class="plot-area">
-        <div class="grid-line grid-line--x" aria-hidden="true"></div>
-        <div class="grid-line grid-line--y" aria-hidden="true"></div>
+      <div
+        class="plot-area"
+        (pointerdown)="onSurfacePointerDown($event)"
+        (pointermove)="onSurfacePointerMove($event)"
+        (pointerup)="onSurfacePointerUp()"
+        (pointercancel)="onSurfacePointerUp()"
+      >
+        <div class="plot-surface" #plotSurface [style.transform]="surfaceTransform">
+          <div class="grid-line grid-line--x" aria-hidden="true"></div>
+          <div class="grid-line grid-line--y" aria-hidden="true"></div>
 
-        <span class="quadrant-label quadrant-label--top-left">Informiert halten</span>
-        <span class="quadrant-label quadrant-label--top-right">Eng betreuen</span>
-        <span class="quadrant-label quadrant-label--bottom-left">Beobachten</span>
-        <span class="quadrant-label quadrant-label--bottom-right">Zufriedenstellen</span>
+          <span class="quadrant-label quadrant-label--top-left">Informiert halten</span>
+          <span class="quadrant-label quadrant-label--top-right">Eng betreuen</span>
+          <span class="quadrant-label quadrant-label--bottom-left">Beobachten</span>
+          <span class="quadrant-label quadrant-label--bottom-right">Zufriedenstellen</span>
 
-        @if (connections.length > 0) {
-          <svg class="connections" viewBox="0 0 100 100" preserveAspectRatio="none" aria-hidden="true">
-            @for (connection of connections; track connection.stakeholderId) {
-              <g
-                class="connection"
-                tabindex="0"
-                role="button"
-                [attr.aria-label]="connectionAriaLabel(connection)"
-                [class.connection--active]="activeConnection?.stakeholderId === connection.stakeholderId"
-                (mouseenter)="onConnectionEnter(connection)"
-                (mouseleave)="onConnectionLeave()"
-                (focus)="onConnectionEnter(connection)"
-                (blur)="onConnectionLeave()"
-                (click)="onConnectionActivate(connection)"
-                (keydown.enter)="onConnectionActivate(connection)"
-                (keydown.space)="onConnectionActivate(connection)"
-              >
-                <line
-                  class="connection-hit"
-                  [attr.x1]="connection.own.influence"
-                  [attr.y1]="100 - connection.own.interest"
-                  [attr.x2]="connection.compare.influence"
-                  [attr.y2]="100 - connection.compare.interest"
-                ></line>
-                <line
-                  class="connection-line"
-                  [attr.x1]="connection.own.influence"
-                  [attr.y1]="100 - connection.own.interest"
-                  [attr.x2]="connection.compare.influence"
-                  [attr.y2]="100 - connection.compare.interest"
-                ></line>
-              </g>
-            }
-          </svg>
-        }
+          @if (connections.length > 0) {
+            <svg class="connections" viewBox="0 0 100 100" preserveAspectRatio="none" aria-hidden="true">
+              @for (connection of connections; track connection.stakeholderId) {
+                <g
+                  class="connection"
+                  tabindex="0"
+                  role="button"
+                  [attr.aria-label]="connectionAriaLabel(connection)"
+                  [class.connection--active]="activeConnection?.stakeholderId === connection.stakeholderId"
+                  (mouseenter)="onConnectionEnter(connection)"
+                  (mouseleave)="onConnectionLeave()"
+                  (focus)="onConnectionEnter(connection)"
+                  (blur)="onConnectionLeave()"
+                  (click)="onConnectionActivate(connection)"
+                  (keydown.enter)="onConnectionActivate(connection)"
+                  (keydown.space)="onConnectionActivate(connection)"
+                >
+                  <line
+                    class="connection-hit"
+                    [attr.x1]="connection.own.influence"
+                    [attr.y1]="100 - connection.own.interest"
+                    [attr.x2]="connection.compare.influence"
+                    [attr.y2]="100 - connection.compare.interest"
+                  ></line>
+                  <line
+                    class="connection-line"
+                    [attr.x1]="connection.own.influence"
+                    [attr.y1]="100 - connection.own.interest"
+                    [attr.x2]="connection.compare.influence"
+                    [attr.y2]="100 - connection.compare.interest"
+                  ></line>
+                </g>
+              }
+            </svg>
+          }
 
-        @for (point of ownPoints; track point.stakeholderId) {
-          <button
-            type="button"
-            class="map-point"
-            [class]="'map-point--' + roleClass"
-            [style.left.%]="point.influence"
-            [style.bottom.%]="point.interest"
-            [attr.aria-label]="pointAriaLabel(point)"
-            (click)="onSelect(point)"
-          ></button>
-        }
+          @for (point of ownPoints; track point.stakeholderId) {
+            <app-draggable-point
+              [influence]="point.influence"
+              [interest]="point.interest"
+              [extraClasses]="'map-point--' + roleClass"
+              [draggable]="ownPointsDraggable"
+              [ariaLabel]="pointAriaLabel(point)"
+              [surfaceRef]="plotSurfaceRef"
+              (activated)="onSelect(point)"
+              (dragEnd)="onDragEnd(point, $event)"
+            />
+          }
 
-        @for (point of comparePoints; track point.stakeholderId) {
-          <button
-            type="button"
-            class="map-point"
-            [class]="'map-point--compare map-point--' + compareRoleClass"
-            [style.left.%]="point.influence"
-            [style.bottom.%]="point.interest"
-            [attr.aria-label]="comparePointAriaLabel(point)"
-            (click)="onSelect(point)"
-          ></button>
-        }
+          @for (point of comparePoints; track point.stakeholderId) {
+            <app-draggable-point
+              [influence]="point.influence"
+              [interest]="point.interest"
+              [extraClasses]="'map-point--compare map-point--' + compareRoleClass"
+              [draggable]="false"
+              [ariaLabel]="comparePointAriaLabel(point)"
+              [surfaceRef]="plotSurfaceRef"
+              (activated)="onSelect(point)"
+            />
+          }
 
-        <app-connection-line-tooltip
-          [data]="activeConnectionDiff"
-          [leftPercent]="activeConnectionTooltipPosition.left"
-          [topPercent]="activeConnectionTooltipPosition.top"
-        />
+          <app-connection-line-tooltip
+            [data]="activeConnectionDiff"
+            [leftPercent]="activeConnectionTooltipPosition.left"
+            [topPercent]="activeConnectionTooltipPosition.top"
+          />
+        </div>
+
+        <div class="zoom-cluster" (pointerdown)="$event.stopPropagation()">
+          <button type="button" pButton [text]="true" [rounded]="false" icon="pi pi-plus" aria-label="Vergrößern" (click)="zoomIn()"></button>
+          <button type="button" pButton [text]="true" [rounded]="false" icon="pi pi-minus" aria-label="Verkleinern" (click)="zoomOut()"></button>
+          <button type="button" pButton [text]="true" [rounded]="false" icon="pi pi-refresh" aria-label="Ansicht zurücksetzen" (click)="resetView()"></button>
+        </div>
       </div>
 
       <div class="x-ticks mono" aria-hidden="true">
