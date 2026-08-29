@@ -4,6 +4,32 @@ Alle nennenswerten Änderungen an diesem Projekt werden hier je User Story dokum
 
 ## [Unreleased]
 
+### US-039 — StakeholderCommunicationAssignment-Entity (n:m, Invarianten)
+
+- `StakeholderCommunicationAssignment` als echte Kind-Entity des `Stakeholder`-Aggregates (Bounded
+  Context StakeholderCommunication) — vervollständigt das seit US-003 bestehende Skeleton um
+  Verhalten, analog zum `Project`/`ProjectMembership`-Muster aus US-011 (siehe ADR-0006).
+- `Stakeholder.AssignCommunication(communicationTypeId, frequency, channel)` fügt eine Zuordnung
+  hinzu; wirft `AssignmentAlreadyExistsError` bei Duplikat (gleiche `communicationTypeId`).
+- `Stakeholder.UpdateCommunicationAssignment(communicationTypeId, frequency, channel)` aktualisiert
+  Frequenz/Kanal einer bestehenden Zuordnung; wirft `AssignmentNotFoundError`, wenn keine Zuordnung
+  existiert (Anmerkung des Agenten: nicht explizit in den Akzeptanzkriterien gefordert, aber
+  konsistent mit dem Präzedenzfall `Project.ChangeMemberRole`/`MembershipNotFoundError`).
+- `Stakeholder.RemoveCommunicationAssignment(communicationTypeId)` entfernt eine Zuordnung —
+  idempotent, analog zu `Project.RemoveMember`.
+- `frequency`/`channel` ausschließlich über die bestehenden Enums `CommunicationFrequency`/
+  `CommunicationChannel` (US-002) — keine Freitext-Strings.
+- `StakeholderRepository` reconciled die `CommunicationAssignments`-Kollektion beim Speichern
+  explizit (client-generierte Guid-Schlüssel, siehe ADR-0006) und übersetzt die DB-seitige
+  Unique-Constraint-Verletzung (`stakeholder_id`, `communication_type_id`) bei parallelem Zugriff in
+  `AssignmentAlreadyExistsError`.
+- Kein API-Endpoint in dieser Story (folgt in US-040); keine neue EF-Core-Migration nötig — die
+  `ClientCascade`-Änderung der Stakeholder-FK-Beziehung wirkt nur im EF-Core-Change-Tracker, nicht
+  auf Schema-Ebene (ADR-0006).
+- Tests: `StakeholderCommunicationAssignmentTests` (Domain-Unit-Tests) sowie Story-Test
+  `US039_CommunicationAssignmentEntityTests` (inkl. Integrationstest gegen echte
+  Testcontainers-PostgreSQL-Instanz für die parallele Unique-Constraint-Durchsetzung, AC 5).
+
 ### US-038 — Kommunikationsarten-Katalog Admin-UI
 
 - Neuer dritter Admin-Sub-Bereich „Kommunikationsarten“ (`frontend/src/app/features/admin/communication-types-admin/`),
