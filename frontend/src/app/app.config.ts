@@ -37,6 +37,7 @@ export const appConfig: ApplicationConfig = {
           cssLayer: false,
         },
       },
+      license: 'eyJpZCI6ImQxNjhkZTc5LTlmY2YtNDcyYy1hYzQwLWI5YTBkNmZhNjc3MyIsInByb2R1Y3QiOiJwcmltZXVpIiwidGllciI6ImNvbW11bml0eSIsInR5cGUiOiJkZXYiLCJpYXQiOjE3ODc1OTczNjMsImV4cCI6MTgxOTEzMzM2M30.LbIuWWD6GGouJqWrma5Bd_N7HWpHpClq78DyElifXmoOI7rK5yscLsfb2YXImAkQfRoz8InKZvsglruLGosOBA'
     }),
   ],
 };
