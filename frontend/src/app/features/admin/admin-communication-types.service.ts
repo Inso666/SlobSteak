@@ -1,5 +1,5 @@
 import { Injectable, inject } from '@angular/core';
-import { HttpClient } from '@angular/common/http';
+import { HttpClient, HttpParams } from '@angular/common/http';
 import { Observable } from 'rxjs';
 
 /** Wire-Contract 1:1 zu `CommunicationTypeResponse` (US-037,
@@ -31,6 +31,12 @@ export class AdminCommunicationTypesService {
    * Story). */
   listCommunicationTypes(): Observable<AdminCommunicationType[]> {
     return this.http.get<AdminCommunicationType[]>(this.listUrl);
+  }
+
+  /** US-040 Akzeptanzkriterium 5: Katalog-Dropdown beim Zuordnen einer Kommunikationsart am
+   * Stakeholder zeigt ausschließlich aktive Einträge zur Auswahl. */
+  listActiveCommunicationTypes(): Observable<AdminCommunicationType[]> {
+    return this.http.get<AdminCommunicationType[]>(this.listUrl, { params: new HttpParams().set('activeOnly', 'true') });
   }
 
   createCommunicationType(name: string): Observable<AdminCommunicationType> {

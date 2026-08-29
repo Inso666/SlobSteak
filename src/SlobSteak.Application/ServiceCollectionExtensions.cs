@@ -35,6 +35,7 @@ public static class ServiceCollectionExtensions
         services.AddScoped<GetStakeholderService>();
         services.AddScoped<UpsertStakeholderAssessmentService>();
         services.AddScoped<GetStakeholderAssessmentsQuery>();
+        services.AddScoped<ManageStakeholderCommunicationService>();
         services.AddScoped<StakeholderMapQuery>();
         services.AddScoped<StakeholderMapComparisonQuery>();
         services.AddScoped<CreateCommunicationTypeService>();

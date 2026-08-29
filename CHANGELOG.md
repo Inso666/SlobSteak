@@ -4,6 +4,33 @@ Alle nennenswerten Änderungen an diesem Projekt werden hier je User Story dokum
 
 ## [Unreleased]
 
+### US-040 — Kommunikationszuordnung API + UI auf Stakeholder-Detailseite
+
+- `ManageStakeholderCommunicationService` (Application-Layer, Bounded Context
+  StakeholderCommunication) orchestriert Zuordnen/Ändern/Entfernen einer Kommunikationsart an
+  einem Stakeholder über die US-039-Aggregate-Methoden und reichert das Ergebnis um Name/
+  Aktiv-Status des referenzierten `CommunicationType`-Katalogeintrags an.
+- `StakeholderCommunicationController`: `POST /api/v1/stakeholders/{id}/communications` (201,
+  Duplikat 409), `PATCH .../communications/{communicationTypeId}` (200), `DELETE
+  .../communications/{communicationTypeId}` (200, idempotent) — ausschließlich für `PL`/
+  `Coreteam`/`Architect` erreichbar (`User` → 403), Rollenprüfung über den bestehenden
+  `StakeholderProjectRoleAuthorizationHandler` (ADR-0007). Zusätzlich `GET
+  .../communications` (alle vier Rollen, analog zu `GET /stakeholders/{id}`) — Anmerkung des
+  Agenten: nicht wörtlich als eigenes Akzeptanzkriterium gelistet, aber technische
+  Voraussetzung für Akzeptanzkriterium 5 (Listenanzeige).
+- `CommunicationAssignmentPanelComponent` (`frontend/src/app/features/stakeholders/communication-assignment-panel/`):
+  ersetzt den Platzhalter-Slot aus US-026 auf der Stakeholder-Detailseite. Zeigt die bestehenden
+  Zuordnungen sowie ein Formular (Katalog-Dropdown aus `GET /api/v1/communication-types?activeOnly=true`,
+  Frequenz-/Kanal-Select, „Hinzufügen“) — Formular sowie Bearbeiten-/Entfernen-Aktionen je
+  Zuordnung sind ausschließlich für `PL`/`Coreteam`/`Architect` sichtbar, für `User` bleibt die
+  Liste rein lesend (UX-Ergänzung über der serverseitigen Absicherung).
+- `AdminCommunicationTypesService` um `listActiveCommunicationTypes()` ergänzt (`GET
+  /api/v1/communication-types?activeOnly=true`) — wiederverwendet für das Katalog-Dropdown.
+- Tests: `ManageStakeholderCommunicationServiceTests` (Application, gemockte Repositories),
+  Story-Test `US040_CommunicationAssignmentUiTests` (Backend, Akzeptanzkriterien 1–4, echte
+  Testcontainers-PostgreSQL-Instanz), `CommunicationAssignmentPanelComponent`-Komponententest
+  sowie Frontend-Story-Test `us-040-communication-assignment-ui.spec.ts` (Akzeptanzkriterium 5).
+
 ### US-039 — StakeholderCommunicationAssignment-Entity (n:m, Invarianten)
 
 - `StakeholderCommunicationAssignment` als echte Kind-Entity des `Stakeholder`-Aggregates (Bounded

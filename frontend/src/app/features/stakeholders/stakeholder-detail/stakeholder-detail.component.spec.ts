@@ -6,12 +6,16 @@ import { HttpErrorResponse } from '@angular/common/http';
 import { Stakeholder, StakeholdersService } from '../stakeholders.service';
 import { ProjectOverviewItem, ProjectsService } from '../../projects/projects.service';
 import { AssessmentsService } from '../../assessments/assessments.service';
+import { StakeholderCommunicationsService } from '../stakeholder-communications.service';
+import { AdminCommunicationTypesService } from '../../admin/admin-communication-types.service';
 import { StakeholderDetailComponent } from './stakeholder-detail.component';
 
 describe('StakeholderDetailComponent', () => {
   let stakeholdersServiceSpy: jasmine.SpyObj<StakeholdersService>;
   let projectsServiceSpy: jasmine.SpyObj<ProjectsService>;
   let assessmentsServiceSpy: jasmine.SpyObj<AssessmentsService>;
+  let stakeholderCommunicationsServiceSpy: jasmine.SpyObj<StakeholderCommunicationsService>;
+  let adminCommunicationTypesServiceSpy: jasmine.SpyObj<AdminCommunicationTypesService>;
 
   const stakeholder: Stakeholder = {
     id: 'stakeholder-1',
@@ -47,6 +51,17 @@ describe('StakeholderDetailComponent', () => {
     assessmentsServiceSpy = jasmine.createSpyObj('AssessmentsService', ['getAssessments', 'upsertAssessment']);
     assessmentsServiceSpy.getAssessments.and.returnValue(of([]));
 
+    stakeholderCommunicationsServiceSpy = jasmine.createSpyObj('StakeholderCommunicationsService', [
+      'getAssignments',
+      'assignCommunication',
+      'updateAssignment',
+      'removeAssignment',
+    ]);
+    stakeholderCommunicationsServiceSpy.getAssignments.and.returnValue(of([]));
+
+    adminCommunicationTypesServiceSpy = jasmine.createSpyObj('AdminCommunicationTypesService', ['listActiveCommunicationTypes']);
+    adminCommunicationTypesServiceSpy.listActiveCommunicationTypes.and.returnValue(of([]));
+
     TestBed.configureTestingModule({
       imports: [StakeholderDetailComponent],
       providers: [
@@ -54,6 +69,8 @@ describe('StakeholderDetailComponent', () => {
         { provide: StakeholdersService, useValue: stakeholdersServiceSpy },
         { provide: ProjectsService, useValue: projectsServiceSpy },
         { provide: AssessmentsService, useValue: assessmentsServiceSpy },
+        { provide: StakeholderCommunicationsService, useValue: stakeholderCommunicationsServiceSpy },
+        { provide: AdminCommunicationTypesService, useValue: adminCommunicationTypesServiceSpy },
         {
           provide: ActivatedRoute,
           useValue: {
