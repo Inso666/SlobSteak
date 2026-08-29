@@ -3,7 +3,7 @@
 **Bounded Context / Domain:** Frontend-Shell (cross-cutting, analog zu US-043/US-044/US-050/US-057)
 **Abhängigkeiten:** US-050, US-057
 
-**Status:** offen
+**Status:** fertig (29.08.2026), PR siehe unten
 
 ---
 
@@ -29,11 +29,11 @@ Als **Nutzer** möchte ich, dass jede Aktion im Admin- und Stakeholder-Bereich (
 
 ### 3. Akzeptanzkriterien
 
-- [ ] Alle fünf verbleibenden (Punkt 1–5) oben unter Punkt 2 gelisteten Komponenten injizieren `ChangeDetectorRef` (soweit nicht bereits vorhanden) und rufen `changeDetectorRef.markForCheck()` in jedem `next`- und `error`-Zweig der genannten `subscribe()`-Aufrufe auf — analog zum bereits etablierten Muster in `loadUsers()`/`loadProjects()`/`loadMemberships()`/`LoginPageComponent.onSubmit()`.
-- [ ] Für jede der fünf Komponenten belegt ein automatisierter Test (Angular `TestBed` + `HttpTestingController`, Antwort ausschließlich per `flush()` nach dem ursprünglichen Aufruf, danach ausschließlich der reguläre `fixture.detectChanges()`-Zyklus ohne zusätzliche simulierte Interaktion) den korrekten Endzustand nach Erfolg **und** nach Fehler.
-- [ ] Bestehende Tests aller fünf betroffenen Komponenten (inkl. `us-050-*`/`us-057-*`/`us-051-*`/`us-052-*`-Story-Tests) bleiben grün bzw. werden dort ergänzt, wo sie den jetzt gefixten Zustand bereits (unbewusst) mitgeprüft haben.
-- [ ] Story-Test gemäß `.claude/agents/qa.md`-Konvention (`us-058*.spec.ts`, ggf. mehrere Dateien nahe den betroffenen Komponenten, siehe qa.md Abschnitt 1 zu mehrteiligen Frontend-Stories), ausschließlich gegen obige Akzeptanzkriterien.
-- [ ] Kein bestehender Test wird gebrochen; `ng test` bleibt grün.
+- [x] Alle fünf verbleibenden (Punkt 1–5) oben unter Punkt 2 gelisteten Komponenten injizieren `ChangeDetectorRef` (soweit nicht bereits vorhanden) und rufen `changeDetectorRef.markForCheck()` in jedem `next`- und `error`-Zweig der genannten `subscribe()`-Aufrufe auf — analog zum bereits etablierten Muster in `loadUsers()`/`loadProjects()`/`loadMemberships()`/`LoginPageComponent.onSubmit()`.
+- [x] Für jede der fünf Komponenten belegt ein automatisierter Test (Angular `TestBed` + `HttpTestingController`, Antwort ausschließlich per `flush()` nach dem ursprünglichen Aufruf, danach ausschließlich der reguläre `fixture.detectChanges()`-Zyklus ohne zusätzliche simulierte Interaktion) den korrekten Endzustand nach Erfolg **und** nach Fehler.
+- [x] Bestehende Tests aller fünf betroffenen Komponenten (inkl. `us-050-*`/`us-057-*`/`us-051-*`/`us-052-*`-Story-Tests) bleiben grün bzw. werden dort ergänzt, wo sie den jetzt gefixten Zustand bereits (unbewusst) mitgeprüft haben.
+- [x] Story-Test gemäß `.claude/agents/qa.md`-Konvention (`us-058*.spec.ts`, ggf. mehrere Dateien nahe den betroffenen Komponenten, siehe qa.md Abschnitt 1 zu mehrteiligen Frontend-Stories), ausschließlich gegen obige Akzeptanzkriterien. *Umgesetzt als eine gemeinsame Datei `us-058-zoneless-reaktivitaet-systematisch-nachziehen.spec.ts` mit fünf Testblöcken statt fünf separater Dateien — siehe Anmerkungen des Agenten.*
+- [x] Kein bestehender Test wird gebrochen; `ng test` bleibt grün.
 
 ### 4. Technische Hinweise für den Dev-Agenten
 
@@ -48,3 +48,23 @@ Als **Nutzer** möchte ich, dass jede Aktion im Admin- und Stakeholder-Bereich (
 ### Anmerkungen des Product Owners
 
 Wird während der Bearbeitung von US-051 angelegt (siehe dortige „Anmerkungen des Agenten“), da beim Gegenlesen aller in US-050/US-057 bereits vermuteten Stellen zwei zusätzliche, bis dahin nicht benannte Komponenten (`project-workspace-layout.component.ts`, `stakeholder-list.component.ts`) mit demselben Muster gefunden wurden. Bewusst als eigene Sammelstory statt Mit-Fix in US-051 (CLAUDE.md Abschnitt 3: „nur an aktueller Story arbeiten“).
+
+### Anmerkungen des Agenten
+
+**Umsetzung:** Alle fünf in Abschnitt 2 gelisteten Fundstellen erhielten `changeDetectorRef.markForCheck()` in ihrem `error`-Zweig (der zuvor jeweils ohne jeden Folgeaufruf dauerhaft im Verarbeitungs-/Lade-Zustand hängen blieb); die `next`-Zweige der drei Admin-Mutationsmethoden (`onCreateUser`, `onCreateProject`, `onAssignMember`/`onChangeRole`/`onRemoveMember`) erhielten den Aufruf ebenfalls, obwohl sie sich bereits indirekt über den jeweils darin ausgelösten Listen-Reload selbst heilten (Konsistenz, wie in der Story-Beschreibung vermerkt). `stakeholder-list.component.ts` erhielt zusätzlich eine neue `ChangeDetectorRef`-Injektion (bislang keine vorhanden); `password-change-modal.component.ts` ebenso.
+
+**Wichtiger methodischer Befund beim Schreiben der Story-Tests (Akzeptanzkriterium 2):** Ein naiv aufgebauter Test der Form „`component['xForm'].setValue(...)`, dann sofort die zu testende Methode aufrufen, dann `flush()` + `fixture.detectChanges()`“ erkennt ein fehlendes `markForCheck()` NICHT zuverlässig — Angulars Reactive-Forms-Direktiven markieren die Komponente beim Schreiben eines Formularwerts bereits selbst für die nächste Change-Detection-Runde, wodurch der nachfolgende `fixture.detectChanges()`-Aufruf die gesamte Ansicht ohnehin aktualisiert, unabhängig vom eigentlich zu prüfenden `subscribe()`-Callback. Ebenso maskiert ein gemeinsamer `fixture.detectChanges()`-Aufruf nach dem Flush **mehrerer** paralleler HTTP-Requests ein fehlendes `markForCheck()` in einem der Requests, wenn ein anderer, korrekt fixter Request denselben Aufruf teilt. Behoben durch: (1) einen zusätzlichen `fixture.detectChanges()` unmittelbar nach jedem `setValue()`, der diese Nebenwirkung „verbraucht“, bevor die eigentliche Methode aufgerufen wird; (2) bei mehreren unabhängigen Requests jeden einzeln flushen und direkt danach prüfen, statt mehrere Flushes gefolgt von einem gemeinsamen `detectChanges()` zu bündeln — außer wo (wie beim `getProject`/`listStakeholders`-Doppel-Request in `ngOnInit`) eine echte Trennung der beiden Flushes durch einen zusätzlichen `detectChanges()`-Aufruf sich als eigenständig flatterhaft (test-flaky) erwies; dort blieb bewusst die gemeinsame, stabile Flush-Reihenfolge erhalten, und die Korrektheit dieses einzelnen Falls wurde stattdessen durch Code-Review plus das an anderer Stelle bereits mutationsgetestete, identische Fix-Muster abgesichert, statt eine flatterhafte Test-Isolation zu erzwingen. Jeder der fünf Fixes wurde zusätzlich einzeln per Mutationstest verifiziert (Fix temporär entfernt → zugehöriger Test schlägt fehl → Fix wiederhergestellt → Test wieder grün), mit Ausnahme des `getProject`-Falls aus genau diesem Flakiness-Grund.
+
+**Verifikation:** `ng test` (gesamter Workspace) 249/249 grün, dreifach wiederholt zur Stabilitätsprüfung (Basis 234/234 nach US-055-Merge — diese Story wurde von `origin/main` vor dem noch offenen US-056-Merge abgezweigt, da US-058 nur von US-050/US-057 abhängt, nicht von US-056 — plus 15 neue Testfälle im Story-Test). `ng lint` fehlerfrei. `ng build` erfolgreich (Bundle-Budget-Warnung unverändert vorbestehend). `dotnet test` unverändert grün (kein Backend-Anteil). Zusätzlich manuell in einem isolierten `docker-compose`-Stack (eigener `-p`-Projektname/-Ports, danach `down -v`) verifiziert: erzwungene Passwort-Änderung nach Erst-Login schließt zuverlässig ohne Hängenbleiben ab, Admin-Bereich (Nutzer anlegen) funktioniert unverändert.
+
+**„So probierst du es aus":** `docker-compose up`, mit Seed-Admin anmelden — die erzwungene Passwort-Änderung schließt nach Absenden zuverlässig ab (kein Hängenbleiben im Verarbeitungs-Zustand). Im Admin-Bereich sowie in der Stakeholder-Liste eines Projekts bleibt jede abgeschlossene Aktion (Anlegen, Zuweisen, Rolle ändern, Entfernen, Wiederherstellen) nach Erfolg oder Fehler zuverlässig sichtbar, ohne dass eine zusätzliche, unabhängige Interaktion nötig ist.
+
+**Neue/geänderte Dateien:**
+- `frontend/src/app/features/admin/users-admin/users-admin.component.ts` (`onCreateUser`)
+- `frontend/src/app/features/admin/projects-admin/projects-admin.component.ts` (`onCreateProject`)
+- `frontend/src/app/features/admin/projects-admin/project-membership-manager.component.ts` (`onAssignMember`/`onChangeRole`/`onRemoveMember`)
+- `frontend/src/app/features/stakeholders/stakeholder-list/stakeholder-list.component.ts` (`ChangeDetectorRef` neu injiziert; `getProject`/`restoreStakeholder`/`listStakeholders` ×2)
+- `frontend/src/app/features/auth/password-change-modal/password-change-modal.component.ts` (`ChangeDetectorRef` neu injiziert; `onSubmit`)
+- `frontend/src/app/us-058-zoneless-reaktivitaet-systematisch-nachziehen.spec.ts` (neu, Story-Test)
+- `docs/usecases/US-058-zoneless-reaktivitaet-systematisch-nachziehen.md` (diese Datei)
+- `docs/usecases/BACKLOG.md`, `CHANGELOG.md` (Status-/Eintrags-Updates)

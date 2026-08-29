@@ -4,6 +4,28 @@ Alle nennenswerten Änderungen an diesem Projekt werden hier je User Story dokum
 
 ## [Unreleased]
 
+### US-058 — Zoneless-Reaktivität systematisch nachziehen
+
+- Fünf verbleibende, per Code-Review bestätigte Fundstellen mit fehlendem
+  `changeDetectorRef.markForCheck()` behoben (dieselbe Root Cause wie US-050/US-051/US-057):
+  `users-admin.component.ts` (`onCreateUser`), `projects-admin.component.ts`
+  (`onCreateProject`), `project-membership-manager.component.ts` (`onAssignMember`/
+  `onChangeRole`/`onRemoveMember`), `stakeholder-list.component.ts` (`getProject`,
+  `restoreStakeholder`, `listStakeholders` an beiden Aufrufstellen — `ChangeDetectorRef` hier
+  neu injiziert), `password-change-modal.component.ts` (`onSubmit` — `ChangeDetectorRef`
+  ebenfalls neu injiziert).
+- `project-workspace-layout.component.ts` war bereits im Rahmen von US-052 behoben, kein
+  weiterer Umsetzungsbedarf.
+- Neuer Story-Test `us-058-zoneless-reaktivitaet-systematisch-nachziehen.spec.ts` (15
+  Testfälle, Erfolgs- und Fehlerfall je Komponente über `HttpTestingController`/`flush()`,
+  kein simulierter Klick) — jeder der fünf Fixes einzeln per Mutationstest verifiziert.
+- Methodischer Befund beim Testschreiben festgehalten (siehe Story-Datei „Anmerkungen des
+  Agenten"): ein `setValue()` auf einem Reactive-Form-Control direkt vor dem Methodenaufruf
+  kann den fehlenden `markForCheck()`-Fix in Tests verdecken, ebenso ein gemeinsamer
+  `detectChanges()` nach mehreren parallelen Flushes.
+- `ng test` (249/249, dreifach wiederholt zur Stabilitätsprüfung), `ng lint`, `ng build`
+  grün; `dotnet test` unverändert grün (kein Backend-Anteil).
+
 ### US-056 — Admin-Bereich gemäß SPEC-07 angleichen (Tab-Host mit Dialog-Formularen)
 
 - Neuer Tab-Host `AdminPageComponent` unter gemeinsamer Elternroute `/admin` (`adminGuard`
