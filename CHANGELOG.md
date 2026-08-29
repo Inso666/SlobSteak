@@ -4,6 +4,28 @@ Alle nennenswerten Änderungen an diesem Projekt werden hier je User Story dokum
 
 ## [Unreleased]
 
+### US-038 — Kommunikationsarten-Katalog Admin-UI
+
+- Neuer dritter Admin-Sub-Bereich „Kommunikationsarten“ (`frontend/src/app/features/admin/communication-types-admin/`),
+  eingebunden als Kind-Route `/admin/communication-types` im bestehenden Tab-Host `AdminPageComponent`
+  (`adminGuard`, ausschließlich für Systemadmins erreichbar). Kartenliste zeigt jeden
+  Katalogeintrag mit Status-Tag „Aktiv“/„Deaktiviert“; deaktivierte Einträge bleiben sichtbar
+  (durchgestrichen + gedämpfte Farbe statt Ausblendung).
+- Formular „Kommunikationsart anlegen“ (`p-dialog`, Reactive Form) ruft
+  `POST /api/v1/admin/communication-types` auf; ein Duplikat-Name (`409 NAME_ALREADY_IN_USE`) wird
+  inline am Namensfeld angezeigt, ohne den Dialog zu schließen.
+- Je Eintrag zwei eigenständige Zeilenaktionen: „Umbenennen“ (`p-dialog` mit Namensfeld,
+  `PATCH {name}`, ebenfalls mit Inline-Duplikat-Fehler) und „Aktivieren“/„Deaktivieren“ (direkter
+  Button ohne Dialog, `PATCH {isActive}`) — bewusst getrennt statt eines kombinierten
+  Bearbeiten-Dialogs, siehe „Anmerkungen des Agenten“ in der Story-Datei.
+- Neuer `AdminCommunicationTypesService` (`frontend/src/app/features/admin/admin-communication-types.service.ts`)
+  kapselt alle HTTP-Zugriffe (`GET /api/v1/communication-types`, `POST`/`PATCH` auf
+  `/api/v1/admin/communication-types`).
+- Story-Test `frontend/src/app/features/admin/us-038-communication-type-katalog-ui.spec.ts` (ein
+  Testfall je Akzeptanzkriterium) sowie Komponententest
+  `communication-types-admin.component.spec.ts`; gesamte Angular-Testsuite (345 Tests) und
+  `ng lint` grün.
+
 ### US-037 — CommunicationType-Aggregate & Admin-Katalog-API
 
 - Neues `CommunicationType`-Aggregate (`src/SlobSteak.Domain/Communications/CommunicationType.cs`,
