@@ -1,3 +1,4 @@
+using System.Diagnostics;
 using System.Text;
 using System.Text.Json;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
@@ -13,6 +14,11 @@ using SlobSteak.Application;
 using SlobSteak.Application.Identity;
 using SlobSteak.Infrastructure;
 using SlobSteak.Infrastructure.Persistence;
+
+// US-049: Stoppuhr ab Prozessstart, um Kaltstart-Zeitanteile (Migration, Seed-Admin, Zeit bis zur
+// Annahme von Requests) im Log sichtbar zu machen — Grundlage für die Ursachenanalyse der Story und
+// Regressionsschutz für künftige Verlangsamungen. Rein diagnostisch, keine Verhaltensänderung.
+var startupStopwatch = Stopwatch.StartNew();
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -106,9 +112,23 @@ if (app.Environment.IsDevelopment())
     // lokale/Dev-Umgebung (docker-compose, `dotnet run`), kein impliziter Produktionsmechanismus
     // (CLAUDE.md Abschnitt 3.4). In Produktion erfolgt das Ausrollen von Migrationen kontrolliert
     // außerhalb des Anwendungsstarts.
+    //
+    // US-049: Start-/Ende-Zeitstempel um die Migration herum — bei der realen Messung dieser Story
+    // (siehe PR-Text/Story-Datei) war dies bei einer frischen Datenbank NICHT der dominante Anteil
+    // der Kaltstart-Verzögerung (< 1s), wird aber sichtbar geloggt, damit ein künftiger Anstieg
+    // (z. B. durch viele neue Migrationen) sofort im Log auffällt statt sich unbemerkt zu häufen.
     using var migrationScope = app.Services.CreateScope();
     var dbContext = migrationScope.ServiceProvider.GetRequiredService<SlobSteakDbContext>();
+    app.Logger.LogInformation(
+        "US-049: EF-Core-Migration wird gestartet ({ElapsedMs} ms seit Prozessstart).",
+        startupStopwatch.ElapsedMilliseconds);
+    var migrationStopwatch = Stopwatch.StartNew();
     dbContext.Database.Migrate();
+    migrationStopwatch.Stop();
+    app.Logger.LogInformation(
+        "US-049: EF-Core-Migration abgeschlossen nach {DurationMs} ms ({ElapsedMs} ms seit Prozessstart).",
+        migrationStopwatch.ElapsedMilliseconds,
+        startupStopwatch.ElapsedMilliseconds);
 }
 
 app.UseHttpsRedirection();
@@ -134,6 +154,15 @@ app.MapHealthChecks("/api/v1/health", new HealthCheckOptions
         await context.Response.WriteAsync(JsonSerializer.Serialize(new { status = "ok" }));
     }
 });
+
+// US-049: markiert im Log den Zeitpunkt, ab dem der Kestrel-Host tatsächlich Requests annimmt
+// (nach IHostedService.StartAsync aller registrierten Hosted Services, u. a. SeedAdminHostedService,
+// siehe ASP.NET-Core-Hosting-Reihenfolge) — Gegenstück zum Zeitstempel des ersten erfolgreichen
+// Requests bei der realen Kaltstart-Messung dieser Story.
+app.Lifetime.ApplicationStarted.Register(() =>
+    app.Logger.LogInformation(
+        "US-049: Anwendung bereit für Requests ({ElapsedMs} ms seit Prozessstart).",
+        startupStopwatch.ElapsedMilliseconds));
 
 app.Run();
 

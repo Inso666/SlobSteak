@@ -1,3 +1,4 @@
+import { BreakpointObserver } from '@angular/cdk/layout';
 import { Component } from '@angular/core';
 import { TestBed } from '@angular/core/testing';
 import { Router, UrlTree, provideRouter } from '@angular/router';
@@ -5,10 +6,9 @@ import { of } from 'rxjs';
 import { AppNavigationComponent } from '../../core/navigation/app-navigation/app-navigation.component';
 import { TokenStorageService } from '../auth/token-storage.service';
 import { adminGuard } from './admin.guard';
+import { AdminPageComponent } from './admin-page/admin-page.component';
 import { AdminProject, AdminProjectsService } from './admin-projects.service';
 import { AdminUser, AdminUsersService } from './admin-users.service';
-import { ProjectsAdminComponent } from './projects-admin/projects-admin.component';
-import { UsersAdminComponent } from './users-admin/users-admin.component';
 
 @Component({ selector: 'app-us046-dummy', standalone: true, template: 'dummy' })
 class DummyRouteComponent {}
@@ -77,6 +77,9 @@ describe('US-046: Admin-Bereich über globale Navigation erreichbar machen', () 
         ]),
         { provide: AdminUsersService, useValue: adminUsersServiceSpy },
         { provide: AdminProjectsService, useValue: adminProjectsServiceSpy },
+        // US-055: erzwingt die Desktop-Sidebar statt des mobilen Drawers, siehe Begründung in
+        // `app-navigation.component.spec.ts`.
+        { provide: BreakpointObserver, useValue: { observe: () => of({ matches: false }) } },
       ],
     });
     tokenStorage = TestBed.inject(TokenStorageService);
@@ -129,31 +132,29 @@ describe('US-046: Admin-Bereich über globale Navigation erreichbar machen', () 
     expect(router.url).toBe('/admin/users');
   });
 
-  it('Akzeptanzkriterium 4: UsersAdminComponent bietet einen sichtbaren Sub-Navigations-Link zu „Projekte"', () => {
-    const fixture = TestBed.createComponent(UsersAdminComponent);
-    fixture.detectChanges();
-
-    const projectsLink = fixture.nativeElement.querySelector(
-      'a[href="/admin/projects"]',
-    ) as HTMLAnchorElement | null;
-    expect(projectsLink).not.toBeNull();
-    expect(projectsLink?.textContent?.trim()).toBe('Projekte');
-  });
-
-  it('Akzeptanzkriterium 4: ProjectsAdminComponent bietet einen sichtbaren Sub-Navigations-Link zu „Nutzer"', () => {
-    const fixture = TestBed.createComponent(ProjectsAdminComponent);
+  // US-056: Die Sub-Navigation zwischen „Nutzer“ und „Projekte“ lebt seit dieser Story nicht mehr
+  // dupliziert in den beiden Admin-Unterseiten selbst, sondern einmalig im gemeinsamen Tab-Host
+  // `AdminPageComponent` — die Akzeptanzkriterien 4/5 dieser Story (US-046) bleiben fachlich
+  // unverändert erfüllt, prüfen den Link jetzt aber am neuen, tatsächlichen Ort.
+  it('Akzeptanzkriterium 4: AdminPageComponent bietet sichtbare Sub-Navigations-Links zu „Nutzer" und „Projekte"', () => {
+    const fixture = TestBed.createComponent(AdminPageComponent);
     fixture.detectChanges();
 
     const usersLink = fixture.nativeElement.querySelector(
       'a[href="/admin/users"]',
     ) as HTMLAnchorElement | null;
+    const projectsLink = fixture.nativeElement.querySelector(
+      'a[href="/admin/projects"]',
+    ) as HTMLAnchorElement | null;
     expect(usersLink).not.toBeNull();
     expect(usersLink?.textContent?.trim()).toBe('Nutzer');
+    expect(projectsLink).not.toBeNull();
+    expect(projectsLink?.textContent?.trim()).toBe('Projekte');
   });
 
   it('Akzeptanzkriterium 5: der aktive Sub-Bereich ist in der Sub-Navigation visuell hervorgehoben (routerLinkActive)', async () => {
     await router.navigateByUrl('/admin/users');
-    const fixture = TestBed.createComponent(UsersAdminComponent);
+    const fixture = TestBed.createComponent(AdminPageComponent);
     fixture.detectChanges();
     // RouterLinkActive setzt die CSS-Klasse per `queueMicrotask` (siehe Angular-Quelltext) — erst
     // nach einem Microtask-Tick steht sie im DOM.

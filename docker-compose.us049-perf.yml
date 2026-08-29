@@ -1,0 +1,64 @@
+# US-049: eigenständige, isolierte Compose-Datei ausschließlich für die manuelle Kaltstart-
+# Zeitmessung dieser Story (CLAUDE.md Abschnitt 6: reale Messung statt reinem Code-Review) — läuft
+# unter einem eigenen `-p`-Projektnamen und auf umgemappten Host-Ports (15432/15000/14200), rührt
+# den regulären, dauerhaften Stack aus `docker-compose.yml` (Standardports, Präfix `steakholder-*`)
+# NICHT an. Kein Teil des Deployments/der CI — reines Diagnose-Werkzeug, bewusst als vollständig
+# eigenständige Datei (nicht `-f docker-compose.yml -f ...`), da Compose `ports`-Listen sonst pro
+# Service addiert statt ersetzt.
+#
+# Reproduktion (siehe Story-Datei „Anmerkungen des Agenten“ für die damit gemessenen Ergebnisse):
+#   docker compose -p us049perf -f docker-compose.us049-perf.yml build
+#   docker compose -p us049perf -f docker-compose.us049-perf.yml up -d   # frisches Volume = Erststart
+#   docker compose -p us049perf -f docker-compose.us049-perf.yml logs api --timestamps
+#   docker compose -p us049perf -f docker-compose.us049-perf.yml down -v
+services:
+  db:
+    image: postgres:16-alpine
+    environment:
+      POSTGRES_DB: slobsteak
+      POSTGRES_USER: slobsteak
+      POSTGRES_PASSWORD: slobsteak
+    ports:
+      - "15432:5432"
+    volumes:
+      - us049-perf-db-data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U slobsteak -d slobsteak"]
+      interval: 2s
+      timeout: 3s
+      retries: 30
+
+  api:
+    build:
+      context: .
+      dockerfile: src/SlobSteak.Api/Dockerfile
+    depends_on:
+      db:
+        condition: service_healthy
+    environment:
+      ASPNETCORE_ENVIRONMENT: Development
+      ConnectionStrings__Default: >-
+        Host=db;Port=5432;Database=slobsteak;Username=slobsteak;Password=slobsteak
+      SEED_ADMIN_EMAIL: admin@example.com
+      SEED_ADMIN_PASSWORD: ChangeMe123!
+      JWT_SIGNING_KEY: dev-only-jwt-signing-key-change-me-3242
+    ports:
+      - "15000:8080"
+    healthcheck:
+      test: ["CMD-SHELL", "curl -f http://localhost:8080/api/v1/health || exit 1"]
+      interval: 2s
+      timeout: 3s
+      retries: 30
+
+  frontend:
+    build:
+      context: ./frontend
+      dockerfile: Dockerfile
+    depends_on:
+      api:
+        condition: service_healthy
+    ports:
+      - "14200:80"
+
+volumes:
+  us049-perf-db-data:

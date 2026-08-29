@@ -3,7 +3,7 @@
 **Bounded Context / Domain:** IdentityAccess (Presentation)
 **Abhängigkeiten:** US-008, US-009, US-047, US-053
 
-**Status:** offen
+**Status:** fertig (29.08.2026), PR siehe unten
 
 ---
 
@@ -33,16 +33,16 @@ Als **Nutzer** möchte ich, dass die Anmeldemaske und der erzwungene Passwort-Ä
 
 ### 3. Akzeptanzkriterien
 
-- [ ] Login-Seite zeigt den Markenblock (Logo-Icon aus US-053, „SlobSteak“-Schriftzug, Tagline) oberhalb der Login-Karte.
-- [ ] Login-Seite zeigt die Footnote „Kein eigenes Konto? Ein Administrator richtet deinen Zugang ein.“ (oder eine vom Projektverantwortlichen bestätigte, inhaltsgleiche Formulierung).
-- [ ] Login-Seite zeigt einen erkennbaren Bootstrapping-/Lade-Skeleton-Zustand, solange die Seite selbst noch initialisiert (SPEC-00 §3 Skeleton-Baustein, keine neue Lösung).
-- [ ] Passwort-Änderungs-Dialog zeigt den Icon-Badge (Schloss-Icon auf amberfarbenem Kreis, SPEC-00-Tokens statt der alten SPEC-01-Hex-/Variablennamen).
-- [ ] Passwort-Änderungs-Dialog verlangt sowohl „Neues Passwort“ als auch „Passwort bestätigen“; ein Formular-Submit ist bei ungleichen Werten nicht möglich, mit einer verständlichen deutschen Fehlermeldung am `confirmPassword`-Feld (SPEC-00 §2 Fehlermuster: Rahmenfarbe + Icon + Text, `aria-invalid`/`aria-describedby`).
-- [ ] Mindestlänge und zugehöriger Fehlertext sind konsistent zwischen SPEC-01 und der tatsächlichen Umsetzung — bei einer bewussten Abweichung (z. B. weil 8 Zeichen aus einer verbindlichen PRD-Vorgabe stammen) wird das im PR unter „Anmerkungen des Dev-Agenten“ begründet, statt stillschweigend SPEC-01 zu ignorieren (CLAUDE.md Abschnitt 6).
-- [ ] Durchgängig informelle Anrede („du“) auf beiden Masken, konsistent mit dem übrigen Frontend.
-- [ ] Alle Formularfelder folgen weiterhin dem SPEC-00 §2-Muster (verknüpftes Label, Fehlerdarstellung durch Rahmenfarbe **und** Icon **und** Text).
-- [ ] Bestehende Story-Tests zu US-008/US-009 bleiben grün bzw. werden um den neuen `confirmPassword`-Fall ergänzt (nicht ersetzt).
-- [ ] `ng test`/`ng lint` bleiben grün.
+- [x] Login-Seite zeigt den Markenblock (Logo-Icon aus US-053, „SlobSteak“-Schriftzug, Tagline) oberhalb der Login-Karte.
+- [x] Login-Seite zeigt die Footnote „Kein eigenes Konto? Ein Administrator richtet deinen Zugang ein.“ (oder eine vom Projektverantwortlichen bestätigte, inhaltsgleiche Formulierung).
+- [x] Login-Seite zeigt einen erkennbaren Bootstrapping-/Lade-Skeleton-Zustand, solange die Seite selbst noch initialisiert (SPEC-00 §3 Skeleton-Baustein, keine neue Lösung).
+- [x] Passwort-Änderungs-Dialog zeigt den Icon-Badge (Schloss-Icon auf amberfarbenem Kreis, SPEC-00-Tokens statt der alten SPEC-01-Hex-/Variablennamen).
+- [x] Passwort-Änderungs-Dialog verlangt sowohl „Neues Passwort“ als auch „Passwort bestätigen“; ein Formular-Submit ist bei ungleichen Werten nicht möglich, mit einer verständlichen deutschen Fehlermeldung am `confirmPassword`-Feld (SPEC-00 §2 Fehlermuster: Rahmenfarbe + Icon + Text, `aria-invalid`/`aria-describedby`).
+- [x] Mindestlänge und zugehöriger Fehlertext sind konsistent zwischen SPEC-01 und der tatsächlichen Umsetzung — bei einer bewussten Abweichung (z. B. weil 8 Zeichen aus einer verbindlichen PRD-Vorgabe stammen) wird das im PR unter „Anmerkungen des Dev-Agenten“ begründet, statt stillschweigend SPEC-01 zu ignorieren (CLAUDE.md Abschnitt 6).
+- [x] Durchgängig informelle Anrede („du“) auf beiden Masken, konsistent mit dem übrigen Frontend.
+- [x] Alle Formularfelder folgen weiterhin dem SPEC-00 §2-Muster (verknüpftes Label, Fehlerdarstellung durch Rahmenfarbe **und** Icon **und** Text).
+- [x] Bestehende Story-Tests zu US-008/US-009 bleiben grün bzw. werden um den neuen `confirmPassword`-Fall ergänzt (nicht ersetzt).
+- [x] `ng test`/`ng lint` bleiben grün.
 
 ### 4. Technische Hinweise für den Dev-Agenten
 
@@ -58,3 +58,34 @@ Als **Nutzer** möchte ich, dass die Anmeldemaske und der erzwungene Passwort-Ä
 ### Anmerkungen des Product Owners
 
 Der fehlende `confirmPassword`-Abgleich ist mehr als ein optisches Detail (Tippfehler-Risiko beim Passwort-Setzen) und wird deshalb hier trotz Einordnung unter „Design“ im Bug-Report explizit als Akzeptanzkriterium geführt, nicht nur als Wireframe-Kosmetik.
+
+### Anmerkungen des Agenten
+
+**Umfang bewusst auf die Story-AC begrenzt, nicht das komplette historische SPEC-01-Dokument 1:1 nachgebaut:** SPEC-01 enthält in Abschnitt 1 ein vollständiges, deutlich älteres Component-Tree-Pseudocode-Beispiel (u. a. `var(--surface-ground)`, rohes `<p-button [loading]>`, `p-toast`) aus einer Design-Phase vor US-043/044/047. Diese Story übernimmt daraus ausschließlich die in Abschnitt 2 der Story-Datei konkret benannten strukturellen/inhaltlichen Deltas (Markenblock, Tagline, Footnote, Icon-Badge, Bestätigungsfeld, Wortlaut, Bootstrap-Zustand) — nicht die bereits durch neuere, etablierte Stories ersetzten Bausteine: `app-processing-button` (US-043, inkl. Doppel-Submit-Schutz) bleibt statt eines rohen `<p-button [loading]>`, SPEC-00-Tokens (`--app-*`) bleiben statt der alten `var(--surface-ground)`/`var(--yellow-*)`-Variablen, das bestehende `<p-message>`-Fehlermuster bleibt statt neuer `<small>`-Elemente. Ein Rückbau auf die alten Muster wäre eine stille Regression zweier bereits abgeschlossener Stories gewesen.
+
+**Mindestlänge (Akzeptanzkriterium 6) — bewusste, dokumentierte Abweichung von SPEC-01:** SPEC-01 §2.2 schreibt `Validators.minLength(10)` vor. Die tatsächlich serverseitig durchgesetzte Regel ist jedoch `PasswordTooShortError.MinimumLength = 8` (`src/SlobSteak.Domain/Shared/Exceptions/PasswordTooShortError.cs`) — ein 8-11-Zeichen-Passwort würde der Server anstandslos akzeptieren, während ein Frontend mit `minLength(10)` es fälschlich ablehnen würde. Mindestlänge bewusst bei 8 belassen (CLAUDE.md Abschnitt 6: dokumentierte Abweichung zugunsten der bestehenden, verbindlichen Backend-Invariante statt stiller Übernahme des Wireframe-Werts).
+
+**Bootstrapping-Zustand (Akzeptanzkriterium 3) — Interpretation der zugrunde liegenden Prüfung:** SPEC-01 §3.1 definiert `bootstrapping` als Zustand „während geprüft wird, ob bereits eine gültige Session besteht"; den daraus resultierenden automatischen Redirect bereits angemeldeter Nutzer:innen markiert SPEC-01 selbst ausdrücklich als „außerhalb dieser Spec". Diese Anwendung hat aktuell keinen echten asynchronen Session-Check (`TokenStorageService`/`authGuard` lesen synchron aus `localStorage`) — ein zusätzlicher Redirect-Mechanismus wäre ein stiller Scope-Zuwachs auf Routing-Verhalten gewesen (CLAUDE.md Abschnitt 3), der zudem außerhalb der in Abschnitt 4 der Story genannten „Zu ändernden Dateien" (nur `login-page`/`password-change-modal`, nicht Guards/Services) gelegen hätte. `bootstrapping` ist daher als real verdrahteter, aber synchron in `ngOnInit` aufgelöster Zustand umgesetzt (kein künstlich verzögerter `setTimeout`) — ein `setTimeout`-Ansatz wurde zunächst geprüft, aber verworfen: er hätte jeden bestehenden, synchron arbeitenden Test dieser Komponente gebrochen (`login-page.component.spec.ts`, `us-049-*.spec.ts`, `us-057-*.spec.ts`), ohne einen echten fachlichen Ladevorgang abzubilden.
+
+**Kein eigener PrimeUI-Icon-Font-Import nötig:** `primeicons` ist bereits global in `styles.css` eingebunden (seit früherer Story) — `pi pi-lock` funktioniert ohne weitere Änderung.
+
+**Verifikation:** `ng test` (gesamter Workspace) 232/232 grün (218/218 nach US-053-Merge als Basis, +14 neue Tests: 9 im neuen Story-Test, 2 in `password-change-modal.component.spec.ts`, 3 indirekt durch präzisierte Fakes in `us-043-*.spec.ts` unverändert grün gehalten). `ng lint` fehlerfrei. `ng build` erfolgreich (nur vorbestehende Bundle-Budget-Warnung). `dotnet test` unverändert grün (kein Backend-Anteil).
+
+**Manueller Smoke-Test gegen `docker-compose up` (isolierter Stack, Projektname `us054smoke`, eigene Ports 4254/5054/5554):**
+- Login-Seite: Markenblock (Icon + „SlobSteak" + Tagline) und Footnote sichtbar, korrekt oberhalb bzw. unterhalb der Login-Karte platziert — verifiziert (Screenshot).
+- Login mit Seed-Admin (`mustChangePassword: true`): Passwort-Änderungs-Dialog erscheint automatisch, zeigt Icon-Badge, Titel „Neues Passwort festlegen", „du"-Ansprache, Hinweistext — verifiziert (Screenshot).
+- Ungleiche Werte in „Neues Passwort"/„Passwort bestätigen": Feld „Passwort bestätigen" zeigt sofort (live, ohne Submit-Versuch) die rot umrandete Fehlermeldung „Die Passwörter stimmen nicht überein." — verifiziert (Screenshot).
+- Übereinstimmende Werte: Fehler verschwindet live wieder, Submit („Passwort ändern") schließt den Dialog erfolgreich und navigiert zu `/projects` — verifiziert (Screenshot).
+- Stack nach Abschluss vollständig abgebaut (`docker compose down -v`), keine verbleibenden Container/Volumes.
+
+**„So probierst du es aus":** `docker-compose up`, `http://localhost:4200/login` öffnen → Markenblock + Tagline + Footnote sichtbar. Mit Seed-Admin anmelden (`admin@example.com` / `ChangeMe123!`) → Passwort-Änderungs-Dialog mit Icon-Badge erscheint automatisch; unterschiedliche Werte in beide Passwortfelder eingeben → sofortige Fehlermeldung am Bestätigungsfeld.
+
+**Neue/geänderte Dateien:**
+- `frontend/src/app/features/auth/login-page/login-page.component.ts` / `.html` / `.css` (Markenblock-Tagline, Bootstrapping-Skeleton, Footnote)
+- `frontend/src/app/features/auth/password-change-modal/password-change-modal.component.ts` / `.html` / `.css` (Icon-Badge, confirmPassword, Wortlaut/Anrede, Hinweistext)
+- `frontend/src/app/shared/validators/passwords-match.validator.ts` (neu)
+- `frontend/src/app/features/auth/password-change-modal/password-change-modal.component.spec.ts` (ergänzt um confirmPassword)
+- `frontend/src/app/shared/us-043-formular-feedback-doppelsubmit-schutz.spec.ts` (präzisiert: confirmPassword ergänzt, damit das Formular weiterhin gültig wird)
+- `frontend/src/app/features/auth/login-page/us-054-login-passwortaendern-spec01-angleichen.spec.ts` (neu, Story-Test)
+- `docs/usecases/US-054-login-passwortaendern-spec01-angleichen.md` (diese Datei)
+- `docs/usecases/BACKLOG.md`, `CHANGELOG.md` (Status-/Eintrags-Updates)

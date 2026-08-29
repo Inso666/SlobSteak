@@ -1,2 +1,13 @@
-/* Layout ist an die Navigations-Shell (app-navigation) bzw. die jeweiligen Feature-Komponenten
-   delegiert (US-045) — der Composition Root selbst benötigt kein eigenes Styling. */
+/* US-055: Gesamtlayout Sidebar + Main-Content statt vormals Kopfzeile + Inhalt (US-045). Wenn
+   `app-navigation` nichts rendert (z. B. /login, siehe dortige `@if`), bleibt sein Host-Element im
+   Fluss leer und beansprucht keine Breite — `main` füllt dann automatisch die volle Breite, ohne
+   dass diese Komponente den Sichtbarkeits-Zustand der Navigation kennen müsste. */
+.app-shell {
+  display: flex;
+  min-height: 100vh;
+}
+
+.app-shell__content {
+  flex: 1;
+  min-width: 0;
+}

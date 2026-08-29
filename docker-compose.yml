@@ -12,9 +12,19 @@ services:
       - db-data:/var/lib/postgresql/data
     healthcheck:
       test: ["CMD-SHELL", "pg_isready -U $${POSTGRES_USER:-slobsteak} -d $${POSTGRES_DB:-slobsteak}"]
-      interval: 5s
-      timeout: 5s
-      retries: 10
+      # US-049: Intervall von vormals 5s auf 2s verkürzt — die reale Kaltstart-Messung dieser Story
+      # (siehe Story-Datei „Anmerkungen des Agenten“) zeigt, dass die Zeitspanne vom db-Container-
+      # Start bis Compose `db` als „healthy“ erkennt (Postgres-Erstinitialisierung auf leerem Volume
+      # plus die Granularität dieses Pollings zusammen) mit 5,7-7,0s der mit Abstand größte
+      # Einzelposten der gesamten Kaltstart-Zeitspanne war — deutlich mehr als Migration oder
+      # Seed-Admin zusammen (siehe dortige Zeitmessung). Das kürzere Intervall senkt die
+      # theoretische Erkennungslatenz pro Poll-Zyklus (max. 5s → max. 2s); Postgres' eigene,
+      # schwankende Initialisierungsdauer bleibt davon unberührt (ehrlich dokumentierte
+      # Lauf-zu-Lauf-Varianz in der Story-Datei). retries entsprechend erhöht, damit die maximale
+      # Wartezeit (60s) trotz kürzerem Intervall nicht sinkt.
+      interval: 2s
+      timeout: 3s
+      retries: 30
 
   api:
     build:
@@ -38,6 +48,20 @@ services:
       JWT_SIGNING_KEY: ${JWT_SIGNING_KEY:-dev-only-jwt-signing-key-change-me-3242}
     ports:
       - "5000:8080"
+    # US-049 (Akzeptanzkriterium 2): Ohne diesen Healthcheck galt der Service für Compose bereits
+    # als „started“, sobald der Container-Prozess lief — nicht erst, wenn ASP.NET Core tatsächlich
+    # Requests annimmt (Migration/Seed-Admin laufen laut Program.cs noch davor). `frontend` unten
+    # wartet jetzt auf genau dieses Signal statt auf den bloßen Prozessstart.
+    healthcheck:
+      test: ["CMD-SHELL", "curl -f http://localhost:8080/api/v1/health || exit 1"]
+      # US-049: bewusst KEIN start_period gesetzt — in der real gemessenen Docker-Engine-Version
+      # dieser Story verzögert start_period den allerersten Probe-Lauf um seine volle Dauer, statt
+      # ihn nur von der Fehler-Zählung auszunehmen (siehe Story-Datei „Anmerkungen des Agenten“);
+      # ein früher, ins Leere laufender Check (Connection Refused, solange die App noch nicht
+      # lauscht) schadet nichts und ist deutlich schneller als eine künstliche Anlaufzeit.
+      interval: 2s
+      timeout: 3s
+      retries: 30
 
   frontend:
     build:
@@ -45,7 +69,8 @@ services:
       dockerfile: Dockerfile
     restart: unless-stopped
     depends_on:
-      - api
+      api:
+        condition: service_healthy
     ports:
       - "4200:80"
 

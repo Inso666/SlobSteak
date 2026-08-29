@@ -4,6 +4,247 @@ Alle nennenswerten Änderungen an diesem Projekt werden hier je User Story dokum
 
 ## [Unreleased]
 
+### US-058 — Zoneless-Reaktivität systematisch nachziehen
+
+- Fünf verbleibende, per Code-Review bestätigte Fundstellen mit fehlendem
+  `changeDetectorRef.markForCheck()` behoben (dieselbe Root Cause wie US-050/US-051/US-057):
+  `users-admin.component.ts` (`onCreateUser`), `projects-admin.component.ts`
+  (`onCreateProject`), `project-membership-manager.component.ts` (`onAssignMember`/
+  `onChangeRole`/`onRemoveMember`), `stakeholder-list.component.ts` (`getProject`,
+  `restoreStakeholder`, `listStakeholders` an beiden Aufrufstellen — `ChangeDetectorRef` hier
+  neu injiziert), `password-change-modal.component.ts` (`onSubmit` — `ChangeDetectorRef`
+  ebenfalls neu injiziert).
+- `project-workspace-layout.component.ts` war bereits im Rahmen von US-052 behoben, kein
+  weiterer Umsetzungsbedarf.
+- Neuer Story-Test `us-058-zoneless-reaktivitaet-systematisch-nachziehen.spec.ts` (15
+  Testfälle, Erfolgs- und Fehlerfall je Komponente über `HttpTestingController`/`flush()`,
+  kein simulierter Klick) — jeder der fünf Fixes einzeln per Mutationstest verifiziert.
+- Methodischer Befund beim Testschreiben festgehalten (siehe Story-Datei „Anmerkungen des
+  Agenten"): ein `setValue()` auf einem Reactive-Form-Control direkt vor dem Methodenaufruf
+  kann den fehlenden `markForCheck()`-Fix in Tests verdecken, ebenso ein gemeinsamer
+  `detectChanges()` nach mehreren parallelen Flushes.
+- Nach US-056-Merge auf `main` rebased (drei Admin-Story-Tests an die dort eingeführten
+  Dialoge angepasst — Formular lebt seit US-056 in einem per Button geöffneten `p-dialog`).
+- `ng test` (255/255, dreifach wiederholt zur Stabilitätsprüfung), `ng lint`, `ng build`
+  grün; `dotnet test` unverändert grün (kein Backend-Anteil).
+
+### US-056 — Admin-Bereich gemäß SPEC-07 angleichen (Tab-Host mit Dialog-Formularen)
+
+- Neuer Tab-Host `AdminPageComponent` unter gemeinsamer Elternroute `/admin` (`adminGuard`
+  einmalig hier statt dupliziert): `admin/users`/`admin/projects` bleiben als bookmarkbare
+  Kind-Routen erhalten (analog `ProjectWorkspaceLayoutComponent`-Muster) statt SPEC-07s Vorschlag
+  einer einzigen Route mit clientseitigem Tab-State — begründete Routing-Entscheidung, siehe
+  Story-Datei „Anmerkungen des Agenten“.
+- `AdminSubNavComponent` entfernt — Sub-Navigation lebt jetzt einmalig im Tab-Host statt
+  dupliziert in beiden Admin-Unterseiten. Bewusst weiterhin das bestehende `.tab-pills`-Muster
+  (SPEC-00 §1.3) statt PrimeNGs `<p-tabs>` — Konsistenz mit jeder anderen Tab-Navigation dieser
+  Anwendung (US-019, US-046), begründete Abweichung von SPEC-07 §1.2.
+- „Nutzer anlegen“, „Projekt anlegen“ und „Mitglied zuweisen“ öffnen jetzt als `p-dialog` über
+  einen Button statt dauerhaft sichtbar unterhalb der jeweiligen Liste — Formularfelder,
+  Validierung und Verhalten aus US-012/US-014/US-015/US-016/US-017 unverändert.
+- Bestehende Tests (`us-046-admin-navigation.spec.ts`,
+  `us-050-verlaesslicher-lade-zustand-listen.spec.ts`,
+  `project-membership-manager.component.spec.ts`) an die neue Struktur angepasst, nicht entfernt.
+  Ausnahme: `admin-sub-nav.component.spec.ts` wurde gelöscht, da die getestete Komponente selbst
+  entfernt wurde — Verhaltensabdeckung in `us-046-admin-navigation.spec.ts` konsolidiert
+  (begründete Abweichung, siehe Story-Datei).
+- Neuer Story-Test `us-056-admin-bereich-spec07-angleichen.spec.ts` (9 Testfälle: Tab-Host-Routing
+  inkl. `adminGuard`-Regression, alle drei Dialoge geschlossen/öffnen/Formularverhalten/Schließen
+  nach Erfolg).
+- `ng test` (243/243), `ng lint`, `ng build` grün; `dotnet test` unverändert grün (kein
+  Backend-Anteil). Zusätzlich end-to-end in einem isolierten `docker-compose`-Stack verifiziert.
+
+### US-055 — Globale Navigation als vertikale Sidebar statt horizontaler Kopfleiste
+
+- `AppNavigationComponent`: von horizontaler Kopfleiste (US-045) zu fester, vertikaler
+  `<aside>`-Sidebar am linken Rand umgebaut — alle bisherigen Sechs Feature-Spec-Dateien
+  (SPEC-02–SPEC-07) gehen übereinstimmend von genau dieser Sidebar-Struktur als App-Shell aus.
+  Bestehende Navigationspunkte (Projektübersicht, Admin, Abmelden) unverändert funktional
+  erhalten.
+- Unterhalb 960px (Angular CDK `BreakpointObserver`, exakte Custom-Query gemäß SPEC-02 §1.4
+  „Variante A", keine PrimeFlex-Default-Breakpoints) klappt die Sidebar zu einem `p-drawer` mit
+  Hamburger-Trigger zusammen — identischer Navigationsinhalt wie die Desktop-Sidebar, per
+  `ngTemplateOutlet` wiederverwendet statt dupliziert (kein Screen-lokales Overriding).
+- `app.html`/`.css`: Gesamtlayout auf Flex-Shell (Sidebar + Main-Content) umgestellt.
+- Bestehende Tests (`app-navigation.component.spec.ts`, `us-045-*.spec.ts`,
+  `us-046-*.spec.ts`) um einen `BreakpointObserver`-Stub ergänzt — Chrome Headless startet in
+  dieser Umgebung standardmäßig mit einem 800×600px-Fenster, unterhalb des neuen 960px-Breakpoints,
+  ohne den Stub hätten alle drei Dateien plötzlich den (initial geschlossenen) mobilen Drawer statt
+  der Desktop-Sidebar getroffen.
+- Neuer Story-Test `us-055-vertikale-navigation-sidebar.spec.ts` (5 Testfälle, kontrolliertes
+  `Subject` statt echter Fenstergröße für deterministisches Desktop-/Mobile-Testen).
+- `ng test` (237/237), `ng lint`, `ng build` grün; `dotnet test` unverändert grün (kein
+  Backend-Anteil). Bundle-Budget-Warnung durch zwei neue Abhängigkeiten (`@angular/cdk/layout`,
+  `primeng/drawer`) von ca. 277 kB auf 300 kB über Budget gewachsen (weiterhin nur Warnung, kein
+  Build-Fehler).
+
+### US-054 — Login- und Passwort-Änderungs-Masken gemäß SPEC-01 angleichen
+
+- Login-Seite: Markenblock um Tagline „Stakeholder-Management für Projektteams“ ergänzt, Footnote
+  „Kein eigenes Konto? Ein Administrator richtet deinen Zugang ein.“ ergänzt, Bootstrapping-
+  Skeleton-Zustand (SPEC-00 §3 `<p-skeleton>`-Baustein) ergänzt.
+- Passwort-Änderungs-Dialog: amberfarbener Icon-Badge (Schloss-Icon, SPEC-00-Tokens
+  `color.attention`/`color.attention-bg`), Titel/Kontext-Text/Hinweistext gemäß SPEC-01
+  übernommen, durchgängig informelle Anrede („du“ statt „Sie“).
+- **Funktionale Ergänzung, nicht nur optisch:** neues Pflichtfeld „Passwort bestätigen“
+  (`confirmPassword`) mit neuem, wiederverwendbarem `passwordsMatchValidator`
+  (`frontend/src/app/shared/validators/`) — ein Formular-Submit ist bei ungleichen Werten nicht
+  mehr möglich, verständliche Fehlermeldung direkt am Feld.
+- Mindestlänge bewusst bei 8 Zeichen belassen (nicht auf die in SPEC-01 vorgegebenen 10 geändert)
+  — spiegelt die tatsächlich serverseitig durchgesetzte `PasswordTooShortError.MinimumLength`-Regel;
+  dokumentierte, bewusste Abweichung statt stiller Übernahme des Wireframe-Werts.
+- Umfang bewusst auf die in der Story konkret benannten SPEC-01-Deltas begrenzt — bereits durch
+  neuere Stories etablierte Bausteine (`app-processing-button` aus US-043, SPEC-00-Tokens aus
+  US-047) bleiben unverändert, statt auf SPEC-01s älteres Component-Tree-Beispiel zurückgebaut zu
+  werden.
+- Story-Test `us-054-login-passwortaendern-spec01-angleichen.spec.ts` (9 Testfälle, deckt beide
+  Komponenten ab); bestehende `password-change-modal.component.spec.ts` und
+  `us-043-formular-feedback-doppelsubmit-schutz.spec.ts` um den neuen Pflichtfall ergänzt statt
+  ersetzt.
+- `ng test` (232/232), `ng lint`, `ng build` grün; `dotnet test` unverändert grün (kein
+  Backend-Anteil). Manueller Smoke-Test (Browser-Automatisierung gegen echten
+  `docker-compose`-Stack) bestätigt Markenblock, Dialog-Icon, Live-Validierung des
+  Bestätigungsfelds und den kompletten Passwort-Änderungs-Fluss End-to-End.
+
+### US-053 — App-Identität im Browser (Tab-Titel, Favicon, Marken-Icon)
+
+- `frontend/src/index.html`: `<title>` von „Frontend“ (Angular-CLI-Scaffold) auf „SlobSteak“
+  geändert; SVG-Favicon (`icon.svg`, von modernen Browsern bevorzugt) vor dem klassischen
+  `favicon.ico`-Fallback verlinkt.
+- `frontend/public/icon.svg` + `favicon.ico` (16/32/48 px): neues, aus dem Produktnamen und den
+  bereits in SPEC-00 definierten Rollenfarben abgeleitetes Markenzeichen (drei überlappende Kreise
+  in `color.role-pl/ct/ar`, dieselbe Farbsprache wie das Perspektiven-Radar) ersetzt das
+  Angular-CLI-Standardicon. `.ico` per einmaligem, nicht eingechecktem Node-Skript direkt aus der
+  SVG-Geometrie rasterisiert (kein Bildkonvertierungswerkzeug in dieser Umgebung verfügbar).
+- Neue, wiederverwendbare `BrandMarkComponent` (`frontend/src/app/shared/brand-mark/`) — dieselbe
+  Grafik als Angular-Bauteil; auf der Login-Seite eingesetzt (Markenblock analog
+  `SPEC-01-Login.md` §1.2, ohne die dort zusätzlich gezeigte Tagline/den Bootstrapping-Zustand,
+  die strukturelle Vollangleichung bleibt US-054 vorbehalten).
+- Story-Test `us-053-app-identitaet-browser.spec.ts` + `brand-mark.component.spec.ts`; `<title>`/
+  Favicon direkt am Build-Artefakt statt per Karma-Test verifiziert (außerhalb des von
+  Karma/TestBed geladenen Komponentenbaums).
+- `ng test` (221/221), `ng lint`, `ng build` grün; Build-Output enthält
+  `favicon.ico`/`icon.svg`/aktualisierten `<title>` korrekt. Manueller Smoke-Test (Produktions-Build
+  über lokalen Server, Browser-Automatisierung) bestätigt Tab-Titel und Markenblock visuell.
+
+### US-052 — Stakeholderverwaltung nach Projektauswahl zuverlässig anzeigen
+
+- **Ursache war größer als ursprünglich diagnostiziert:** Die PO-Vermutung (redundanter, mit dem
+  Guard doppelter `getProject()`-Aufruf blockiert `router-outlet` via `@if(project)`) traf zu,
+  war aber nicht die dominante Ursache. Live-Verifikation gegen einen echten `docker-compose`-Stack
+  deckte eine **Endlosschleife aus Redirects** auf: `roleGuard` hängt auf der Elternroute
+  `projects/:id`, deren eigenes Kind `access-denied` sein Umleitungsziel bei fehlender
+  Berechtigung ist — der Guard re-evaluierte sich dadurch für jede Navigation zu seinem eigenen
+  Umleitungsziel erneut. Real reproduziert: über 1000 identische
+  `GET /api/v1/projects/{id}`-Requests binnen weniger Sekunden, Seite blieb dauerhaft leer.
+- `frontend/src/app/core/guards/role.guard.ts`: Guard erlaubt Aktivierung jetzt sofort (ohne
+  eigenen `getProject()`-Aufruf), wenn die Ziel-URL bereits `/access-denied` ist — behebt die
+  Endlosschleife an der Wurzel.
+- `frontend/src/app/features/workspace/project-workspace-layout/project-workspace-layout.component.ts`
+  / `.html`: `<router-outlet>` liegt jetzt außerhalb von `@if (project)` (Kind-Routen rendern
+  unabhängig vom eigenen, redundanten Ladevorgang); generische Lade-Fehlermeldung wird gezielt
+  unterdrückt, wenn bereits auf `/access-denied` navigiert wurde. Zusätzlich `markForCheck()` im
+  `getProject()`-`subscribe()` ergänzt (bei Live-Verifikation entdeckt: Header/Tabs blieben für
+  berechtigte Nutzer gegen echte Async-Latenz unsichtbar, gleiches Muster wie US-050/US-057/US-051)
+  — entsprechend aus der Fundstellen-Liste von US-058 entfernt.
+- Story-Test `frontend/.../us-052-stakeholderverwaltung-nach-projektklick.spec.ts` (4 Testfälle,
+  `RouterTestingHarness` für echte verschachtelte Outlet-Komposition) + neuer Testfall in
+  `role.guard.spec.ts`; bestehende `role.guard.spec.ts`/`app.routes.spec.ts`-Fakes auf ein
+  realistisches `RouterStateSnapshot` präzisiert.
+- `ng test` (218/218), `ng lint`, `ng build` grün; `dotnet test` (169/169) unverändert grün (kein
+  Backend-Anteil). Manueller Smoke-Test gegen isolierten `docker-compose`-Stack (Backend-Netzwerklog
+  + UI per Browser-Automatisierung) bestätigt sowohl den Erfolgs- als auch den Access-Denied-Pfad
+  End-to-End, inkl. bestätigter Endlosschleifen-Behebung (2 statt >1000 Requests).
+
+### US-051 — „Passwort zurücksetzen“ in der Nutzerverwaltung schließt zuverlässig ab
+
+- Ursache ermittelt: Backend unauffällig (PBKDF2-Hashing + EF-Core-Save, real gemessen ~33 ms,
+  kein Hängen) — der PO-Verdacht eines serverseitigen Problems hat sich nicht bestätigt.
+  Tatsächliche Ursache clientseitig, exakt dasselbe in US-050/US-057 dokumentierte Muster: fehlendes
+  `ChangeDetectorRef.markForCheck()` in `UsersAdminComponent.onResetPassword` (zoneless Frontend),
+  der Button blieb optisch dauerhaft im Verarbeitungs-Zustand hängen, obwohl `resettingUserIds`
+  intern bereits korrekt geleert war.
+- `frontend/src/app/features/admin/users-admin/users-admin.component.ts`: `markForCheck()` in
+  beiden `subscribe()`-Zweigen von `onResetPassword` ergänzt, analog zum bereits etablierten Muster
+  in `loadUsers()`.
+- Story-Tests: `tests/SlobSteak.Api.Tests/UserStories/US051_PasswortResetAbschliessenTests.cs`
+  (Backend, 3 Facts) und `frontend/.../us-051-passwort-reset-abschliessen.spec.ts` (Frontend, 3
+  Testfälle) — per Mutationstest (Fix testweise entfernt) verifiziert, dass sie den Bug tatsächlich
+  reproduzieren.
+- `dotnet test` (169/169), `ng test` (213/213), `ng lint`, `dotnet format --verify-no-changes` alle
+  grün. Manueller Smoke-Test gegen isolierten `docker-compose`-Stack (Backend-`curl` + UI per
+  Browser-Automatisierung) bestätigt den Fix End-to-End.
+- Neue Folge-Story `US-058` angelegt (`docs/usecases/US-058-zoneless-reaktivitaet-systematisch-nachziehen.md`)
+  für dasselbe, während der Ursachenanalyse an mehreren weiteren Stellen bestätigte Muster
+  (`onCreateUser`, `onCreateProject`, `onAssignMember`/`onChangeRole`/`onRemoveMember`,
+  `project-workspace-layout.component.ts`, `stakeholder-list.component.ts`,
+  `password-change-modal.component.ts`) — bewusst nicht in dieser Story mitgefixt (Scope-Grenze).
+
+### US-049 — Verlässliche Antwortzeit & Statusrückmeldung beim ersten Request nach Systemstart (Backend-Anteil)
+
+- Reale Zeitmessung (isolierter `docker-compose`-Stack, eigener Projektname, umgemappte Ports,
+  frisches Volume) statt reinem Code-Review: Migration+Seed-Admin summieren sich konsistent auf
+  unter 1 Sekunde, .NET-Kaltstart auf ~1,2–1,4 s gesamt — beide vom PO vermuteten Hypothesen damit
+  als dominante Ursache widerlegt. Tatsächlich dominanter, bisher nicht identifizierter Faktor:
+  Postgres-Erstinitialisierung auf leerem Volume (5,7–7,0 s). Details siehe Story-Datei
+  „Anmerkungen des Agenten“.
+- `docker-compose.yml`: `healthcheck` für `api` gegen `/api/v1/health` ergänzt, `frontend` wartet
+  jetzt auf `condition: service_healthy` statt auf den bloßen Containerstart von `api` — das vorher
+  gemessene ~1,2–1,4 s-Fenster, in dem Login-Requests gegen ein noch nicht bereites Backend liefen,
+  ist damit auf 0 reduziert (siehe ADR-0010 für die `start_period`-Erkenntnis). `db`-Healthcheck-
+  Intervall von 5s auf 2s verkürzt.
+- `src/SlobSteak.Api/Program.cs` und `Bootstrap/SeedAdminHostedService.cs`: Start-/Ende-
+  Zeitstempel-Logging um Migration, Seed-Admin-Bootstrap und „Anwendung bereit für Requests“ ergänzt
+  — rein diagnostisch, keine Verhaltensänderung, macht künftige Regressionen sofort im Log sichtbar.
+- `src/SlobSteak.Api/Dockerfile`: `curl` im Runtime-Image ergänzt (für den neuen Healthcheck).
+- Story-Test `tests/SlobSteak.Api.Tests/UserStories/US049_KaltstartPerformanceErsterRequestTests.cs`
+  (AC 1–4; AC 5 ist Frontend-Scope, AC 6 wird durch den grünen Gesamtlauf nachgewiesen).
+- `dotnet test` (327/327) grün, `dotnet format --verify-no-changes` fehlerfrei.
+- **Übergabe an Frontend-Agent (AC 5, gleicher Branch):** `LoginPageComponent`/
+  `ProcessingButtonComponent` kennen aktuell nur den binären Zustand `isSubmitting` — kein Zustand
+  für „Request läuft bereits > 3s“. Kein globaler `HttpClient`-Timeout konfiguriert. Details und ein
+  konkreter Umsetzungsvorschlag in der Story-Datei „Anmerkungen des Agenten“.
+
+### US-049 — Verlässliche Antwortzeit & Statusrückmeldung beim ersten Request nach Systemstart (Frontend-Anteil)
+
+- `LoginPageComponent` (`frontend/src/app/features/auth/login-page/`): neuer technischer Zustand
+  `isTakingLonger` (Akzeptanzkriterium 5) — startet in `onSubmit()` einen `setTimeout(..., 3000)`,
+  der bei einem noch laufenden Request nach 3s greift und im Template einen zusätzlichen,
+  sichtbaren Hinweis (`p-message severity="info"`, `data-testid="login-taking-longer-notice"`)
+  einblendet; Timer wird in beiden `subscribe`-Callbacks sowie in einem neuen `ngOnDestroy()`
+  aufgeräumt. Reines textbasiertes Feedback, kein neues Design — das visuelle Redesign dieses
+  Zustands bleibt US-054 vorbehalten.
+- Zusätzlich mit übernommen (Befund des Backend-Agenten, direkt zu AC 5 gehörig): `onSubmit()`
+  zeigte bislang bei jedem Fehler pauschal „E-Mail oder Passwort ist falsch.“ — jetzt Unterscheidung
+  nach Statuscode (`HttpErrorResponse.status === 401`); jeder andere Fehler (Netzwerkfehler, `5xx`,
+  `0`, z. B. ein noch nicht bereites Backend) zeigt die in `SPEC-01-Login.md` §3.1 vorgesehene
+  Meldung „Anmeldung derzeit nicht möglich. Bitte später erneut versuchen.“
+- Tests in `login-page.component.spec.ts` ergänzt/angepasst (jetzt 15 Tests): realistischer
+  `HttpErrorResponse` statt generischem `Error` im bestehenden 401-Test, neuer Test für den
+  technischen 502-Fall, zwei neue `HttpTestingController`-Tests für `isTakingLonger` (inkl. Beleg,
+  dass der Timer bei rechtzeitigem Request-Ende tatsächlich per `clearTimeout()` aufgeräumt wird).
+  `fakeAsync()`/`tick()` sind in diesem zonelosen Projekt nicht nutzbar — `jasmine.clock()`
+  verwendet.
+- `ng test` (gesamter Workspace, 210/210) und `ng lint` grün.
+
+### US-049 — Verlässliche Antwortzeit & Statusrückmeldung beim ersten Request nach Systemstart (QA-Anteil)
+
+- Unabhängig verifiziert: `dotnet test` 327/327 grün, `dotnet format --verify-no-changes` fehlerfrei,
+  `ng test` 210/210 grün, `ng lint` fehlerfrei — deckt sich mit den Backend-/Frontend-Berichten.
+- Story-Test-Konventionslücke geschlossen: Akzeptanzkriterium 5 (Frontend) war nur als zwei
+  zusätzliche Tests in der generischen `login-page.component.spec.ts` abgedeckt, kein dedizierter
+  Story-Test. Neue Datei `frontend/src/app/features/auth/login-page/us-049-kaltstart-performance-erster-request.spec.ts`
+  angelegt (analog zu `us-057-login-haengt-nach-erfolgreicher-anmeldung.spec.ts`), die beiden Tests
+  dorthin verschoben. Jetzt je ein dedizierter Story-Test pro Seite (Backend: AC 1–4, Frontend: AC 5).
+- End-to-End-Smoke-Test gegen einen echten, isoliert hochgefahrenen `docker-compose`-Stack (eigener
+  Projektname/Ports, kein Konflikt mit dem `steakholder-*`-Stack des Nutzers): `db`/`api`/`frontend`
+  starten sauber in der erwarteten Healthcheck-Reihenfolge, Login über den nginx-Proxy erfolgreich.
+  Zusätzlich per Browser-Automatisierung verifiziert: `api`-Container während eines laufenden
+  Login-Requests pausiert — nach > 3 s erscheint sichtbar „Die Anmeldung dauert ungewöhnlich lange.
+  …“, nach Fortsetzen löst der Request normal auf (kein hängender Zustand).
+- Alle 6 Akzeptanzkriterien geprüft und erfüllt, keine Blocker/Critical-Findings. Details siehe
+  Story-Datei „Anmerkungen des QA-Agenten“.
+
 ### US-057 — Login-Flow bleibt nach erfolgreicher Anmeldung dauerhaft im Verarbeitungs-Zustand hängen
 
 - Bugfix in `LoginPageComponent.onSubmit()` (`frontend/src/app/features/auth/login-page/login-page.component.ts`):

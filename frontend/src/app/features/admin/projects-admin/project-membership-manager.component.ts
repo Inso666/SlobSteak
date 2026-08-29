@@ -1,6 +1,8 @@
-import { ChangeDetectorRef, Component, Input, OnInit, inject } from '@angular/core';
+import { ChangeDetectorRef, Component, Input, OnInit, inject, signal } from '@angular/core';
 import { HttpErrorResponse } from '@angular/common/http';
 import { FormBuilder, FormsModule, ReactiveFormsModule, Validators } from '@angular/forms';
+import { ButtonDirective } from 'primeng/button';
+import { Dialog } from 'primeng/dialog';
 import { Message } from 'primeng/message';
 import { Skeleton } from 'primeng/skeleton';
 import { AdminUser, AdminUsersService } from '../admin-users.service';
@@ -15,11 +17,17 @@ import { ViewStateComponent } from '../../../shared/view-state/view-state.compon
  * Dropdown zur Auswahl eines bestehenden Nutzers + Rollen-Select zum Hinzufügen
  * (Akzeptanzkriterium 3), Rollen-Select je Zeile zur Änderung sowie „Entfernen“-Aktion mit
  * Bestätigungsdialog (Akzeptanzkriterium 4).
+ *
+ * US-056: Das „Mitglied hinzufügen“-Formular öffnet seit dieser Story als `p-dialog` über einen
+ * Button statt dauerhaft sichtbar unterhalb der Mitgliederliste (Akzeptanzkriterium 2, SPEC-07
+ * §1.4) — Formularfelder, Validierung und Verhalten bleiben aus US-015/US-017 unverändert, nur die
+ * Präsentation ändert sich. Die inline Rollenänderung/-entfernung je Zeile bleibt unverändert (kein
+ * Bestandteil dieser Story-AC).
  */
 @Component({
   selector: 'app-project-membership-manager',
   standalone: true,
-  imports: [ReactiveFormsModule, FormsModule, ProcessingButtonComponent, ViewStateComponent, Message, Skeleton],
+  imports: [ReactiveFormsModule, FormsModule, ProcessingButtonComponent, ViewStateComponent, ButtonDirective, Dialog, Message, Skeleton],
   templateUrl: './project-membership-manager.component.html',
   styleUrl: './project-membership-manager.component.css',
 })
@@ -49,6 +57,10 @@ export class ProjectMembershipManagerComponent implements OnInit {
   protected isAssigning = false;
   protected readonly changingRoleUserIds = new Set<string>();
   protected readonly removingMemberUserIds = new Set<string>();
+  /** US-056 Akzeptanzkriterium 2: `p-dialog` erfordert ein `WritableSignal` für `[(visible)]`
+   * (`Dialog.visible` ist ein `ModelSignal<boolean>`, siehe PrimeNG-Typdeklaration), daher hier
+   * bewusst ein Signal statt eines einfachen Felds wie bei den übrigen Zuständen dieser Klasse. */
+  protected readonly assignDialogVisible = signal(false);
 
   protected readonly assignForm = this.formBuilder.nonNullable.group({
     userId: ['', Validators.required],
@@ -87,6 +99,24 @@ export class ProjectMembershipManagerComponent implements OnInit {
     this.loadMemberships();
   }
 
+  protected openAssignDialog(): void {
+    this.errorMessage = null;
+    this.assignForm.reset({ userId: '', role: 'PL' });
+    this.assignDialogVisible.set(true);
+  }
+
+  protected closeAssignDialog(): void {
+    this.assignDialogVisible.set(false);
+    this.errorMessage = null;
+    this.assignForm.reset({ userId: '', role: 'PL' });
+  }
+
+  /** US-058: `changeDetectorRef.markForCheck()` in beiden Zweigen ergänzt — der `error`-Zweig
+   * blieb bislang ohne jeden Folgeaufruf dauerhaft im Verarbeitungs-Zustand hängen; der `next`-
+   * Zweig heilte sich bereits indirekt über den darin ausgelösten {@link loadMemberships}-
+   * Folgerequest (dessen eigener `subscribe()` bereits `markForCheck()` aufruft), wird hier aber
+   * der Konsistenz halber ebenfalls direkt markiert.
+   */
   protected onAssignMember(): void {
     // US-043 Akzeptanzkriterium 3: ein zweiter Trigger während eines laufenden Requests löst
     // nachweislich keinen zweiten HTTP-Request aus.
@@ -102,15 +132,19 @@ export class ProjectMembershipManagerComponent implements OnInit {
       next: () => {
         this.isAssigning = false;
         this.assignForm.reset({ userId: '', role: 'PL' });
+        this.assignDialogVisible.set(false);
         this.loadMemberships();
+        this.changeDetectorRef.markForCheck();
       },
       error: () => {
         this.isAssigning = false;
         this.errorMessage = 'Nutzer konnte nicht zugewiesen werden.';
+        this.changeDetectorRef.markForCheck();
       },
     });
   }
 
+  /** US-058: `changeDetectorRef.markForCheck()` in beiden Zweigen ergänzt (siehe {@link onAssignMember}). */
   protected onChangeRole(membership: AdminProjectMembership, newRole: string): void {
     // US-043 Akzeptanzkriterium 3: ein zweiter Trigger während eines laufenden Requests löst
     // nachweislich keinen zweiten HTTP-Request aus.
@@ -123,14 +157,17 @@ export class ProjectMembershipManagerComponent implements OnInit {
       next: () => {
         this.changingRoleUserIds.delete(membership.userId);
         this.loadMemberships();
+        this.changeDetectorRef.markForCheck();
       },
       error: () => {
         this.changingRoleUserIds.delete(membership.userId);
         this.errorMessage = `Rolle für ${membership.userName} konnte nicht geändert werden.`;
+        this.changeDetectorRef.markForCheck();
       },
     });
   }
 
+  /** US-058: `changeDetectorRef.markForCheck()` in beiden Zweigen ergänzt (siehe {@link onAssignMember}). */
   protected onRemoveMember(membership: AdminProjectMembership): void {
     // US-043 Akzeptanzkriterium 3: ein zweiter Trigger während eines laufenden Requests löst
     // nachweislich keinen zweiten HTTP-Request aus.
@@ -147,6 +184,7 @@ export class ProjectMembershipManagerComponent implements OnInit {
       next: () => {
         this.removingMemberUserIds.delete(membership.userId);
         this.loadMemberships();
+        this.changeDetectorRef.markForCheck();
       },
       error: (error: HttpErrorResponse) => {
         this.removingMemberUserIds.delete(membership.userId);
@@ -154,6 +192,7 @@ export class ProjectMembershipManagerComponent implements OnInit {
           error.status === 404
             ? `${membership.userName} war bereits nicht mehr Mitglied.`
             : `${membership.userName} konnte nicht entfernt werden.`;
+        this.changeDetectorRef.markForCheck();
       },
     });
   }

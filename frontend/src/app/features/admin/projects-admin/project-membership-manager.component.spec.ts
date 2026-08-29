@@ -135,6 +135,11 @@ describe('ProjectMembershipManagerComponent', () => {
 
     it('shows the loading state for both the potential-users field and the membership list before the responses arrive, then their data without any further interaction after flush()', () => {
       const fixture = createHttpComponent();
+      // US-056: Das Nutzer-Auswahlfeld lebt seit dieser Story in einem per Button geöffneten
+      // `p-dialog` statt dauerhaft sichtbar zu sein — der Dialog wird hier geöffnet, um denselben
+      // Lade-/Content-Zustand des Auswahlfelds wie zuvor zu prüfen (Verhalten selbst unverändert).
+      fixture.componentInstance['openAssignDialog']();
+      fixture.detectChanges();
       const httpTestingController = TestBed.inject(HttpTestingController);
 
       expect(fixture.componentInstance['allUsersState']).toBe('loading');

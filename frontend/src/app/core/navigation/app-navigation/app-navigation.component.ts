@@ -1,9 +1,16 @@
+import { NgTemplateOutlet } from '@angular/common';
+import { BreakpointObserver } from '@angular/cdk/layout';
 import { ChangeDetectionStrategy, Component, inject, signal } from '@angular/core';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { NavigationEnd, Router, RouterLink, RouterLinkActive } from '@angular/router';
 import { filter } from 'rxjs';
+import { Drawer } from 'primeng/drawer';
 import { TokenStorageService } from '../../../features/auth/token-storage.service';
 import { APP_NAV_ADMIN_LINK, APP_NAV_LINKS, APP_NAV_LOGOUT_LABEL } from './nav-items';
+
+/** US-055 / SPEC-02 §1.4: verbindliche Custom-Query für die Sidebar→Drawer-Umschaltung — deckt
+ * sich bewusst NICHT mit PrimeFlex-Standardbreakpoints (siehe dortige Begründung „Variante A"). */
+const MOBILE_NAV_QUERY = '(max-width: 959px)';
 
 /** Route der Login-Seite — die Navigation bleibt hier immer ausgeblendet (Akzeptanzkriterium 1), siehe {@link AppNavigationComponent.computeVisibility}. */
 const LOGIN_ROUTE = '/login';
@@ -34,7 +41,7 @@ const LOGIN_ROUTE = '/login';
 @Component({
   selector: 'app-navigation',
   standalone: true,
-  imports: [RouterLink, RouterLinkActive],
+  imports: [RouterLink, RouterLinkActive, NgTemplateOutlet, Drawer],
   templateUrl: './app-navigation.component.html',
   styleUrl: './app-navigation.component.css',
   changeDetection: ChangeDetectionStrategy.OnPush,
@@ -42,6 +49,7 @@ const LOGIN_ROUTE = '/login';
 export class AppNavigationComponent {
   private readonly tokenStorage = inject(TokenStorageService);
   private readonly router = inject(Router);
+  private readonly breakpointObserver = inject(BreakpointObserver);
 
   /** Konfigurierte Navigationseinträge (US-045/US-046, siehe `nav-items.ts`). */
   protected readonly navLinks = APP_NAV_LINKS;
@@ -49,6 +57,12 @@ export class AppNavigationComponent {
   protected readonly logoutLabel = APP_NAV_LOGOUT_LABEL;
   protected readonly isVisible = signal(this.computeVisibility());
   protected readonly isAdmin = signal(this.computeIsAdmin());
+
+  /** US-055 Akzeptanzkriterium 3 / SPEC-02 §1.4 „Variante A": `BreakpointObserver` statt
+   * PrimeFlex-Default-Breakpoints, exakte Custom-Query {@link MOBILE_NAV_QUERY}. */
+  protected readonly isMobileNav = signal(false);
+  /** Sichtbarkeit des mobilen `p-drawer` (unterhalb 960px) — unabhängig von {@link isVisible}. */
+  protected readonly drawerOpen = signal(false);
 
   constructor() {
     this.router.events
@@ -59,6 +73,21 @@ export class AppNavigationComponent {
       .subscribe(() => {
         this.isVisible.set(this.computeVisibility());
         this.isAdmin.set(this.computeIsAdmin());
+        // Ein Klick auf einen Navigationslink navigiert bereits — der mobile Drawer soll sich
+        // danach nicht länger über dem neuen Inhalt befinden.
+        this.drawerOpen.set(false);
+      });
+
+    this.breakpointObserver
+      .observe(MOBILE_NAV_QUERY)
+      .pipe(takeUntilDestroyed())
+      .subscribe((state) => {
+        this.isMobileNav.set(state.matches);
+        if (!state.matches) {
+          // Zurück zur festen Desktop-Sidebar: ein noch offener Drawer aus dem Mobile-Zustand
+          // darf nicht unsichtbar "offen" hängen bleiben.
+          this.drawerOpen.set(false);
+        }
       });
   }
 

@@ -1,4 +1,4 @@
-import { provideHttpClient } from '@angular/common/http';
+import { HttpErrorResponse, provideHttpClient } from '@angular/common/http';
 import { HttpTestingController, provideHttpClientTesting } from '@angular/common/http/testing';
 import { TestBed } from '@angular/core/testing';
 import { provideRouter, Router } from '@angular/router';
@@ -101,7 +101,9 @@ describe('LoginPageComponent', () => {
   });
 
   it('should show a non-blocking error and clear the password field on 401', () => {
-    authServiceSpy.login.and.returnValue(throwError(() => new Error('Unauthorized')));
+    authServiceSpy.login.and.returnValue(
+      throwError(() => new HttpErrorResponse({ status: 401, statusText: 'Unauthorized' })),
+    );
     const fixture = TestBed.createComponent(LoginPageComponent);
     const component = fixture.componentInstance;
 
@@ -111,6 +113,28 @@ describe('LoginPageComponent', () => {
     expect(component['errorMessage']).toBe('E-Mail oder Passwort ist falsch.');
     expect(component['form'].controls.password.value).toBe('');
     expect(component['mustChangePassword']).toBeFalse();
+  });
+
+  /**
+   * US-049: der Backend-Agent hat angemerkt, dass der Fehler-Handler zuvor unterschiedslos für
+   * JEDEN Fehler (auch einen 502 durch ein noch nicht bereites Backend) die fachlich falsche
+   * „Zugangsdaten falsch"-Meldung zeigte. Dieser Test belegt die Differenzierung nach Statuscode
+   * gemäß SPEC-01-Login.md §3.1.
+   */
+  it('should show a generic technical-error message (not "Zugangsdaten falsch") for a non-401 error such as a 502', () => {
+    authServiceSpy.login.and.returnValue(
+      throwError(() => new HttpErrorResponse({ status: 502, statusText: 'Bad Gateway' })),
+    );
+    const fixture = TestBed.createComponent(LoginPageComponent);
+    const component = fixture.componentInstance;
+
+    component['form'].setValue({ email: 'user@example.com', password: 'correct-horse' });
+    component['onSubmit']();
+
+    expect(component['errorMessage']).toBe('Anmeldung derzeit nicht möglich. Bitte später erneut versuchen.');
+    expect(component['form'].controls.password.value).toBe('');
+    expect(component['isSubmitting']).toBeFalse();
+    expect(component['isTakingLonger']).toBeFalse();
   });
 
   /**

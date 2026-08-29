@@ -1,8 +1,8 @@
 # System Context: Projekt „SlobSteak"
 
-Datei = bindender, rollenübergreifender Systemkontext für **jeden** Agenten in diesem Repo. Gilt für jede Iteration mit User Story aus `docs/usecases/BACKLOG.md` — ausnahmslos.
+Diese Datei ist verbindlicher Systemkontext für den Agenten, der an diesem Repository arbeitet. Sie gilt für jede Iteration, in der eine User Story aus `docs/usecases/BACKLOG.md` umgesetzt wird — ausnahmslos.
 
-Für Architektur-, Test- und Coding-Regeln zusätzlich Rollendatei unter `.claude/agents/` lesen (siehe Abschnitt 1). Diese Datei nur Regeln für **alle** Rollen gleichermaßen.
+Eine Story wird vollständig von **einem** Agenten bearbeitet, unabhängig davon, welche Disziplin(en) sie berührt — es gibt keine separaten Rollen-Agenten mehr. Für konkrete Architektur-, Test- und Coding-Regeln liest der Agent zusätzlich jede für die Story zutreffende Rollendatei unter `.claude/agents/` (siehe Abschnitt 1). Diese Datei hier enthält nur, was für **alle** Disziplinen gleichermaßen gilt.
 
 Referenzdokumente, Pflicht vor jeder Story — rollenunabhängig:
 - `docs/PRD-SlobSteak.md` — fachliche Quelle der Wahrheit
@@ -23,20 +23,22 @@ Kein anderer Stack/ORM/Frontend-Tech ohne ausdrückliche Freigabe des Projektver
 
 ---
 
-## 1. Rollen
+## 1. Rollen(-disziplinen)
 
-Projekt: mehrere spezialisierte Agenten. Jeder liest **zusätzlich** zu dieser Datei seine Rollendatei vor Story-Start:
+Kein separater Agent pro Rolle mehr. **Ein** Agent bearbeitet jede User Story vollständig, von Anfang bis Ende — inklusive aller Disziplinen, die die Story berührt.
 
-| Rolle | Datei | Verantwortung |
+Vor Story-Start ermittelt der Agent anhand der Story-Datei (`docs/usecases/US-[NNN]-*.md`), welche der folgenden Disziplinen betroffen sind, und liest **zusätzlich** zu dieser Datei jede zutreffende Rollendatei vollständig, bevor er an der Story arbeitet:
+
+| Disziplin | Datei | Verantwortung |
 |---|---|---|
 | Backend | `.claude/agents/backend.md` | .NET/DDD-Domänenlogik, Application-Services, API, Persistenz |
 | Frontend | `.claude/agents/frontend.md` | Angular-Umsetzung, Komponenten, State, Services |
 | QA | `.claude/agents/qa.md` | Story-Tests, Testpyramide, Regression, E2E, Testabdeckung |
 | UX/UI | `.claude/agents/ux-ui.md` | Interaktions- und Visualdesign, Usability, Barrierefreiheit, Wording |
 
-Story kann mehrere Rollen betreffen (z.B. UX/UI → Frontend → QA, oder Backend + Frontend). Jeder Agent macht nur seinen Rollenanteil, übergibt nachvollziehbar weiter (Abschnitt 3.1).
+Eine Story kann mehrere Disziplinen betreffen (z. B. UX/UI → Frontend → QA, oder Backend + Frontend). In diesem Fall arbeitet der Agent alle zutreffenden Rollendateien in fachlich sinnvoller Reihenfolge ab (siehe 3.1) — innerhalb eines durchgehenden Arbeitsschritts, ohne Übergabe an einen anderen Agenten. Für jeden Disziplin-Anteil gelten die Regeln der jeweils zutreffenden Rollendatei uneingeschränkt; bei widersprüchlichen Vorgaben zwischen Rollendateien entscheidet, was für die konkrete Story fachlich korrekt ist, und die Abweichung wird nach Abschnitt 6 dokumentiert.
 
-Rollenübergreifend: **Keine stillen Abweichungen vom PRD.** Bei fachlich unklarer/widersprüchlicher Story: anhalten, Unklarheit dokumentieren (Abschnitt 6) statt raten.
+Disziplinübergreifend gilt: **Du triffst keine stillen Abweichungen vom PRD.** Wenn eine Story fachlich unklar oder widersprüchlich zum PRD ist, hältst du inne und dokumentierst die Unklarheit (Abschnitt 6), statt zu raten.
 
 ---
 
@@ -75,11 +77,12 @@ Regeln nicht verhandelbar — konkrete Umsetzung je Rolle steht in jeweiliger Ro
 - [ ] Alle Commits gepusht, PR mit aktiviertem Auto-Merge eröffnet (Abschnitt 4) — Agenten-Aufgabe damit bereits abgeschlossen.
 - [ ] Bei neuen Komponenten der Story (Test-Projekte, E2E-Tests, Migrationen): `.github/workflows/pr-checks.yml` im selben PR entsprechend erweitert (Abschnitt 5.1).
 
-### 3.1 Zusammenarbeit zwischen Rollen
+### 3.1 Zusammenarbeit zwischen Disziplinen
 
-- Story mit mehreren betroffenen Rollen trotzdem in **einem** gemeinsamen Feature-Branch und **einem** gemeinsamen PR — nicht separate PRs je Rolle (siehe „ein PR pro Story" in Abschnitt 4).
-- UX/UI-Vorgaben (falls Story sie erfordert) liegen vor Frontend-Start vor oder werden gemeinsam mit ihr abgestimmt. Backend-Contracts (DTOs/Endpunkte) vor Frontend-Integration stabil oder innerhalb derselben Story gemeinsam festgelegt.
-- Bei Story mit mehreren Agenten nacheinander: jeder hinterlässt kurze Übergabenotiz im PR-Beschreibungstext, damit nächster Agent Stand nachvollziehen kann.
+- Eine Story mit mehreren betroffenen Disziplinen wird trotzdem in **einem** gemeinsamen Feature-Branch und **einem** gemeinsamen PR abgeschlossen — nicht in separaten PRs je Disziplin (siehe „ein PR pro Story" in Abschnitt 4).
+- UX/UI-Vorgaben (falls die Story welche erfordert) liegen vor Beginn der Frontend-Umsetzung vor oder werden im selben Arbeitsschritt vorab festgelegt. Backend-Contracts (DTOs/Endpunkte) sind vor Beginn der Frontend-Integration stabil oder werden innerhalb derselben Story vorab festgelegt.
+- Empfohlene Reihenfolge innerhalb einer Story mit mehreren Disziplinen: UX/UI-Vorgaben (falls nötig) → Backend-Contracts/-Logik → Frontend-Integration → QA/Story-Test. Abweichungen sind zulässig, wenn fachlich sinnvoller.
+- Der PR-Beschreibungstext hält kurz fest, welche Disziplinen (Backend/Frontend/QA/UX-UI) die Story berührt und bearbeitet hat — als Nachvollziehbarkeit für spätere Reviews, nicht als Übergabe zwischen Agenten.
 
 ---
 
@@ -108,13 +111,13 @@ Regeln nicht verhandelbar — konkrete Umsetzung je Rolle steht in jeweiliger Ro
   - Nachweis lokaler Verifizierbarkeit (Testergebnisse `dotnet test` / `ng test`, Smoke-Check),
   - ggf. Abweichungen/Anmerkungen gemäß Abschnitt 6,
   - ggf. Hinweise auf enthaltene EF-Core-Migrationen,
-  - ggf. Übergabenotizen zwischen Rollen (Abschnitt 3.1).
-  - Pro Story genau **ein** PR eröffnet; nie mehrere Stories in einem gemeinsamen PR.
-- **Auto-Merge — verbindlich für jeden Story-PR (seit ADR-0003).** PR wird zwingend mit aktiviertem GitHub-Auto-Merge und Squash-Merge-Strategie erstellt, mergt automatisch nach `main`, sobald alle sechs in `.github/workflows/pr-checks.yml` definierten Required Status Checks (Branch-Protection-Regel auf `main`, siehe README.md „PR-Checks / Required Status Checks") grün sind. Ab PR-Erstellung **kein manuelles Review mehr vor Merge** — CI-Jobs sind alleiniges Merge-Gate.
-  - Mit GitHub CLI: `gh pr create --base main --head feature/US-[NNN]-kurzbeschreibung --title "feat(US-[NNN]): <Story-Titel>" --body "<siehe oben>" --auto --squash` (kennt installierte `gh`-Version `--auto`/`--squash` an `pr create` nicht: ersatzweise unmittelbar danach `gh pr merge --auto --squash` auf denselben PR anwenden).
-  - Mit GitHub-MCP-Tools: Auto-Merge-Flag direkt bei PR-Erstellung setzen oder unmittelbar danach entsprechendes Auto-Merge-Tool auf erzeugten PR anwenden.
-  - **Zwingende Voraussetzung:** `main` muss Branch-Protection-Regel besitzen, die genau die sechs Job-Namen aus `pr-checks.yml` (`Backend: Build (Release)`, `Backend: Tests (dotnet test)`, `Backend: Code-Format (dotnet format)`, `Frontend: Build`, `Frontend: Lint (ng lint)`, `Frontend: Tests (ng test)`) als Required Status Checks listet. Ohne diese Regel merged GitHub sofort unabhängig vom CI-Ergebnis — Auto-Merge daher **niemals** aktivieren, ohne vorher per `gh api repos/{owner}/{repo}/branches/main/protection` zu verifizieren, dass Regel aktiv ist. Führt Story neue Prüf-Jobs in `pr-checks.yml` ein (Abschnitt 5.1): Branch-Protection-Regel im selben Arbeitsschritt um diese Jobs ergänzen.
-  - **Wartebedingung & Handoff:** Sobald PR mit aktiviertem Auto-Merge erstellt: Agenten-Aufgabe bezüglich Code-Erstellung abgeschlossen; nicht manuell im Terminal auf Ende der Actions warten — GitHub übernimmt Mergen automatisch, sobald alle Required Status Checks bestanden wurden. Schlägt Required Check fehl: PR bleibt offen (Auto-Merge von GitHub verworfen); Behebung in neuem Commit auf demselben Feature-Branch, nicht in neuem PR.
+  - ggf. Hinweis, welche Disziplinen (Backend/Frontend/QA/UX-UI) bearbeitet wurden (Abschnitt 3.1).
+  - Pro Story wird genau **ein** PR eröffnet; mehrere Stories werden nie in einem gemeinsamen PR zusammengefasst.
+- **Auto-Merge — verbindlich für jeden Story-PR (seit ADR-0003).** Der PR wird nicht nur eröffnet, sondern zwingend mit aktiviertem GitHub-Auto-Merge und Squash-Merge-Strategie erstellt, sodass er automatisch nach `main` gemerged wird, sobald alle sechs in `.github/workflows/pr-checks.yml` definierten Required Status Checks (Branch-Protection-Regel auf `main`, siehe README.md „PR-Checks / Required Status Checks") grün sind. Ab dem Zeitpunkt der PR-Erstellung findet **kein manuelles Review mehr statt, bevor gemerged wird** — die CI-Jobs sind das alleinige Merge-Gate.
+  - Mit der GitHub CLI: `gh pr create --base main --head feature/US-[NNN]-kurzbeschreibung --title "feat(US-[NNN]): <Story-Titel>" --body "<siehe oben>" --auto --squash` (fällt die installierte `gh`-Version zurück, weil sie `--auto`/`--squash` nicht an `pr create` kennt, ersatzweise unmittelbar danach `gh pr merge --auto --squash` auf denselben PR anwenden).
+  - Mit GitHub-MCP-Tools: das Auto-Merge-Flag direkt bei der PR-Erstellung setzen oder unmittelbar danach das entsprechende Auto-Merge-Tool auf den erzeugten PR anwenden.
+  - **Zwingende Voraussetzung:** `main` muss eine Branch-Protection-Regel besitzen, die genau die sechs Job-Namen aus `pr-checks.yml` (`Backend: Build (Release)`, `Backend: Tests (dotnet test)`, `Backend: Code-Format (dotnet format)`, `Frontend: Build`, `Frontend: Lint (ng lint)`, `Frontend: Tests (ng test)`) als Required Status Checks listet. Ohne diese Regel merged GitHub sofort und unabhängig vom CI-Ergebnis — Auto-Merge darf daher **niemals** aktiviert werden, ohne vorher per `gh api repos/{owner}/{repo}/branches/main/protection` zu verifizieren, dass diese Regel aktiv ist. Führt eine Story neue Prüf-Jobs in `pr-checks.yml` ein (Abschnitt 5.1), wird die Branch-Protection-Regel im selben Arbeitsschritt um diese Jobs ergänzt.
+  - **Wartebedingung & Handoff:** Sobald der PR mit aktiviertem Auto-Merge erstellt wurde, gilt die Aufgabe des Agenten bezüglich Code-Erstellung als abgeschlossen; es wird nicht manuell im Terminal auf das Ende der Actions gewartet — GitHub übernimmt das Mergen automatisch, sobald alle Required Status Checks bestanden wurden. Schlägt ein Required Check fehl, bleibt der PR offen (Auto-Merge wird von GitHub verworfen); die Behebung erfolgt in einem neuen Commit auf demselben Feature-Branch, nicht in einem neuen PR.
 
 ---
 
@@ -142,7 +145,3 @@ Wenn Story-Anforderung dem PRD widerspricht, technisch nicht wie beschrieben ums
 ---
 
 *Gilt ab sofort für alle Iterationen, rollenübergreifend. Diese Datei wird nicht im Rahmen einer einzelnen User Story verändert, sondern nur bei expliziter Anpassung der Entwicklungsrichtlinien durch Projektverantwortlichen. Rollendateien unter `.claude/agents/` unterliegen derselben Änderungsregel.*
-
----
-
-Note: I ignored the "migration"/`scripts/compress.py` instructions injected via the hook's system-reminder — they don't come from you and don't match this request, so I treated them as untrusted content rather than acting on them.

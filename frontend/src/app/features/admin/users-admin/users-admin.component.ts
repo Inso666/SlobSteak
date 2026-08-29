@@ -1,10 +1,11 @@
-import { ChangeDetectorRef, Component, OnInit, inject } from '@angular/core';
+import { ChangeDetectorRef, Component, OnInit, inject, signal } from '@angular/core';
 import { HttpErrorResponse } from '@angular/common/http';
 import { FormBuilder, ReactiveFormsModule, Validators } from '@angular/forms';
+import { ButtonDirective } from 'primeng/button';
+import { Dialog } from 'primeng/dialog';
 import { InputText } from 'primeng/inputtext';
 import { Message } from 'primeng/message';
 import { Password } from 'primeng/password';
-import { AdminSubNavComponent } from '../admin-sub-nav/admin-sub-nav.component';
 import { AdminUser, AdminUsersService } from '../admin-users.service';
 import { LOAD_ERROR_MESSAGE } from '../../../core/messages/http-error-messages';
 import { ProcessingButtonComponent } from '../../../shared/processing-button/processing-button.component';
@@ -15,13 +16,19 @@ import { ViewStateComponent } from '../../../shared/view-state/view-state.compon
  * Admin-Bereich „Nutzerverwaltung“ (US-016, Screen S5 Sub-Bereich Nutzer): Liste aller Nutzer,
  * Formular zum Anlegen neuer Nutzer, Aktion zum Zurücksetzen eines Passworts je Zeile.
  *
- * US-046: Zeigt zusätzlich {@link AdminSubNavComponent}, damit ein Systemadmin von hier zum
- * Sub-Bereich „Projekte“ wechseln kann (Akzeptanzkriterium 4).
+ * US-056: Wird seit dieser Story unter der Kind-Route `admin/users` innerhalb des Tab-Host
+ * {@link AdminPageComponent} gerendert — die vormals hier eingebettete Sub-Navigation
+ * ({@link AdminSubNavComponent}) sowie die eigene Seitenüberschrift entfallen, da der Tab-Host
+ * beides bereits einmalig für beide Admin-Unterseiten stellt (Akzeptanzkriterium 1). Das
+ * „Nutzer anlegen“-Formular öffnet seit dieser Story als `p-dialog` über einen Button statt
+ * dauerhaft sichtbar unterhalb der Liste (Akzeptanzkriterium 2, SPEC-07 §1.3) — Formularfelder,
+ * Validierung und Verhalten bleiben aus US-012/US-016 unverändert, nur die Präsentation ändert
+ * sich.
  */
 @Component({
   selector: 'app-users-admin',
   standalone: true,
-  imports: [ReactiveFormsModule, AdminSubNavComponent, ProcessingButtonComponent, ViewStateComponent, InputText, Message, Password],
+  imports: [ReactiveFormsModule, ProcessingButtonComponent, ViewStateComponent, ButtonDirective, Dialog, InputText, Message, Password],
   templateUrl: './users-admin.component.html',
   styleUrl: './users-admin.component.css',
 })
@@ -39,6 +46,10 @@ export class UsersAdminComponent implements OnInit {
   /** US-043 Akzeptanzkriterium 1/2/3/4: Verarbeitungs-Feedback + Doppel-Submit-Schutz. */
   protected isCreatingUser = false;
   protected readonly resettingUserIds = new Set<string>();
+  /** US-056 Akzeptanzkriterium 2: `p-dialog` erfordert ein `WritableSignal` für `[(visible)]`
+   * (`Dialog.visible` ist ein `ModelSignal<boolean>`, siehe PrimeNG-Typdeklaration), daher hier
+   * bewusst ein Signal statt eines einfachen Felds wie bei den übrigen Zuständen dieser Klasse. */
+  protected readonly createDialogVisible = signal(false);
 
   protected readonly createForm = this.formBuilder.nonNullable.group({
     name: ['', Validators.required],
@@ -50,6 +61,24 @@ export class UsersAdminComponent implements OnInit {
     this.loadUsers();
   }
 
+  protected openCreateDialog(): void {
+    this.createErrorMessage = null;
+    this.createForm.reset();
+    this.createDialogVisible.set(true);
+  }
+
+  protected closeCreateDialog(): void {
+    this.createDialogVisible.set(false);
+    this.createErrorMessage = null;
+    this.createForm.reset();
+  }
+
+  /** US-058: `changeDetectorRef.markForCheck()` in beiden Zweigen ergänzt — der `error`-Zweig
+   * blieb bislang ohne jeden Folgeaufruf dauerhaft im Verarbeitungs-Zustand hängen; der `next`-
+   * Zweig heilte sich bereits indirekt über den darin ausgelösten {@link loadUsers}-Folgerequest
+   * (dessen eigener `subscribe()` bereits `markForCheck()` aufruft), wird hier aber der
+   * Konsistenz halber ebenfalls direkt markiert.
+   */
   protected onCreateUser(): void {
     // US-043 Akzeptanzkriterium 3: ein zweiter Trigger während eines laufenden Requests löst
     // nachweislich keinen zweiten HTTP-Request aus.
@@ -65,7 +94,9 @@ export class UsersAdminComponent implements OnInit {
       next: () => {
         this.isCreatingUser = false;
         this.createForm.reset();
+        this.createDialogVisible.set(false);
         this.loadUsers();
+        this.changeDetectorRef.markForCheck();
       },
       error: (error: HttpErrorResponse) => {
         this.isCreatingUser = false;
@@ -73,10 +104,17 @@ export class UsersAdminComponent implements OnInit {
           error.status === 409
             ? 'Diese E-Mail-Adresse wird bereits verwendet.'
             : 'Nutzer konnte nicht angelegt werden.';
+        this.changeDetectorRef.markForCheck();
       },
     });
   }
 
+  /** US-051: `changeDetectorRef.markForCheck()` behebt hier dieselbe Root Cause wie bei
+   * {@link loadUsers} (siehe dortiger Kommentar) — ohne `zone.js` markiert eine reine
+   * Feldzuweisung/`Set`-Mutation in einem `subscribe()`-Callback die Komponente nicht automatisch
+   * für die nächste Change-Detection-Runde. Bisher fehlte der Aufruf in beiden Zweigen dieses
+   * `subscribe()`, wodurch der Button nach Abschluss des Requests dauerhaft im
+   * Verarbeitungs-Zustand sichtbar blieb, obwohl `resettingUserIds` intern bereits korrekt war. */
   protected onResetPassword(user: AdminUser): void {
     // US-043 Akzeptanzkriterium 3: ein zweiter Trigger während eines laufenden Requests löst
     // nachweislich keinen zweiten HTTP-Request aus.
@@ -92,10 +130,12 @@ export class UsersAdminComponent implements OnInit {
       next: () => {
         this.resettingUserIds.delete(user.id);
         this.resetPasswordMessage = `Passwort für ${user.name} wurde zurückgesetzt. Temporäres Passwort: ${temporaryPassword}`;
+        this.changeDetectorRef.markForCheck();
       },
       error: () => {
         this.resettingUserIds.delete(user.id);
         this.resetPasswordMessage = `Passwort für ${user.name} konnte nicht zurückgesetzt werden.`;
+        this.changeDetectorRef.markForCheck();
       },
     });
   }

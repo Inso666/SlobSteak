@@ -1,0 +1,11 @@
+<div class="admin-page">
+  <h1>Admin-Bereich</h1>
+
+  <nav class="tab-pills admin-page__tabs" aria-label="Admin-Bereiche">
+    @for (link of links; track link.route) {
+      <a class="tab-pill" [routerLink]="link.route" routerLinkActive="active">{{ link.label }}</a>
+    }
+  </nav>
+
+  <router-outlet />
+</div>

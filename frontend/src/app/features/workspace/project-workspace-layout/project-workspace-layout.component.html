@@ -1,5 +1,5 @@
 <div class="workspace">
-  @if (loadError) {
+  @if (showLoadError) {
     <p class="load-error" role="alert">{{ loadError }}</p>
   }
 
@@ -21,7 +21,12 @@
         <a class="tab-pill" routerLink="distribution" routerLinkActive="active">Verteiler</a>
       }
     </nav>
-
-    <router-outlet />
   }
+
+  <!-- US-052: außerhalb des `@if (project)`-Blocks, damit die Kind-Route `access-denied` (bzw.
+       jede andere Kind-Route) unabhängig davon rendert, ob der eigene, redundante
+       `getProject()`-Aufruf dieser Komponente erfolgreich war — vorher blockierte ein
+       fehlgeschlagener Aufruf hier das gesamte `router-outlet`, wodurch `AccessDeniedComponent`
+       nie sichtbar wurde (siehe Story „Anmerkungen des Agenten"). -->
+  <router-outlet />
 </div>

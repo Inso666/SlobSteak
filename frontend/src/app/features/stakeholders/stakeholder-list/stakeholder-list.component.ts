@@ -1,4 +1,4 @@
-import { Component, OnInit, inject } from '@angular/core';
+import { ChangeDetectorRef, Component, OnInit, inject } from '@angular/core';
 import { ActivatedRoute, RouterLink } from '@angular/router';
 import { FormBuilder, ReactiveFormsModule } from '@angular/forms';
 import { DatePipe } from '@angular/common';
@@ -35,6 +35,11 @@ import { ProcessingButtonComponent } from '../../../shared/processing-button/pro
  * Modus ausgeblendet; stattdessen zeigt jede Zeile einen Badge und einen „Wiederherstellen“-Button
  * (Akzeptanzkriterium 3/4), der nach Erfolg die (weiterhin gefilterte) Papierkorb-Ansicht neu lädt,
  * ohne die Seite komplett neu zu laden.
+ *
+ * US-058: `changeDetectorRef.markForCheck()` in jedem `subscribe()`-Callback ergänzt — dieselbe
+ * Root Cause wie in US-050/US-051/US-057: Das Frontend läuft ohne `zone.js`, eine reine
+ * Feldzuweisung in einem `subscribe()`-Callback markiert die Komponente sonst nicht automatisch
+ * für die nächste Change-Detection-Runde.
  */
 @Component({
   selector: 'app-stakeholder-list',
@@ -58,6 +63,7 @@ export class StakeholderListComponent implements OnInit {
   private readonly stakeholdersService = inject(StakeholdersService);
   private readonly projectsService = inject(ProjectsService);
   private readonly route = inject(ActivatedRoute);
+  private readonly changeDetectorRef = inject(ChangeDetectorRef);
 
   protected projectId = '';
   protected currentUserRole: string | null = null;
@@ -78,7 +84,9 @@ export class StakeholderListComponent implements OnInit {
     this.projectId = this.route.parent?.snapshot.paramMap.get('id') ?? '';
     this.loadStakeholders();
 
-    this.projectsService.getProject(this.projectId).subscribe((project) => (this.currentUserRole = project.role));
+    this.projectsService.getProject(this.projectId).subscribe((project) => {
+      this.currentUserRole = project.role;
+    });
     this.filterForm.valueChanges.pipe(debounceTime(300)).subscribe(() => this.loadStakeholders());
   }
 
@@ -139,9 +147,11 @@ export class StakeholderListComponent implements OnInit {
       next: () => {
         this.restoringStakeholderIds.delete(stakeholder.id);
         this.loadStakeholders();
+        this.changeDetectorRef.markForCheck();
       },
       error: () => {
         this.restoringStakeholderIds.delete(stakeholder.id);
+        this.changeDetectorRef.markForCheck();
       },
     });
   }
@@ -157,16 +167,28 @@ export class StakeholderListComponent implements OnInit {
 
     if (this.showDeleted) {
       this.stakeholdersService.listStakeholders(this.projectId, { deleted: true }).subscribe({
-        next: (stakeholders) => (this.stakeholders = stakeholders),
-        error: () => (this.loadError = LOAD_ERROR_MESSAGE),
+        next: (stakeholders) => {
+          this.stakeholders = stakeholders;
+          this.changeDetectorRef.markForCheck();
+        },
+        error: () => {
+          this.loadError = LOAD_ERROR_MESSAGE;
+          this.changeDetectorRef.markForCheck();
+        },
       });
       return;
     }
 
     const { search, type } = this.filterForm.getRawValue();
     this.stakeholdersService.listStakeholders(this.projectId, { search: search || undefined, type: type || undefined }).subscribe({
-      next: (stakeholders) => (this.stakeholders = stakeholders),
-      error: () => (this.loadError = LOAD_ERROR_MESSAGE),
+      next: (stakeholders) => {
+        this.stakeholders = stakeholders;
+        this.changeDetectorRef.markForCheck();
+      },
+      error: () => {
+        this.loadError = LOAD_ERROR_MESSAGE;
+        this.changeDetectorRef.markForCheck();
+      },
     });
   }
 }

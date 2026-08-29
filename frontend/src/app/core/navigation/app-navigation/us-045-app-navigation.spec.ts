@@ -1,6 +1,8 @@
+import { BreakpointObserver } from '@angular/cdk/layout';
 import { Component } from '@angular/core';
 import { TestBed } from '@angular/core/testing';
 import { Router, UrlTree, provideRouter } from '@angular/router';
+import { of } from 'rxjs';
 import { authGuard } from '../../../features/auth/auth.guard';
 import { TokenStorageService } from '../../../features/auth/token-storage.service';
 import { AppNavigationComponent } from './app-navigation.component';
@@ -26,6 +28,9 @@ describe('US-045: Globale Navigation (Shell) inkl. Abmelden-Funktion', () => {
           { path: 'login', component: DummyRouteComponent },
           { path: 'projects', component: DummyRouteComponent, canActivate: [authGuard] },
         ]),
+        // US-055: erzwingt die Desktop-Sidebar statt des mobilen Drawers, siehe Begründung in
+        // `app-navigation.component.spec.ts`.
+        { provide: BreakpointObserver, useValue: { observe: () => of({ matches: false }) } },
       ],
     });
     tokenStorage = TestBed.inject(TokenStorageService);
