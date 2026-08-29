@@ -4,6 +4,30 @@ Alle nennenswerten Änderungen an diesem Projekt werden hier je User Story dokum
 
 ## [Unreleased]
 
+### US-034 — Vergleichsmodus-UI (zwei Punkte, Verbindungslinie, Legende, Diff)
+
+- `MapService` um `MapComparisonEntry`/`MapComparisonValue` (1:1 zum US-033-Response-Contract) und
+  `getComparisonData(projectId, primary, secondary)` erweitert (`GET .../map/compare`).
+- Neue Komponenten `ComparisonModeToggleComponent` (Vergleichsmodus-Schalter als
+  `ControlValueAccessor`, `frontend/src/app/features/map/comparison-mode-toggle/`) und
+  `ConnectionLineTooltipComponent` (Differenz-Tooltip/Popover,
+  `frontend/src/app/features/map/connection-line-tooltip/`).
+- `QuadrantChartComponent` um Vergleichs-Rendering erweitert: eigene Punkte (Kreise) und
+  Vergleichspunkte (Diamanten, reduzierte Deckkraft, gleiche Rollenfarb-Klassen wie die Kreise) aus
+  den Vergleichsdaten, gestrichelte SVG-Verbindungslinie je Stakeholder mit Assessment in beiden
+  gewählten Perspektiven (keine Linie bei nur einer Bewertung), Legende mit zur Punktkodierung
+  konsistenter Farb-/Formerklärung, Tooltip auf Hover **und** Klick/Tastatur einer Verbindungslinie
+  mit der konkreten Differenz (z. B. „Einfluss: PL 30 vs. Architect 75").
+- `StakeholderMapPageComponent`: `filterForm` um `compareMode`/`comparePerspective` erweitert
+  (`comparePerspective` nur bei aktivem `compareMode` pflichtig, sonst deaktiviert/zurückgesetzt,
+  SPEC-04 §2.1); lädt je nach Modus `GET .../map` oder `GET .../map/compare` neu.
+- Dedizierter Story-Test `frontend/src/app/features/map/us-034-map-vergleich-ui.spec.ts` (ein Test
+  je Akzeptanzkriterium) sowie ergänzende Komponententests in `quadrant-chart.component.spec.ts`,
+  `stakeholder-map-page.component.spec.ts`, `comparison-mode-toggle.component.spec.ts` und
+  `connection-line-tooltip.component.spec.ts`.
+- `ng test` (295/295), `ng lint` und `ng build` laufen grün; manueller Smoke-Test gegen den über
+  `docker-compose up` laufenden Gesamtstack durchgeführt.
+
 ### US-033 — Vergleichsmodus-Query-API (zwei Perspektiven)
 
 - Neuer Endpoint `GET /api/v1/projects/{projectId}/map/compare?primary={Rolle}&secondary={Rolle}`

@@ -1,12 +1,13 @@
 import { ChangeDetectorRef, Component, OnInit, inject } from '@angular/core';
 import { ActivatedRoute, Router, RouterLink } from '@angular/router';
-import { FormBuilder, ReactiveFormsModule } from '@angular/forms';
+import { FormBuilder, ReactiveFormsModule, Validators } from '@angular/forms';
 import { ButtonDirective } from 'primeng/button';
 import { Card } from 'primeng/card';
 import { Skeleton } from 'primeng/skeleton';
-import { MapPoint, MapService, PerspectiveRole } from '../map.service';
+import { MapComparisonEntry, MapPoint, MapService, PerspectiveRole } from '../map.service';
 import { ProjectsService } from '../../projects/projects.service';
 import { QuadrantChartComponent } from '../quadrant-chart/quadrant-chart.component';
+import { ComparisonModeToggleComponent } from '../comparison-mode-toggle/comparison-mode-toggle.component';
 import { MAP_EMPTY_MESSAGE } from '../map-messages';
 import { LOAD_ERROR_MESSAGE } from '../../../core/messages/http-error-messages';
 
@@ -23,39 +24,43 @@ type MapViewState = 'loading' | 'content' | 'empty' | 'error';
 const PERSPECTIVE_OPTIONS: readonly PerspectiveRole[] = ['PL', 'Coreteam', 'Architect'];
 
 /**
- * Stakeholder-Map (US-032, Screen S3 Tab „Map", F3.1). Lädt die Map-Punkte für genau eine
- * Perspektive über `MapService`/US-031 (Akzeptanzkriterium 3) und zeigt sie im
- * {@link QuadrantChartComponent}. Das Perspektiv-Dropdown „Meine Sicht" (Feldname `ownPerspective`,
- * Benennung bewusst deckungsgleich mit `docs/specs/SPEC-04-Stakeholder-Map.md` §2.1, damit die
- * Vergleichsmodus-Folgestory US-034 dasselbe Formular um `compareMode`/`comparePerspective`
- * erweitern kann statt es umzubenennen) ist standardmäßig auf die eigene Projekt-Rolle des
- * angemeldeten Nutzers vorbelegt (Akzeptanzkriterium 2). Ein Klick auf einen Punkt navigiert zur
- * Stakeholder-Detailseite (US-026, Akzeptanzkriterium 3).
+ * Stakeholder-Map (US-032, Screen S3 Tab „Map", F3.1; erweitert um den Vergleichsmodus in US-034,
+ * F3.2). Lädt die Map-Punkte über `MapService` — im Basis-Modus für genau eine Perspektive
+ * (`GET .../map`, US-031), im Vergleichsmodus für zwei Perspektiven gleichzeitig
+ * (`GET .../map/compare`, US-033) — und zeigt sie im {@link QuadrantChartComponent}. Das
+ * Perspektiv-Dropdown „Meine Sicht" (Feldname `ownPerspective`) ist standardmäßig auf die eigene
+ * Projekt-Rolle des angemeldeten Nutzers vorbelegt (US-032 Akzeptanzkriterium 2). Ein Klick auf
+ * einen Punkt navigiert zur Stakeholder-Detailseite (US-026).
  *
- * Anmerkung des Agenten (CLAUDE.md Abschnitt 6): `docs/specs/SPEC-04-Stakeholder-Map.md`
- * beschreibt den vollständigen Endzustand aller vier Map-Stories der Backlog-Phase 5
- * (Vergleichsmodus/F3.2 → US-033/034, Drag&Drop/F3.3 → US-035/036) gemeinsam in einem Dokument.
- * Diese Komponente implementiert ausschließlich die eigenständigen Akzeptanzkriterien von US-032
- * (Basis-Ansicht ohne Vergleichsmodus, ohne Zoom/Pan, ohne Drag&Drop) — kein Vorgriff auf die
- * noch offenen Folgestories (CLAUDE.md Abschnitt 3). Ebenfalls bewusst zurückgestellt: die in
- * SPEC-04 §1 beschriebene Legende (`p-panel header="Legende"`) und die
- * `AppPerspectivesRadarComponent`-Wiederverwendung — ihr Inhalt (eigene vs. Vergleichssicht,
- * Verbindungslinien-Hinweis) ist ausschließlich im Vergleichsmodus sinnvoll und gehört inhaltlich
- * zu F3.2 (US-034), nicht zu F3.1.
+ * **Vergleichsmodus (US-034 Akzeptanzkriterium 1):** Der {@link ComparisonModeToggleComponent}
+ * (`compareMode`-Steuerelement) schaltet ein zweites Dropdown „Vergleichen mit:"
+ * (`comparePerspective`) frei; sobald beide Werte gesetzt sind, wird `GET .../map/compare`
+ * aufgerufen statt `GET .../map`. `comparePerspective` ist gemäß SPEC-04 §2.1 nur dann pflichtig
+ * (`Validators.required`), wenn `compareMode === true`; beim Deaktivieren wird das Feld
+ * deaktiviert und zurückgesetzt.
  *
- * Die Perspektiv-Optionsliste ist hier als feste Aufzählung `PL`/`Coreteam`/`Architect` hinterlegt
- * statt, wie SPEC-04 §2.1 es für den vollständigen Endzustand vorsieht, „serverseitig aus den im
- * Projekt vorhandenen Perspektiven-Rollen geladen" zu werden — ein solcher Katalog-Endpoint
- * existiert weder im PRD noch im Backlog; die Story-AC selbst benennt exakt diese drei Werte
- * („Ein Dropdown wählt die Perspektive (PL/Coreteam/Architect)"), und der zugrunde liegende
- * `GET .../map`-Endpoint (US-031) akzeptiert ohnehin nur genau diese drei Werte. PRD-konformste,
- * am wenigsten überraschende Lesart statt Erfindung eines neuen Katalog-Endpoints außerhalb dieser
- * Story.
+ * **Dokumentierte Abweichung von SPEC-04 §2.1 (CLAUDE.md Abschnitt 6):** SPEC-04 erlaubt
+ * ausdrücklich, dass `comparePerspective === ownPerspective` gewählt wird („keine
+ * Validierungsregel, die dies verhindert"). Der inzwischen bereits fertiggestellte, dieser Story
+ * zugrunde liegende Endpoint `GET .../map/compare` (US-033) liefert für `primary === secondary`
+ * jedoch `400 Bad Request` (`PRIMARY_EQUALS_SECONDARY`) — SPEC-04 wurde vor dieser strengeren, im
+ * Rahmen von US-033 bewusst getroffenen Backend-Entscheidung verfasst. Statt einen serverseitig
+ * grundsätzlich abgelehnten Request zu riskieren, filtert {@link comparePerspectiveOptions} die
+ * aktuell gewählte `ownPerspective` aus der Optionsliste des zweiten Dropdowns heraus (fachlich
+ * ohnehin naheliegend — der Vergleich einer Perspektive mit sich selbst liefert keine Erkenntnis)
+ * und die `ownPerspective`-Änderung setzt eine dadurch ungültig gewordene `comparePerspective`-
+ * Auswahl zurück.
+ *
+ * **Konsistenz mit `ownPerspective` (dokumentierte Abweichung von SPEC-04 §1, bereits seit
+ * US-032):** SPEC-04 sieht `p-select` für beide Dropdowns vor; das bereits fertiggestellte
+ * `ownPerspective`-Steuerelement (US-032) nutzt stattdessen ein natives `<select>`. Um innerhalb
+ * derselben Toolbar nicht zwei unterschiedliche Auswahl-Paradigmen zu mischen, übernimmt
+ * `comparePerspective` dasselbe, bereits etablierte native `<select>`-Muster.
  */
 @Component({
   selector: 'app-stakeholder-map-page',
   standalone: true,
-  imports: [ReactiveFormsModule, RouterLink, ButtonDirective, Card, Skeleton, QuadrantChartComponent],
+  imports: [ReactiveFormsModule, RouterLink, ButtonDirective, Card, Skeleton, QuadrantChartComponent, ComparisonModeToggleComponent],
   templateUrl: './stakeholder-map-page.component.html',
   styleUrl: './stakeholder-map-page.component.css',
 })
@@ -73,52 +78,125 @@ export class StakeholderMapPageComponent implements OnInit {
 
   protected projectId = '';
   protected points: MapPoint[] = [];
+  protected comparisonEntries: MapComparisonEntry[] = [];
   protected selectedPerspective: PerspectiveRole = 'PL';
   protected viewState: MapViewState = 'loading';
 
   protected readonly filterForm = this.formBuilder.group({
     ownPerspective: this.formBuilder.nonNullable.control<PerspectiveRole>('PL'),
+    compareMode: this.formBuilder.nonNullable.control<boolean>(false),
+    comparePerspective: this.formBuilder.control<PerspectiveRole | null>({ value: null, disabled: true }),
   });
+
+  /** Siehe Klassendokumentation „Dokumentierte Abweichung von SPEC-04 §2.1": schließt die aktuell
+   * gewählte `ownPerspective` aus, damit `primary === secondary` (US-033: `400 Bad Request`) über
+   * die UI gar nicht erst wählbar ist. */
+  protected get comparePerspectiveOptions(): PerspectiveRole[] {
+    const ownPerspective = this.filterForm.controls.ownPerspective.value;
+    return PERSPECTIVE_OPTIONS.filter((option) => option !== ownPerspective);
+  }
 
   ngOnInit(): void {
     this.projectId = this.route.parent?.snapshot.paramMap.get('id') ?? '';
 
-    // Akzeptanzkriterium 2: Standardauswahl ist die eigene Projekt-Rolle des angemeldeten Nutzers.
+    // US-032 Akzeptanzkriterium 2: Standardauswahl ist die eigene Projekt-Rolle des angemeldeten
+    // Nutzers.
     this.projectsService.getProject(this.projectId).subscribe((project) => {
       const defaultPerspective = this.asPerspective(project.role) ?? PERSPECTIVE_OPTIONS[0];
       this.filterForm.controls.ownPerspective.setValue(defaultPerspective, { emitEvent: false });
       this.selectedPerspective = defaultPerspective;
-      this.loadMapData(defaultPerspective);
+      this.reload();
       this.changeDetectorRef.markForCheck();
     });
 
     this.filterForm.controls.ownPerspective.valueChanges.subscribe((perspective) => {
       this.selectedPerspective = perspective;
-      this.loadMapData(perspective);
+
+      const comparePerspectiveControl = this.filterForm.controls.comparePerspective;
+      if (comparePerspectiveControl.value === perspective) {
+        comparePerspectiveControl.setValue(null);
+        return; // comparePerspective.valueChanges löst bereits ein reload() aus.
+      }
+
+      this.reload();
+    });
+
+    // US-034 Akzeptanzkriterium 1: `compareMode` schaltet die Pflicht von `comparePerspective`
+    // um (SPEC-04 §2.1) und aktiviert/deaktiviert das zugehörige Steuerelement.
+    this.filterForm.controls.compareMode.valueChanges.subscribe((compareMode) => {
+      const comparePerspectiveControl = this.filterForm.controls.comparePerspective;
+      if (compareMode) {
+        comparePerspectiveControl.enable({ emitEvent: false });
+        comparePerspectiveControl.setValidators(Validators.required);
+      } else {
+        comparePerspectiveControl.disable({ emitEvent: false });
+        comparePerspectiveControl.setValue(null, { emitEvent: false });
+        comparePerspectiveControl.clearValidators();
+      }
+      comparePerspectiveControl.updateValueAndValidity({ emitEvent: false });
+      this.reload();
+    });
+
+    this.filterForm.controls.comparePerspective.valueChanges.subscribe(() => {
+      if (this.filterForm.controls.compareMode.value) {
+        this.reload();
+      }
     });
   }
 
-  /** Akzeptanzkriterium 3: Klick auf einen Punkt navigiert zur Stakeholder-Detailseite (US-026). */
+  /** US-032 Akzeptanzkriterium 3: Klick auf einen Punkt navigiert zur Stakeholder-Detailseite
+   * (US-026) — unverändert für eigene wie für Vergleichspunkte. */
   protected onPointSelected(stakeholderId: string): void {
     this.router.navigate(['/projects', this.projectId, 'stakeholders', stakeholderId]);
   }
 
   /** SPEC-04 §3.7 „Allgemeiner Ladefehler": wiederholt exakt den zuletzt fehlgeschlagenen Aufruf. */
   protected onRetry(): void {
-    this.loadMapData(this.selectedPerspective);
+    this.reload();
   }
 
   private asPerspective(role: string): PerspectiveRole | null {
     return (PERSPECTIVE_OPTIONS as readonly string[]).includes(role) ? (role as PerspectiveRole) : null;
   }
 
-  private loadMapData(perspective: PerspectiveRole): void {
+  /** Lädt je nach `compareMode` entweder die Vergleichsdaten (`GET .../map/compare`, US-033) oder
+   * die Einzelperspektive (`GET .../map`, US-031) neu. Ist `compareMode` aktiv, aber noch keine
+   * `comparePerspective` gewählt (Zwischenzustand direkt nach dem Aktivieren des Schalters), wird
+   * bewusst kein Request ausgelöst — ein Aufruf ohne zweite Perspektive wäre ohnehin ungültig
+   * (US-033: `400 Bad Request`). */
+  private reload(): void {
     if (!this.projectId) {
       return;
     }
 
+    const ownPerspective = this.filterForm.controls.ownPerspective.value;
+    const compareMode = this.filterForm.controls.compareMode.value;
+    const comparePerspective = this.filterForm.controls.comparePerspective.value;
+
+    if (compareMode) {
+      if (!comparePerspective) {
+        return;
+      }
+
+      this.viewState = 'loading';
+      this.mapService.getComparisonData(this.projectId, ownPerspective, comparePerspective).subscribe({
+        next: (entries) => {
+          this.comparisonEntries = entries;
+          this.points = [];
+          this.viewState = entries.length === 0 ? 'empty' : 'content';
+          this.changeDetectorRef.markForCheck();
+        },
+        error: () => {
+          this.viewState = 'error';
+          this.changeDetectorRef.markForCheck();
+        },
+      });
+      return;
+    }
+
     this.viewState = 'loading';
-    this.mapService.getMapData(this.projectId, perspective).subscribe({
+    this.comparisonEntries = [];
+    this.mapService.getMapData(this.projectId, ownPerspective).subscribe({
       next: (points) => {
         this.points = points;
         this.viewState = points.length === 0 ? 'empty' : 'content';

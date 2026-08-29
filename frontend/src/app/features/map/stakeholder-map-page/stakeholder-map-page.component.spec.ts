@@ -3,7 +3,7 @@ import { TestBed } from '@angular/core/testing';
 import { By } from '@angular/platform-browser';
 import { ActivatedRoute, convertToParamMap, provideRouter, Router } from '@angular/router';
 import { of, throwError } from 'rxjs';
-import { MapPoint, MapService } from '../map.service';
+import { MapComparisonEntry, MapPoint, MapService } from '../map.service';
 import { ProjectOverviewItem, ProjectsService } from '../../projects/projects.service';
 import { LOAD_ERROR_MESSAGE } from '../../../core/messages/http-error-messages';
 import { StakeholderMapPageComponent } from './stakeholder-map-page.component';
@@ -17,9 +17,14 @@ describe('StakeholderMapPageComponent', () => {
     { stakeholderId: 'sh-2', name: 'Erika Beispiel', influence: 20, interest: 30 },
   ];
 
+  const comparisonEntries: MapComparisonEntry[] = [
+    { stakeholderId: 'sh-1', name: 'Max Mustermann', primary: { influence: 80, interest: 60 }, secondary: { influence: 30, interest: 20 } },
+  ];
+
   function configure(role: string): void {
-    mapServiceSpy = jasmine.createSpyObj('MapService', ['getMapData']);
+    mapServiceSpy = jasmine.createSpyObj('MapService', ['getMapData', 'getComparisonData']);
     mapServiceSpy.getMapData.and.returnValue(of(points));
+    mapServiceSpy.getComparisonData.and.returnValue(of(comparisonEntries));
 
     projectsServiceSpy = jasmine.createSpyObj('ProjectsService', ['listMyProjects', 'getProject']);
     projectsServiceSpy.getProject.and.returnValue(of({ id: 'project-1', name: 'Projekt', role, stakeholderCount: 2 } as ProjectOverviewItem));
@@ -111,5 +116,80 @@ describe('StakeholderMapPageComponent', () => {
     fixture.debugElement.query(By.css('app-quadrant-chart')).triggerEventHandler('pointSelected', 'sh-1');
 
     expect(router.navigate).toHaveBeenCalledWith(['/projects', 'project-1', 'stakeholders', 'sh-1']);
+  });
+
+  describe('compare mode (US-034)', () => {
+    it('should start with compareMode off and the comparePerspective control disabled', () => {
+      configure('PL');
+      const fixture = createComponent();
+
+      expect(fixture.componentInstance['filterForm'].controls.compareMode.value).toBeFalse();
+      expect(fixture.componentInstance['filterForm'].controls.comparePerspective.disabled).toBeTrue();
+    });
+
+    // Dokumentierte Abweichung von SPEC-04 §2.1 (siehe Komponentendoku): die aktuelle
+    // `ownPerspective` ist keine wählbare `comparePerspective`-Option (US-033 lehnt
+    // `primary === secondary` mit 400 ab).
+    it('should exclude the currently selected ownPerspective from the compare-perspective options', () => {
+      configure('PL');
+      const fixture = createComponent();
+
+      expect(fixture.componentInstance['comparePerspectiveOptions']).toEqual(['Coreteam', 'Architect']);
+    });
+
+    // Akzeptanzkriterium 1: Aktivieren des Schalters gibt `comparePerspective` frei; erst die
+    // Auswahl einer Vergleichsperspektive ruft `GET .../map/compare` auf.
+    it('should enable comparePerspective when compareMode is switched on and call getComparisonData once a perspective is chosen', () => {
+      configure('PL');
+      const fixture = createComponent();
+      mapServiceSpy.getMapData.calls.reset();
+
+      fixture.componentInstance['filterForm'].controls.compareMode.setValue(true);
+      expect(fixture.componentInstance['filterForm'].controls.comparePerspective.disabled).toBeFalse();
+      expect(mapServiceSpy.getComparisonData).not.toHaveBeenCalled();
+
+      fixture.componentInstance['filterForm'].controls.comparePerspective.setValue('Architect');
+      expect(mapServiceSpy.getComparisonData).toHaveBeenCalledWith('project-1', 'PL', 'Architect');
+    });
+
+    // Deaktivieren des Schalters setzt comparePerspective zurück und deaktiviert das Feld wieder;
+    // der Chart erhält wieder Einzelperspektiven-Punkte statt Vergleichsdaten.
+    it('should reset and disable comparePerspective again when compareMode is switched off, and reload the single-perspective points', () => {
+      configure('PL');
+      const fixture = createComponent();
+      fixture.componentInstance['filterForm'].controls.compareMode.setValue(true);
+      fixture.componentInstance['filterForm'].controls.comparePerspective.setValue('Architect');
+      mapServiceSpy.getMapData.calls.reset();
+
+      fixture.componentInstance['filterForm'].controls.compareMode.setValue(false);
+
+      expect(fixture.componentInstance['filterForm'].controls.comparePerspective.value).toBeNull();
+      expect(fixture.componentInstance['filterForm'].controls.comparePerspective.disabled).toBeTrue();
+      expect(mapServiceSpy.getMapData).toHaveBeenCalledWith('project-1', 'PL');
+    });
+
+    it('should pass the comparison entries and both perspectives through to the quadrant chart', () => {
+      configure('PL');
+      const fixture = createComponent();
+      fixture.componentInstance['filterForm'].controls.compareMode.setValue(true);
+      fixture.componentInstance['filterForm'].controls.comparePerspective.setValue('Architect');
+      fixture.detectChanges();
+
+      const chart = fixture.debugElement.query(By.css('app-quadrant-chart'));
+      expect(chart.componentInstance.compareMode).toBeTrue();
+      expect(chart.componentInstance.comparisonEntries).toEqual(comparisonEntries);
+      expect(chart.componentInstance.comparePerspective).toBe('Architect');
+    });
+
+    it('should reset an ownPerspective selection that would collide with the currently chosen comparePerspective', () => {
+      configure('PL');
+      const fixture = createComponent();
+      fixture.componentInstance['filterForm'].controls.compareMode.setValue(true);
+      fixture.componentInstance['filterForm'].controls.comparePerspective.setValue('Coreteam');
+
+      fixture.componentInstance['filterForm'].controls.ownPerspective.setValue('Coreteam');
+
+      expect(fixture.componentInstance['filterForm'].controls.comparePerspective.value).toBeNull();
+    });
   });
 });
