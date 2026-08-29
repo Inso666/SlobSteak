@@ -4,6 +4,23 @@ Alle nennenswerten Änderungen an diesem Projekt werden hier je User Story dokum
 
 ## [Unreleased]
 
+### US-033 — Vergleichsmodus-Query-API (zwei Perspektiven)
+
+- Neuer Endpoint `GET /api/v1/projects/{projectId}/map/compare?primary={Rolle}&secondary={Rolle}`
+  in `MapController` sowie zugehörige Application-Query `StakeholderMapComparisonQuery`
+  (`src/SlobSteak.Application/Map/`, analog zu `StakeholderMapQuery` aus US-031): liefert je
+  aktivem Stakeholder mit Assessment in mindestens einer der beiden Perspektiven ein Objekt mit
+  optionalen Feldern `primary`/`secondary` (`{influence, interest} | null`).
+- Validierung: `primary`/`secondary` müssen gültige perspektiv-tragende Rollen sein
+  (`400 Bad Request`, `INVALID_PERSPECTIVE`, Rolle `User` eingeschlossen); `primary == secondary`
+  liefert ebenfalls `400 Bad Request` (`PRIMARY_EQUALS_SECONDARY`). Rolle `User` erhält weiterhin
+  `403 Forbidden` über das bestehende `RequireProjectRoleAttribute`.
+- Dedizierter Story-Test `tests/SlobSteak.Api.Tests/UserStories/US033_MapComparisonApiTests.cs`
+  (ein Test je Akzeptanzkriterium), ergänzende Randfall-Tests in
+  `tests/SlobSteak.Api.Tests/Map/MapControllerTests.cs` und Unit-Tests gegen gemockte Repositories
+  in `tests/SlobSteak.Application.Tests/Map/StakeholderMapComparisonQueryTests.cs`.
+- `dotnet test SlobSteak.sln` (359/359) und `dotnet format --verify-no-changes` laufen grün.
+
 ### US-032 — Map-UI Quadranten-Diagramm mit Perspektiv-Dropdown
 
 - Neues Feature `frontend/src/app/features/map`: `MapService` (HTTP-Client für den US-031-Endpoint
