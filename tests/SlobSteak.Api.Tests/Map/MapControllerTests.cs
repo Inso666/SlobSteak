@@ -18,11 +18,13 @@ using SlobSteak.Infrastructure.Persistence;
 namespace SlobSteak.Api.Tests.Map;
 
 /// <summary>
-/// Integrationstests für <c>GET /api/v1/projects/{projectId}/map</c> (US-031) über eine echte
-/// Testcontainers-PostgreSQL-Instanz — ergänzend zum dedizierten Story-Test
-/// <c>US031_MapQueryApiTests</c>: hier liegt der Fokus auf Details des Response-Contracts und
-/// Randfällen (ungültiger <c>perspective</c>-Wert, Rolle <c>User</c> als Perspektivwert, fehlendes
-/// Token, Projekt-Isolation), nicht auf den Akzeptanzkriterien selbst.
+/// Integrationstests für <c>GET /api/v1/projects/{projectId}/map</c> (US-031) sowie
+/// <c>GET .../map/compare</c> (US-033) über eine echte Testcontainers-PostgreSQL-Instanz —
+/// ergänzend zu den dedizierten Story-Tests <c>US031_MapQueryApiTests</c>/
+/// <c>US033_MapComparisonApiTests</c>: hier liegt der Fokus auf Details des Response-Contracts und
+/// Randfällen (ungültiger <c>perspective</c>-/<c>primary</c>-/<c>secondary</c>-Wert, Rolle
+/// <c>User</c> als Perspektivwert, fehlendes Token, Projekt-Isolation), nicht auf den
+/// Akzeptanzkriterien selbst.
 /// </summary>
 [Collection(PostgresCollection.Name)]
 public sealed class MapControllerTests : IAsyncLifetime
@@ -126,6 +128,108 @@ public sealed class MapControllerTests : IAsyncLifetime
 
         using var client = AuthenticatedClient(plUserId);
         var response = await client.GetAsync($"/api/v1/projects/{projectId}/map?perspective=PL");
+
+        response.StatusCode.Should().Be(HttpStatusCode.OK);
+        var body = await response.Content.ReadFromJsonAsync<JsonElement>();
+        body.GetArrayLength().Should().Be(0);
+    }
+
+    [Fact]
+    public async Task GetComparison_UnknownPrimaryValue_ReturnsBadRequest()
+    {
+        var (projectId, plUserId) = await CreateProjectWithMemberAsync(ProjectRole.PL);
+        using var client = AuthenticatedClient(plUserId);
+
+        var response = await client.GetAsync($"/api/v1/projects/{projectId}/map/compare?primary=NichtExistent&secondary=Coreteam");
+
+        response.StatusCode.Should().Be(HttpStatusCode.BadRequest);
+        var body = await response.Content.ReadFromJsonAsync<JsonElement>();
+        body.GetProperty("error").GetString().Should().Be("INVALID_PERSPECTIVE");
+    }
+
+    [Fact]
+    public async Task GetComparison_UnknownSecondaryValue_ReturnsBadRequest()
+    {
+        var (projectId, plUserId) = await CreateProjectWithMemberAsync(ProjectRole.PL);
+        using var client = AuthenticatedClient(plUserId);
+
+        var response = await client.GetAsync($"/api/v1/projects/{projectId}/map/compare?primary=PL&secondary=NichtExistent");
+
+        response.StatusCode.Should().Be(HttpStatusCode.BadRequest);
+    }
+
+    [Fact]
+    public async Task GetComparison_MissingPrimaryOrSecondary_ReturnsBadRequest()
+    {
+        var (projectId, plUserId) = await CreateProjectWithMemberAsync(ProjectRole.PL);
+        using var client = AuthenticatedClient(plUserId);
+
+        var response = await client.GetAsync($"/api/v1/projects/{projectId}/map/compare?primary=PL");
+
+        response.StatusCode.Should().Be(HttpStatusCode.BadRequest);
+    }
+
+    [Fact]
+    public async Task GetComparison_PrimaryOrSecondaryIsUser_ReturnsBadRequest()
+    {
+        // "User" ist syntaktisch ein gültiger ProjectRole-Enum-Wert, aber fachlich keine
+        // Perspektive — analog zu GetMap_PerspectiveUser_ReturnsBadRequest (US-031).
+        var (projectId, plUserId) = await CreateProjectWithMemberAsync(ProjectRole.PL);
+        using var client = AuthenticatedClient(plUserId);
+
+        var response = await client.GetAsync($"/api/v1/projects/{projectId}/map/compare?primary=User&secondary=PL");
+
+        response.StatusCode.Should().Be(HttpStatusCode.BadRequest);
+    }
+
+    [Fact]
+    public async Task GetComparison_NoToken_ReturnsUnauthorized()
+    {
+        var (projectId, _) = await CreateProjectWithMemberAsync(ProjectRole.PL);
+        using var client = _factory.CreateClient();
+
+        var response = await client.GetAsync($"/api/v1/projects/{projectId}/map/compare?primary=PL&secondary=Coreteam");
+
+        response.StatusCode.Should().Be(HttpStatusCode.Unauthorized);
+    }
+
+    [Fact]
+    public async Task GetComparison_PerspectivesAreCaseInsensitive()
+    {
+        var (projectId, plUserId) = await CreateProjectWithMemberAsync(ProjectRole.PL);
+        using var scope = _factory.Services.CreateScope();
+        var dbContext = scope.ServiceProvider.GetRequiredService<SlobSteakDbContext>();
+        var stakeholder = Stakeholder.Create(projectId, StakeholderType.Person, "Klein Geschrieben", null, null, null, null, null, null, plUserId);
+        dbContext.Stakeholders.Add(stakeholder);
+        dbContext.StakeholderAssessments.Add(StakeholderAssessment.Create(stakeholder.Id, ProjectRole.PL, 10, 20, null, plUserId));
+        await dbContext.SaveChangesAsync();
+
+        using var client = AuthenticatedClient(plUserId);
+        var response = await client.GetAsync($"/api/v1/projects/{projectId}/map/compare?primary=pl&secondary=coreteam");
+
+        response.StatusCode.Should().Be(HttpStatusCode.OK);
+        var body = await response.Content.ReadFromJsonAsync<JsonElement>();
+        body.GetArrayLength().Should().Be(1);
+    }
+
+    [Fact]
+    public async Task GetComparison_OtherProjectsStakeholders_AreNotIncluded()
+    {
+        var (projectId, plUserId) = await CreateProjectWithMemberAsync(ProjectRole.PL);
+        var (otherProjectId, otherPlUserId) = await CreateProjectWithMemberAsync(ProjectRole.PL);
+
+        using (var scope = _factory.Services.CreateScope())
+        {
+            var dbContext = scope.ServiceProvider.GetRequiredService<SlobSteakDbContext>();
+            var otherStakeholder = Stakeholder.Create(
+                otherProjectId, StakeholderType.Person, "Fremdes Projekt", null, null, null, null, null, null, otherPlUserId);
+            dbContext.Stakeholders.Add(otherStakeholder);
+            dbContext.StakeholderAssessments.Add(StakeholderAssessment.Create(otherStakeholder.Id, ProjectRole.PL, 50, 50, null, otherPlUserId));
+            await dbContext.SaveChangesAsync();
+        }
+
+        using var client = AuthenticatedClient(plUserId);
+        var response = await client.GetAsync($"/api/v1/projects/{projectId}/map/compare?primary=PL&secondary=Coreteam");
 
         response.StatusCode.Should().Be(HttpStatusCode.OK);
         var body = await response.Content.ReadFromJsonAsync<JsonElement>();

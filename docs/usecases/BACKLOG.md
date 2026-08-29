@@ -83,7 +83,7 @@ Jede Story ist so geschnitten, dass sie in einem einzigen fokussierten Entwicklu
 |---|---|---|---|---|---|
 | US-031 | Map-Query-API je Perspektive | StakeholderMap | US-027, US-030 | [US-031-map-query-api.md](US-031-map-query-api.md) | fertig (29.08.2026) |
 | US-032 | Map-UI Quadranten-Diagramm mit Perspektiv-Dropdown | StakeholderMap | US-031, US-019 | [US-032-map-ui.md](US-032-map-ui.md) | fertig (29.08.2026) |
-| US-033 | Vergleichsmodus-Query-API (zwei Perspektiven) | StakeholderMap | US-031 | [US-033-map-vergleich-api.md](US-033-map-vergleich-api.md) | offen |
+| US-033 | Vergleichsmodus-Query-API (zwei Perspektiven) | StakeholderMap | US-031 | [US-033-map-vergleich-api.md](US-033-map-vergleich-api.md) | fertig (29.08.2026) |
 | US-034 | Vergleichsmodus-UI (zwei Punkte, Verbindungslinie, Legende, Diff) | StakeholderMap | US-033, US-032 | [US-034-map-vergleich-ui.md](US-034-map-vergleich-ui.md) | offen |
 | US-035 | Drag & Drop Update-API mit Konfliktregel | StakeholderMap | US-028 | [US-035-map-dragdrop-api.md](US-035-map-dragdrop-api.md) | offen |
 | US-036 | Drag & Drop UI inkl. Zoom/Pan | StakeholderMap | US-035, US-034 | [US-036-map-dragdrop-ui.md](US-036-map-dragdrop-ui.md) | offen |
