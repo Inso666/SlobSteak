@@ -1,0 +1,115 @@
+<section class="admin-communication-types">
+  @if (loadError) {
+    <p class="load-error" role="alert">{{ loadError }}</p>
+  }
+
+  <div class="admin-communication-types__toolbar">
+    <button type="button" pButton icon="pi pi-plus" (click)="openCreateDialog()">Kommunikationsart anlegen</button>
+  </div>
+
+  <app-view-state [state]="typesState" emptyMessage="Es sind noch keine Kommunikationsarten angelegt." [skeletonCount]="3">
+    <div class="communication-type-cards" role="list">
+      @for (communicationType of communicationTypes; track communicationType.id) {
+        <article class="communication-type-card" role="listitem">
+          <div class="communication-type-card__head">
+            <span class="communication-type-card__name" [class.communication-type-card__name--inactive]="!communicationType.isActive">
+              {{ communicationType.name }}
+            </span>
+            <span class="status-tag" [class.status-tag--archived]="!communicationType.isActive">
+              {{ communicationType.isActive ? 'Aktiv' : 'Deaktiviert' }}
+            </span>
+          </div>
+
+          <div class="communication-type-card__actions">
+            <button type="button" pButton [outlined]="true" severity="secondary" (click)="openRenameDialog(communicationType)">Umbenennen</button>
+            <app-processing-button
+              type="button"
+              [isSubmitting]="togglingIds.has(communicationType.id)"
+              [label]="communicationType.isActive ? 'Deaktivieren' : 'Aktivieren'"
+              submittingLabel="Wird gespeichert…"
+              (click)="onToggleActive(communicationType)"
+            />
+          </div>
+        </article>
+      }
+    </div>
+  </app-view-state>
+
+  @if (toggleErrorMessage) {
+    <p-message severity="error" styleClass="w-full" role="alert">{{ toggleErrorMessage }}</p-message>
+  }
+
+  <p-dialog
+    header="Kommunikationsart anlegen"
+    [(visible)]="createDialogVisible"
+    [modal]="true"
+    [style]="{ width: '26rem', 'max-width': 'calc(100vw - 2rem)' }"
+  >
+    <form [formGroup]="createForm" (ngSubmit)="onCreateType()">
+      <div class="field">
+        <label for="communication-type-name">Bezeichnung</label>
+        <input
+          pInputText
+          id="communication-type-name"
+          formControlName="name"
+          class="w-full"
+          [class.ng-invalid]="!!createErrorMessage"
+          [attr.aria-invalid]="createErrorMessage ? true : null"
+          [attr.aria-describedby]="createErrorMessage ? 'create-communication-type-error' : null"
+        />
+        @if (createErrorMessage) {
+          <p-message id="create-communication-type-error" severity="error" styleClass="w-full" role="alert">{{ createErrorMessage }}</p-message>
+        }
+      </div>
+    </form>
+
+    <ng-template #footer>
+      <button type="button" pButton [text]="true" (click)="closeCreateDialog()">Abbrechen</button>
+      <app-processing-button
+        type="button"
+        [disabled]="createForm.invalid"
+        [isSubmitting]="isCreatingType"
+        label="Kommunikationsart anlegen"
+        submittingLabel="Wird angelegt…"
+        (click)="onCreateType()"
+      />
+    </ng-template>
+  </p-dialog>
+
+  <p-dialog
+    header="Kommunikationsart umbenennen"
+    [(visible)]="renameDialogVisible"
+    [modal]="true"
+    [style]="{ width: '26rem', 'max-width': 'calc(100vw - 2rem)' }"
+  >
+    <form [formGroup]="renameForm" (ngSubmit)="onRenameType()">
+      <div class="field">
+        <label for="communication-type-rename">Bezeichnung</label>
+        <input
+          pInputText
+          id="communication-type-rename"
+          formControlName="name"
+          class="w-full"
+          [class.ng-invalid]="!!renameErrorMessage"
+          [attr.aria-invalid]="renameErrorMessage ? true : null"
+          [attr.aria-describedby]="renameErrorMessage ? 'rename-communication-type-error' : null"
+        />
+        @if (renameErrorMessage) {
+          <p-message id="rename-communication-type-error" severity="error" styleClass="w-full" role="alert">{{ renameErrorMessage }}</p-message>
+        }
+      </div>
+    </form>
+
+    <ng-template #footer>
+      <button type="button" pButton [text]="true" (click)="closeRenameDialog()">Abbrechen</button>
+      <app-processing-button
+        type="button"
+        [disabled]="renameForm.invalid"
+        [isSubmitting]="isRenamingType"
+        label="Speichern"
+        submittingLabel="Wird gespeichert…"
+        (click)="onRenameType()"
+      />
+    </ng-template>
+  </p-dialog>
+</section>

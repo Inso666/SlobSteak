@@ -3,6 +3,7 @@ import { adminGuard } from './features/admin/admin.guard';
 import { AdminPageComponent } from './features/admin/admin-page/admin-page.component';
 import { UsersAdminComponent } from './features/admin/users-admin/users-admin.component';
 import { ProjectsAdminComponent } from './features/admin/projects-admin/projects-admin.component';
+import { CommunicationTypesAdminComponent } from './features/admin/communication-types-admin/communication-types-admin.component';
 import { authGuard } from './features/auth/auth.guard';
 import { LoginPageComponent } from './features/auth/login-page/login-page.component';
 import { ProjectOverviewComponent } from './features/projects/project-overview/project-overview.component';
@@ -76,6 +77,7 @@ export const routes: Routes = [
       { path: '', redirectTo: 'users', pathMatch: 'full' },
       { path: 'users', component: UsersAdminComponent },
       { path: 'projects', component: ProjectsAdminComponent },
+      { path: 'communication-types', component: CommunicationTypesAdminComponent },
     ],
   },
   { path: '', redirectTo: 'login', pathMatch: 'full' },
