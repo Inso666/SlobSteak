@@ -1,0 +1,7 @@
+@if (data) {
+  <div class="connection-tooltip" role="tooltip" [style.left.%]="leftPercent" [style.top.%]="topPercent">
+    <p class="connection-tooltip__name">{{ data.stakeholderName }}</p>
+    <p>Einfluss: {{ data.primaryRole }} {{ data.primaryInfluence }} vs. {{ data.secondaryRole }} {{ data.secondaryInfluence }}</p>
+    <p>Interesse: {{ data.primaryRole }} {{ data.primaryInterest }} vs. {{ data.secondaryRole }} {{ data.secondaryInterest }}</p>
+  </div>
+}

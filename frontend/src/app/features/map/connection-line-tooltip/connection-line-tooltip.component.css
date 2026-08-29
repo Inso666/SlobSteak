@@ -1,0 +1,29 @@
+/* SPEC-00 §1.4/§1.2: ausschließlich Design-Tokens, keine hartkodierten Hex-/px-Werte. */
+
+.connection-tooltip {
+  position: absolute;
+  transform: translate(-50%, calc(-100% - var(--app-space-sm)));
+  background: var(--app-color-surface);
+  border: 1px solid var(--app-color-border);
+  border-radius: var(--app-radius-md);
+  padding: var(--app-space-sm) var(--app-space-md);
+  color: var(--app-color-text);
+  font-size: var(--app-font-size-meta);
+  white-space: nowrap;
+  pointer-events: none;
+  z-index: 1;
+}
+
+.connection-tooltip__name {
+  margin: 0 0 var(--app-space-xs);
+  color: var(--app-color-text-muted);
+  font-weight: 600;
+}
+
+.connection-tooltip p {
+  margin: 0;
+}
+
+.connection-tooltip p + p {
+  margin-top: var(--app-space-xs);
+}

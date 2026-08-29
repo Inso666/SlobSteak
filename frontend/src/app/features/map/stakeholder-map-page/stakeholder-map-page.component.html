@@ -17,6 +17,20 @@
         }
       </select>
     </div>
+
+    <app-comparison-mode-toggle formControlName="compareMode" />
+
+    @if (filterForm.controls.compareMode.value) {
+      <div class="field">
+        <label for="comparePerspective">Vergleichen mit:</label>
+        <select id="comparePerspective" formControlName="comparePerspective">
+          <option [ngValue]="null" disabled hidden>Bitte wählen</option>
+          @for (option of comparePerspectiveOptions; track option) {
+            <option [value]="option">{{ option }}</option>
+          }
+        </select>
+      </div>
+    }
   </form>
 
   @if (viewState !== 'error') {
@@ -33,7 +47,14 @@
           </p>
         }
         @default {
-          <app-quadrant-chart [points]="points" [perspective]="selectedPerspective" (pointSelected)="onPointSelected($event)" />
+          <app-quadrant-chart
+            [points]="points"
+            [perspective]="selectedPerspective"
+            [compareMode]="filterForm.controls.compareMode.value"
+            [comparisonEntries]="comparisonEntries"
+            [comparePerspective]="filterForm.controls.comparePerspective.value"
+            (pointSelected)="onPointSelected($event)"
+          />
         }
       }
     </p-card>

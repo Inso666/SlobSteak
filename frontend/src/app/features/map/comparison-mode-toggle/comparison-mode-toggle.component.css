@@ -1,0 +1,12 @@
+/* SPEC-00 §1.4/§1.2: ausschließlich Design-Tokens, keine hartkodierten Hex-/px-Werte. */
+
+.comparison-mode-toggle {
+  display: flex;
+  align-items: center;
+  gap: var(--app-space-sm);
+}
+
+.comparison-mode-toggle label {
+  color: var(--app-color-text-muted);
+  font-size: var(--app-font-size-body);
+}

@@ -1,40 +1,115 @@
-<div class="quadrant-chart" role="group" [attr.aria-label]="chartAriaLabel">
-  <span class="axis-title axis-title--y" aria-hidden="true">Interesse →</span>
+<div class="quadrant-chart-row">
+  <div class="quadrant-chart" role="group" [attr.aria-label]="chartAriaLabel">
+    <span class="axis-title axis-title--y" aria-hidden="true">Interesse →</span>
 
-  <div class="y-ticks mono" aria-hidden="true">
-    @for (tick of yAxisTicks; track tick) {
-      <span>{{ tick }}</span>
-    }
-  </div>
-
-  <div class="plot-col">
-    <div class="plot-area">
-      <div class="grid-line grid-line--x" aria-hidden="true"></div>
-      <div class="grid-line grid-line--y" aria-hidden="true"></div>
-
-      <span class="quadrant-label quadrant-label--top-left">Informiert halten</span>
-      <span class="quadrant-label quadrant-label--top-right">Eng betreuen</span>
-      <span class="quadrant-label quadrant-label--bottom-left">Beobachten</span>
-      <span class="quadrant-label quadrant-label--bottom-right">Zufriedenstellen</span>
-
-      @for (point of points; track point.stakeholderId) {
-        <button
-          type="button"
-          class="map-point"
-          [class]="'map-point--' + roleClass"
-          [style.left.%]="point.influence"
-          [style.bottom.%]="point.interest"
-          [attr.aria-label]="pointAriaLabel(point)"
-          (click)="onSelect(point)"
-        ></button>
-      }
-    </div>
-
-    <div class="x-ticks mono" aria-hidden="true">
-      @for (tick of xAxisTicks; track tick) {
+    <div class="y-ticks mono" aria-hidden="true">
+      @for (tick of yAxisTicks; track tick) {
         <span>{{ tick }}</span>
       }
     </div>
-    <span class="axis-title axis-title--x" aria-hidden="true">Einfluss →</span>
+
+    <div class="plot-col">
+      <div class="plot-area">
+        <div class="grid-line grid-line--x" aria-hidden="true"></div>
+        <div class="grid-line grid-line--y" aria-hidden="true"></div>
+
+        <span class="quadrant-label quadrant-label--top-left">Informiert halten</span>
+        <span class="quadrant-label quadrant-label--top-right">Eng betreuen</span>
+        <span class="quadrant-label quadrant-label--bottom-left">Beobachten</span>
+        <span class="quadrant-label quadrant-label--bottom-right">Zufriedenstellen</span>
+
+        @if (connections.length > 0) {
+          <svg class="connections" viewBox="0 0 100 100" preserveAspectRatio="none" aria-hidden="true">
+            @for (connection of connections; track connection.stakeholderId) {
+              <g
+                class="connection"
+                tabindex="0"
+                role="button"
+                [attr.aria-label]="connectionAriaLabel(connection)"
+                [class.connection--active]="activeConnection?.stakeholderId === connection.stakeholderId"
+                (mouseenter)="onConnectionEnter(connection)"
+                (mouseleave)="onConnectionLeave()"
+                (focus)="onConnectionEnter(connection)"
+                (blur)="onConnectionLeave()"
+                (click)="onConnectionActivate(connection)"
+                (keydown.enter)="onConnectionActivate(connection)"
+                (keydown.space)="onConnectionActivate(connection)"
+              >
+                <line
+                  class="connection-hit"
+                  [attr.x1]="connection.own.influence"
+                  [attr.y1]="100 - connection.own.interest"
+                  [attr.x2]="connection.compare.influence"
+                  [attr.y2]="100 - connection.compare.interest"
+                ></line>
+                <line
+                  class="connection-line"
+                  [attr.x1]="connection.own.influence"
+                  [attr.y1]="100 - connection.own.interest"
+                  [attr.x2]="connection.compare.influence"
+                  [attr.y2]="100 - connection.compare.interest"
+                ></line>
+              </g>
+            }
+          </svg>
+        }
+
+        @for (point of ownPoints; track point.stakeholderId) {
+          <button
+            type="button"
+            class="map-point"
+            [class]="'map-point--' + roleClass"
+            [style.left.%]="point.influence"
+            [style.bottom.%]="point.interest"
+            [attr.aria-label]="pointAriaLabel(point)"
+            (click)="onSelect(point)"
+          ></button>
+        }
+
+        @for (point of comparePoints; track point.stakeholderId) {
+          <button
+            type="button"
+            class="map-point"
+            [class]="'map-point--compare map-point--' + compareRoleClass"
+            [style.left.%]="point.influence"
+            [style.bottom.%]="point.interest"
+            [attr.aria-label]="comparePointAriaLabel(point)"
+            (click)="onSelect(point)"
+          ></button>
+        }
+
+        <app-connection-line-tooltip
+          [data]="activeConnectionDiff"
+          [leftPercent]="activeConnectionTooltipPosition.left"
+          [topPercent]="activeConnectionTooltipPosition.top"
+        />
+      </div>
+
+      <div class="x-ticks mono" aria-hidden="true">
+        @for (tick of xAxisTicks; track tick) {
+          <span>{{ tick }}</span>
+        }
+      </div>
+      <span class="axis-title axis-title--x" aria-hidden="true">Einfluss →</span>
+    </div>
   </div>
+
+  @if (compareMode && comparePerspective) {
+    <aside class="legend" [attr.aria-label]="legendTitle">
+      <h2 class="legend__title">{{ legendTitle }}</h2>
+      <div class="legend__row">
+        <span class="legend__swatch legend__swatch--circle" [class]="'legend__swatch--' + roleClass"></span>
+        <span>{{ perspective }} — deine Sicht</span>
+      </div>
+      <div class="legend__row">
+        <span class="legend__swatch legend__swatch--diamond" [class]="'legend__swatch--' + compareRoleClass"></span>
+        <span>{{ comparePerspective }} — Vergleich</span>
+      </div>
+      <div class="legend__row">
+        <span class="legend__swatch legend__swatch--line" aria-hidden="true"></span>
+        <span>{{ legendConnectionLabel }}</span>
+      </div>
+      <p class="legend__note">{{ legendNote }}</p>
+    </aside>
+  }
 </div>
