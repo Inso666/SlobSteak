@@ -1,0 +1,23 @@
+<button
+  type="button"
+  class="map-point"
+  [class]="extraClasses"
+  [class.map-point--locked]="!draggable"
+  [class.map-point--dragging]="isLiveEditing"
+  [style.left.%]="displayInfluence"
+  [style.bottom.%]="displayInterest"
+  [attr.aria-label]="ariaLabel"
+  (click)="onClick()"
+  (pointerdown)="onPointerDown($event)"
+  (pointermove)="onPointerMove($event)"
+  (pointerup)="onPointerUp($event)"
+  (pointercancel)="onPointerUp($event)"
+  (keydown)="onKeydown($event)"
+  (blur)="onBlur()"
+></button>
+
+@if (isLiveEditing) {
+  <span class="map-point__live mono" role="status" [style.left.%]="displayInfluence" [style.bottom.%]="displayInterest">
+    Einfluss {{ displayInfluence }} · Interesse {{ displayInterest }}
+  </span>
+}

@@ -111,41 +111,31 @@
   text-align: right;
 }
 
-/* Punktdurchmesser aus der Abstands-Token-Skala abgeleitet (`space.lg`) statt eines frei
-   erfundenen px-Werts (SPEC-00 §1.2 Hinweis für Folge-Specs). */
-.map-point {
+/* US-036: `plot-area` bleibt die feste, nicht transformierte Box (Rahmen/Overflow-Clipping);
+   `plot-surface` darin trägt Zoom/Pan als CSS-`transform` (Akzeptanzkriterium 5). Die
+   Übersetzung Pixel→Prozent in `DraggablePointComponent` liest `plot-surface`s tatsächliche,
+   bereits transformierte Bounding-Box — deshalb braucht es hier keine weitere manuelle
+   Zoom-Rechnung, nur die korrekte Transform-Reihenfolge: `translate()` **vor** `scale()`, damit
+   der Pan-Versatz unverstärkt in echten Bildschirm-Pixeln bleibt (sonst würde ihn `scale()`
+   nachträglich mit-skalieren). */
+.plot-surface {
   position: absolute;
-  width: var(--app-space-lg);
-  height: var(--app-space-lg);
-  border-radius: var(--app-radius-full);
-  border: 2px solid var(--app-color-surface);
-  transform: translate(-50%, 50%);
-  padding: 0;
-  cursor: pointer;
+  inset: 0;
+  transform-origin: center;
 }
 
-.map-point--pl {
-  background: var(--app-role-pl);
+.zoom-cluster {
+  position: absolute;
+  top: var(--app-space-sm);
+  right: var(--app-space-sm);
+  display: flex;
+  flex-direction: column;
+  gap: var(--app-space-xs);
+  z-index: 3;
 }
 
-.map-point--coreteam {
-  background: var(--app-role-ct);
-}
-
-.map-point--architect {
-  background: var(--app-role-ar);
-}
-
-/* Vergleichspunkt (Diamant, US-034 Akzeptanzkriterium 2/3): dieselbe `.map-point--<rolle>`-
-   Farbregel wird wiederverwendet (siehe Template), hier nur Form/Deckkraft zusätzlich. Die
-   „reduzierte Deckkraft" aus SPEC-04 §1 nennt keinen konkreten Zahlenwert (auch kein Token in
-   SPEC-00 §1.2 dafür vorgesehen) — `0.72` ist eine dokumentierte, spec-konforme Auslegung dieser
-   qualitativen Vorgabe (CLAUDE.md Abschnitt 6), kein neu erfundenes Farb-/Radius-/Abstands-Token. */
-.map-point--compare {
-  border-radius: var(--app-radius-sm);
-  transform: translate(-50%, 50%) rotate(45deg);
-  opacity: 0.72;
-}
+/* Punkt-Styles (`.map-point*`) leben seit US-036 in `draggable-point.component.css`, da das
+   Punkt-Markup nun in `DraggablePointComponent` gerendert wird (Angular View-Encapsulation). */
 
 /* Verbindungslinien (US-034 Akzeptanzkriterium 2/5): SVG-Overlay im selben 0–100-Koordinatensystem
    wie die `left`/`bottom`-Prozentwerte der Punkte (siehe `[attr.y1]`/`[attr.y2]` im Template:

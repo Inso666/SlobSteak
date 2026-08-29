@@ -1,0 +1,84 @@
+/* SPEC-00 §1.4/§1.2: ausschließlich Design-Tokens/PrimeFlex-Abstände, keine hartkodierten
+   Hex-/px-Werte. Rollen-/Vergleichs-Punktstile aus `quadrant-chart.component.css` (US-032/US-034)
+   hierher verschoben, seit der Punkt-Markup in dieser eigenständigen Komponente lebt (Angular
+   View-Encapsulation: Styles eines Elternteils greifen nicht auf Kind-Komponenten-Templates). */
+
+/* Punktdurchmesser aus der Abstands-Token-Skala abgeleitet (`space.lg`) statt eines frei
+   erfundenen px-Werts (SPEC-00 §1.2 Hinweis für Folge-Specs). */
+.map-point {
+  position: absolute;
+  width: var(--app-space-lg);
+  height: var(--app-space-lg);
+  border-radius: var(--app-radius-full);
+  border: 2px solid var(--app-color-surface);
+  transform: translate(-50%, 50%);
+  padding: 0;
+  cursor: grab;
+}
+
+.map-point:focus-visible {
+  outline: 2px solid var(--app-attention);
+  outline-offset: 2px;
+}
+
+.map-point--pl {
+  background: var(--app-role-pl);
+}
+
+.map-point--coreteam {
+  background: var(--app-role-ct);
+}
+
+.map-point--architect {
+  background: var(--app-role-ar);
+}
+
+/* Vergleichspunkt (Diamant, US-034 Akzeptanzkriterium 2/3): dieselbe `.map-point--<rolle>`-
+   Farbregel wird wiederverwendet (siehe Template), hier nur Form/Deckkraft zusätzlich. Die
+   „reduzierte Deckkraft" aus SPEC-04 §1 nennt keinen konkreten Zahlenwert (auch kein Token in
+   SPEC-00 §1.2 dafür vorgesehen) — `0.72` ist eine dokumentierte, spec-konforme Auslegung dieser
+   qualitativen Vorgabe (CLAUDE.md Abschnitt 6), kein neu erfundenes Farb-/Radius-/Abstands-Token. */
+.map-point--compare {
+  border-radius: var(--app-radius-sm);
+  transform: translate(-50%, 50%) rotate(45deg);
+  opacity: 0.72;
+}
+
+/* US-036 Akzeptanzkriterium 2: nicht-ziehbare Punkte (Vergleichs-Diamant IMMER, eigener Punkt bei
+   Rollen-/Perspektiven-Mismatch, SPEC-04 §3.1/Story-Edge-Case „Coreteam betrachtet Architect")
+   erhalten einen gesperrten Cursor; für eigene (nicht-Vergleichs-)Punkte zusätzlich reduzierte
+   Deckkraft — der Vergleichspunkt trägt bereits über `.map-point--compare` eine eigene, die Form
+   unterscheidende Deckkraft und wird hier nicht zusätzlich abgedunkelt. */
+.map-point--locked {
+  cursor: not-allowed;
+}
+
+.map-point--locked:not(.map-point--compare) {
+  opacity: 0.55;
+}
+
+/* US-036 Akzeptanzkriterium 3: Cursor-Feedback während eines aktiven Drags (SPEC-04 §3.1). */
+.map-point--dragging {
+  cursor: grabbing;
+}
+
+/* US-036 Akzeptanzkriterium 3: Echtzeit-Anzeige der aus der Zeigerposition umgerechneten
+   Einfluss-/Interesse-Werte während eines aktiven Drags bzw. einer unbestätigten
+   Tastatur-Positionsänderung (SPEC-04 §2.2/§2.3). */
+.map-point__live {
+  position: absolute;
+  transform: translate(-50%, calc(-100% - var(--app-space-sm)));
+  background: var(--app-color-surface);
+  border: 1px solid var(--app-attention);
+  border-radius: var(--app-radius-md);
+  padding: var(--app-space-xs) var(--app-space-sm);
+  color: var(--app-color-text);
+  font-size: var(--app-font-size-meta);
+  white-space: nowrap;
+  pointer-events: none;
+  z-index: 2;
+}
+
+.mono {
+  font-family: var(--app-font-family-mono);
+}

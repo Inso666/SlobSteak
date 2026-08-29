@@ -219,4 +219,143 @@ describe('QuadrantChartComponent', () => {
       expect(fixture.nativeElement.querySelector('.connection-tooltip')).not.toBeNull();
     });
   });
+
+  describe('drag & drop / zoom-pan (US-036)', () => {
+    const points: MapPoint[] = [{ stakeholderId: 'sh-1', name: 'Max Mustermann', influence: 30, interest: 40 }];
+
+    // Akzeptanzkriterium 1: eigene Punkte sind nur draggable, wenn die aktuell gezeigte
+    // (primäre) Perspektive der tatsächlichen Projekt-Rolle des Nutzers entspricht.
+    it('marks own points as draggable only when the shown perspective matches the actual project role', () => {
+      const fixture = createComponent();
+      fixture.componentInstance.points = points;
+      fixture.componentInstance.perspective = 'PL';
+      fixture.componentInstance.currentUserRole = 'PL';
+      fixture.detectChanges();
+
+      const button: HTMLButtonElement = fixture.nativeElement.querySelector('.map-point');
+      expect(button.classList).not.toContain('map-point--locked');
+    });
+
+    // Akzeptanzkriterium 6 (Edge Case): Coreteam betrachtet die Map in Perspektive "Architect"
+    // (nicht die eigene) -> auch ein technisch existierendes eigenes Assessment ist nicht ziehbar.
+    it('never marks own points as draggable when the shown perspective differs from the actual project role (Coreteam viewing Architect)', () => {
+      const fixture = createComponent();
+      fixture.componentInstance.points = points;
+      fixture.componentInstance.perspective = 'Architect';
+      fixture.componentInstance.currentUserRole = 'Coreteam';
+      fixture.detectChanges();
+
+      const button: HTMLButtonElement = fixture.nativeElement.querySelector('.map-point');
+      expect(button.classList).toContain('map-point--locked');
+    });
+
+    it('treats a missing (not yet loaded) currentUserRole as non-draggable', () => {
+      const fixture = createComponent();
+      fixture.componentInstance.points = points;
+      fixture.componentInstance.perspective = 'PL';
+      fixture.componentInstance.currentUserRole = null;
+      fixture.detectChanges();
+
+      const button: HTMLButtonElement = fixture.nativeElement.querySelector('.map-point');
+      expect(button.classList).toContain('map-point--locked');
+    });
+
+    // Akzeptanzkriterium 1 (Kernregel): die sekundäre Vergleichsperspektive ist NIE draggable —
+    // auch dann nicht, wenn sie zufällig der eigenen Rolle entspricht.
+    it('never marks the secondary comparison perspective as draggable, even if it happens to match the actual project role', () => {
+      const fixture = createComponent();
+      fixture.componentInstance.perspective = 'PL';
+      fixture.componentInstance.currentUserRole = 'Architect';
+      fixture.componentInstance.compareMode = true;
+      fixture.componentInstance.comparePerspective = 'Architect';
+      fixture.componentInstance.comparisonEntries = [
+        { stakeholderId: 'sh-1', name: 'Max Mustermann', primary: { influence: 30, interest: 40 }, secondary: { influence: 60, interest: 70 } },
+      ];
+      fixture.detectChanges();
+
+      const compareButton: HTMLButtonElement = fixture.nativeElement.querySelector('.map-point--compare');
+      expect(compareButton.classList).toContain('map-point--locked');
+    });
+
+    // Akzeptanzkriterium 3: Loslassen eines Drags emittiert die neuen Werte inkl. stakeholderId
+    // und der aktuell gezeigten (primären) Perspektive.
+    it('emits pointMoved with the stakeholderId, perspective role, and new values when a draggable point reports a dragEnd', () => {
+      const fixture = createComponent();
+      fixture.componentInstance.points = points;
+      fixture.componentInstance.perspective = 'PL';
+      fixture.componentInstance.currentUserRole = 'PL';
+      fixture.detectChanges();
+
+      let emitted: unknown;
+      fixture.componentInstance.pointMoved.subscribe((event) => (emitted = event));
+
+      const draggablePoint = fixture.debugElement.query(By.css('app-draggable-point'));
+      draggablePoint.triggerEventHandler('dragEnd', { influence: 55, interest: 65 });
+
+      expect(emitted).toEqual({ stakeholderId: 'sh-1', perspectiveRole: 'PL', influence: 55, interest: 65 });
+    });
+
+    // Akzeptanzkriterium 5: Zoom-Controls verändern den Zoom-Level innerhalb der Grenzen und
+    // Reset setzt ihn zurück.
+    it('zooms in/out within [1, 4] and resets zoom and pan via the public zoomIn/zoomOut/resetView methods', () => {
+      const fixture = createComponent();
+      fixture.componentInstance.points = [];
+      fixture.componentInstance.perspective = 'PL';
+      fixture.detectChanges();
+      const instance = fixture.componentInstance as unknown as {
+        zoomIn(): void;
+        zoomOut(): void;
+        resetView(): void;
+        zoomLevel: number;
+        surfaceTransform: string;
+      };
+
+      expect(instance.zoomLevel).toBe(1);
+      instance.zoomIn();
+      expect(instance.zoomLevel).toBe(1.5);
+      expect(instance.surfaceTransform).toContain('scale(1.5)');
+
+      for (let i = 0; i < 10; i++) {
+        instance.zoomIn();
+      }
+      expect(instance.zoomLevel).toBe(4);
+
+      instance.zoomOut();
+      expect(instance.zoomLevel).toBe(3.5);
+
+      instance.resetView();
+      expect(instance.zoomLevel).toBe(1);
+      expect(instance.surfaceTransform).toContain('translate(0px, 0px)');
+    });
+
+    // Akzeptanzkriterium 5: zwei Punkte an identischer Position (50/50) bleiben unabhängig
+    // adressierbare, eigenständige DOM-Elemente — Zoom ändert nichts an ihrer individuellen
+    // Ansteuerbarkeit (kein automatisches Auseinanderschieben, SPEC-04 §3.4).
+    it('keeps two points at the exact same 50/50 position as independently addressable elements while zoomed in', () => {
+      const overlappingPoints: MapPoint[] = [
+        { stakeholderId: 'sh-a', name: 'Punkt A', influence: 50, interest: 50 },
+        { stakeholderId: 'sh-b', name: 'Punkt B', influence: 50, interest: 50 },
+      ];
+      const fixture = createComponent();
+      fixture.componentInstance.points = overlappingPoints;
+      fixture.componentInstance.perspective = 'PL';
+      fixture.componentInstance.currentUserRole = 'PL';
+      fixture.detectChanges();
+      (fixture.componentInstance as unknown as { zoomIn(): void }).zoomIn();
+      fixture.detectChanges();
+
+      const buttons: NodeListOf<HTMLButtonElement> = fixture.nativeElement.querySelectorAll('.map-point');
+      expect(buttons.length).toBe(2);
+      expect(Array.from(buttons).some((b) => b.getAttribute('aria-label')?.includes('Punkt A'))).toBeTrue();
+      expect(Array.from(buttons).some((b) => b.getAttribute('aria-label')?.includes('Punkt B'))).toBeTrue();
+
+      let emitted: unknown;
+      fixture.componentInstance.pointMoved.subscribe((event) => (emitted = event));
+      const secondPoint = fixture.debugElement.queryAll(By.css('app-draggable-point'))[1];
+      secondPoint.triggerEventHandler('dragEnd', { influence: 80, interest: 20 });
+
+      // Nur "sh-b" wurde bewegt, "sh-a" ist von diesem Drag unberührt.
+      expect(emitted).toEqual({ stakeholderId: 'sh-b', perspectiveRole: 'PL', influence: 80, interest: 20 });
+    });
+  });
 });
