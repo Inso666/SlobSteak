@@ -4,6 +4,30 @@ Alle nennenswerten Änderungen an diesem Projekt werden hier je User Story dokum
 
 ## [Unreleased]
 
+### US-031 — Map-Query-API je Perspektive
+
+- Neuer Endpoint `GET /api/v1/projects/{projectId}/map?perspective={PL|Coreteam|Architect}`
+  (`MapController`, Bounded Context StakeholderMap, PRD F3.1): liefert je aktivem Stakeholder
+  (`deleted_at IS NULL`) mit Assessment in der gewählten Perspektive einen Eintrag
+  (`stakeholderId`, `name`, `influence`, `interest`); Stakeholder ohne Assessment in dieser
+  Perspektive erscheinen nicht.
+- Neuer Application-Service `StakeholderMapQuery` (`SlobSteak.Application/Map`) orchestriert
+  `IStakeholderRepository`/`IStakeholderAssessmentRepository` — kein direkter EF-Core-Join über die
+  Aggregate-Grenze StakeholderManagement/StakeholderAssessment hinweg, analog zu
+  `GetStakeholderAssessmentsQuery` (US-028).
+- Zugriffsschutz über die bestehende deklarative `[RequireProjectRole(PL, Coreteam, Architect)]`-
+  Infrastruktur (US-007/US-011): Rolle `User` erhält `403 Forbidden`, konsistent mit US-030 — schließt
+  den dort als offenen Punkt dokumentierten Nachtrag ab. Fehlt der Query-Parameter `perspective` oder
+  ist er kein gültiger Perspektivwert (inkl. `User`, das syntaktisch ein `ProjectRole`-Wert, aber
+  fachlich keine Perspektive ist), liefert der Endpoint `400 Bad Request`.
+- Story-Test `tests/SlobSteak.Api.Tests/UserStories/US031_MapQueryApiTests.cs` (ein `Fact` je
+  Akzeptanzkriterium), ergänzende Integrationstests `tests/SlobSteak.Api.Tests/Map/MapControllerTests.cs`
+  (Response-Contract, ungültiger Perspektivwert, Case-Insensitivität, Projekt-Isolation, fehlendes
+  Token) sowie Unit-Tests `tests/SlobSteak.Application.Tests/Map/StakeholderMapQueryTests.cs` gegen
+  gemockte Repositories.
+- `dotnet test SlobSteak.sln` (342/342) läuft grün, `dotnet format` ohne Befund.
+- Keine EF-Core-Migration nötig (reines Read-Modell über bestehende Tabellen).
+
 ### US-058 — Zoneless-Reaktivität systematisch nachziehen
 
 - Fünf verbleibende, per Code-Review bestätigte Fundstellen mit fehlendem
