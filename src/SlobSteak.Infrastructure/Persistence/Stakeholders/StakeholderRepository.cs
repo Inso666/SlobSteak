@@ -54,6 +54,7 @@ public sealed class StakeholderRepository : IStakeholderRepository
 
     public async Task<IReadOnlyList<Stakeholder>> FindActiveByProjectAsync(Guid projectId, CancellationToken cancellationToken = default) =>
         await _dbContext.Stakeholders
+            .Include(s => s.CommunicationAssignments)
             .Where(s => s.ProjectId == projectId && s.DeletedAt == null)
             .ToListAsync(cancellationToken);
 

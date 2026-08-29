@@ -1,6 +1,7 @@
 using Microsoft.Extensions.DependencyInjection;
 using SlobSteak.Application.Assessments;
 using SlobSteak.Application.Communications;
+using SlobSteak.Application.DistributionLists;
 using SlobSteak.Application.Identity;
 using SlobSteak.Application.Map;
 using SlobSteak.Application.Projects;
@@ -41,6 +42,7 @@ public static class ServiceCollectionExtensions
         services.AddScoped<CreateCommunicationTypeService>();
         services.AddScoped<UpdateCommunicationTypeService>();
         services.AddScoped<ListCommunicationTypesQuery>();
+        services.AddScoped<DistributionListQuery>();
 
         return services;
     }

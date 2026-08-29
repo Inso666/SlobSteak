@@ -12,7 +12,10 @@ public interface IStakeholderRepository
     /// Leseabfragen filtern <c>deleted_at IS NULL</c> serverseitig (PRD Abschnitt 4.3 Punkt 5).</summary>
     Task<Stakeholder?> FindByIdAsync(Guid id, bool includeDeleted = false, CancellationToken cancellationToken = default);
 
-    /// <summary>Liefert alle nicht gelöschten Stakeholder eines Projekts.</summary>
+    /// <summary>Liefert alle nicht gelöschten Stakeholder eines Projekts, inklusive ihrer
+    /// <see cref="Stakeholder.CommunicationAssignments"/> (analog zu <see cref="FindByIdAsync"/> —
+    /// das Aggregate wird stets vollständig geladen, nicht nur teilweise, seit US-041 die
+    /// Zuordnungen aus diesem Read-Pfad benötigt, z. B. <c>Application.DistributionLists.DistributionListQuery</c>).</summary>
     Task<IReadOnlyList<Stakeholder>> FindActiveByProjectAsync(Guid projectId, CancellationToken cancellationToken = default);
 
     /// <summary>Liefert alle soft-gelöschten Stakeholder eines Projekts (Papierkorb-Ansicht,
