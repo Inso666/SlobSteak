@@ -48,9 +48,9 @@
       <app-delete-stakeholder-dialog [stakeholder]="stakeholder" (deleted)="onDeleted()" (cancelled)="onDeleteCancelled()" />
     }
 
-    <section class="placeholder-slot">
+    <section class="communication-slot">
       <h2>Kommunikationszuordnungen</h2>
-      <p class="placeholder">Kommunikationszuordnungen folgen (US-040).</p>
+      <app-communication-assignment-panel [stakeholderId]="stakeholder.id" [currentUserRole]="currentUserRole" />
     </section>
 
     @if (canViewAssessments) {

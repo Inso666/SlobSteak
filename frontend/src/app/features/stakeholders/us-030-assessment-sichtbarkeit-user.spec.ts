@@ -5,6 +5,8 @@ import { of } from 'rxjs';
 import { Stakeholder, StakeholdersService } from './stakeholders.service';
 import { ProjectOverviewItem, ProjectsService } from '../projects/projects.service';
 import { AssessmentsService } from '../assessments/assessments.service';
+import { StakeholderCommunicationsService } from './stakeholder-communications.service';
+import { AdminCommunicationTypesService } from '../admin/admin-communication-types.service';
 import { StakeholderDetailComponent } from './stakeholder-detail/stakeholder-detail.component';
 
 /**
@@ -55,6 +57,17 @@ describe('US-030: Server-seitige Sichtbarkeitsregel für Rolle User (Assessment-
     assessmentsServiceSpy = jasmine.createSpyObj('AssessmentsService', ['getAssessments', 'upsertAssessment']);
     assessmentsServiceSpy.getAssessments.and.returnValue(of([]));
 
+    const stakeholderCommunicationsServiceSpy = jasmine.createSpyObj('StakeholderCommunicationsService', [
+      'getAssignments',
+      'assignCommunication',
+      'updateAssignment',
+      'removeAssignment',
+    ]);
+    stakeholderCommunicationsServiceSpy.getAssignments.and.returnValue(of([]));
+
+    const adminCommunicationTypesServiceSpy = jasmine.createSpyObj('AdminCommunicationTypesService', ['listActiveCommunicationTypes']);
+    adminCommunicationTypesServiceSpy.listActiveCommunicationTypes.and.returnValue(of([]));
+
     TestBed.configureTestingModule({
       imports: [StakeholderDetailComponent],
       providers: [
@@ -62,6 +75,8 @@ describe('US-030: Server-seitige Sichtbarkeitsregel für Rolle User (Assessment-
         { provide: StakeholdersService, useValue: stakeholdersServiceSpy },
         { provide: ProjectsService, useValue: projectsServiceSpy },
         { provide: AssessmentsService, useValue: assessmentsServiceSpy },
+        { provide: StakeholderCommunicationsService, useValue: stakeholderCommunicationsServiceSpy },
+        { provide: AdminCommunicationTypesService, useValue: adminCommunicationTypesServiceSpy },
         {
           provide: ActivatedRoute,
           useValue: {

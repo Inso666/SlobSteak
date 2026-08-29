@@ -1,0 +1,107 @@
+<div class="communication-assignment-panel">
+  @if (loadError) {
+    <p class="load-error" role="alert">{{ loadError }}</p>
+  }
+
+  <app-view-state [state]="assignmentsState" emptyMessage="Noch keine Kommunikationsart zugeordnet." [skeletonCount]="2">
+    <ul class="communication-assignment-list">
+      @for (assignment of assignments; track assignment.communicationTypeId) {
+        <li class="communication-assignment-row">
+          @if (editingCommunicationTypeId === assignment.communicationTypeId) {
+            <form class="edit-form" [formGroup]="editForm" (ngSubmit)="onSaveEdit()">
+              <span class="communication-assignment-name">{{ assignment.communicationTypeName }}</span>
+
+              <label class="sr-only" [attr.for]="'edit-frequency-' + assignment.communicationTypeId">Frequenz</label>
+              <select [id]="'edit-frequency-' + assignment.communicationTypeId" formControlName="frequency">
+                @for (option of frequencyOptions; track option.value) {
+                  <option [value]="option.value">{{ option.label }}</option>
+                }
+              </select>
+
+              <label class="sr-only" [attr.for]="'edit-channel-' + assignment.communicationTypeId">Kanal</label>
+              <select [id]="'edit-channel-' + assignment.communicationTypeId" formControlName="channel">
+                @for (option of channelOptions; track option.value) {
+                  <option [value]="option.value">{{ option.label }}</option>
+                }
+              </select>
+
+              <app-processing-button
+                type="submit"
+                [disabled]="editForm.invalid"
+                [isSubmitting]="isSavingEdit"
+                label="Speichern"
+                submittingLabel="Wird gespeichert…"
+              />
+              <button type="button" pButton [text]="true" (click)="onCancelEdit()">Abbrechen</button>
+
+              @if (editErrorMessage) {
+                <p-message severity="error" styleClass="w-full" role="alert">{{ editErrorMessage }}</p-message>
+              }
+            </form>
+          } @else {
+            <span class="communication-assignment-name">{{ assignment.communicationTypeName }}</span>
+            @if (!assignment.communicationTypeIsActive) {
+              <span class="status-tag status-tag--archived">Deaktiviert</span>
+            }
+            <span class="communication-assignment-meta">{{ labelForFrequency(assignment.frequency) }} · {{ labelForChannel(assignment.channel) }}</span>
+
+            @if (canManage) {
+              <div class="communication-assignment-actions">
+                <button type="button" pButton [outlined]="true" severity="secondary" (click)="onStartEdit(assignment)">Bearbeiten</button>
+                <app-processing-button
+                  type="button"
+                  [isSubmitting]="removingIds.has(assignment.communicationTypeId)"
+                  label="Entfernen"
+                  submittingLabel="Wird entfernt…"
+                  (click)="onRemove(assignment)"
+                />
+              </div>
+            }
+          }
+        </li>
+      }
+    </ul>
+  </app-view-state>
+
+  @if (removeErrorMessage) {
+    <p-message severity="error" styleClass="w-full" role="alert">{{ removeErrorMessage }}</p-message>
+  }
+
+  @if (canManage) {
+    <form class="add-form" [formGroup]="addForm" (ngSubmit)="onAdd()">
+      <div class="field">
+        <label for="communication-type">Kommunikationsart</label>
+        <select id="communication-type" formControlName="communicationTypeId">
+          <option value="" disabled>Bitte wählen</option>
+          @for (type of catalog; track type.id) {
+            <option [value]="type.id">{{ type.name }}</option>
+          }
+        </select>
+      </div>
+
+      <div class="field">
+        <label for="communication-frequency">Frequenz</label>
+        <select id="communication-frequency" formControlName="frequency">
+          @for (option of frequencyOptions; track option.value) {
+            <option [value]="option.value">{{ option.label }}</option>
+          }
+        </select>
+      </div>
+
+      <div class="field">
+        <label for="communication-channel">Kanal</label>
+        <select id="communication-channel" formControlName="channel">
+          @for (option of channelOptions; track option.value) {
+            <option [value]="option.value">{{ option.label }}</option>
+          }
+        </select>
+      </div>
+
+      @if (addErrorMessage) {
+        <p-message severity="error" styleClass="w-full" role="alert">{{ addErrorMessage }}</p-message>
+      }
+
+      <app-processing-button type="submit" [disabled]="addForm.invalid" [isSubmitting]="isAdding" label="Kommunikationsart hinzufügen" submittingLabel="Wird hinzugefügt…" />
+    </form>
+  }
+</div>

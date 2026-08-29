@@ -72,3 +72,54 @@ GET {{SlobSteak.Api_HostAddress}}/api/v1/communication-types
 Authorization: Bearer {{userToken}}
 
 ###
+
+### Kommunikationszuordnung anlegen (US-040 Akzeptanzkriterium 1) — Token einer/eines PL/Coreteam/Architect
+### in {{plToken}}, liefert 201 Created; erneuter Aufruf mit derselben communicationTypeId liefert 409 Conflict
+POST {{SlobSteak.Api_HostAddress}}/api/v1/stakeholders/{{stakeholderId}}/communications
+Content-Type: application/json
+Authorization: Bearer {{plToken}}
+
+{
+  "communicationTypeId": "{{communicationTypeId}}",
+  "frequency": "Weekly",
+  "channel": "Email"
+}
+
+###
+
+### Kommunikationszuordnungen eines Stakeholders lesen (Grundlage für Akzeptanzkriterium 5)
+GET {{SlobSteak.Api_HostAddress}}/api/v1/stakeholders/{{stakeholderId}}/communications
+Authorization: Bearer {{userToken}}
+
+###
+
+### Kommunikationszuordnung aktualisieren (US-040 Akzeptanzkriterium 2)
+PATCH {{SlobSteak.Api_HostAddress}}/api/v1/stakeholders/{{stakeholderId}}/communications/{{communicationTypeId}}
+Content-Type: application/json
+Authorization: Bearer {{plToken}}
+
+{
+  "frequency": "Quarterly",
+  "channel": "Report"
+}
+
+###
+
+### Kommunikationszuordnung entfernen (US-040 Akzeptanzkriterium 3) — idempotent
+DELETE {{SlobSteak.Api_HostAddress}}/api/v1/stakeholders/{{stakeholderId}}/communications/{{communicationTypeId}}
+Authorization: Bearer {{plToken}}
+
+###
+
+### Kommunikationszuordnung anlegen mit Rolle User (US-040 Akzeptanzkriterium 4) — liefert 403 Forbidden
+POST {{SlobSteak.Api_HostAddress}}/api/v1/stakeholders/{{stakeholderId}}/communications
+Content-Type: application/json
+Authorization: Bearer {{userToken}}
+
+{
+  "communicationTypeId": "{{communicationTypeId}}",
+  "frequency": "Weekly",
+  "channel": "Email"
+}
+
+###

@@ -1,0 +1,70 @@
+/* US-040: ausschließlich zentrale Tokens (frontend/src/styles.css), keine hartcodierten
+   Hex-/px-Werte. */
+.communication-assignment-panel {
+  display: flex;
+  flex-direction: column;
+  gap: var(--app-space-md);
+}
+
+.communication-assignment-list {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+  gap: var(--app-space-sm);
+}
+
+.communication-assignment-row {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: var(--app-space-sm);
+  padding: var(--app-space-sm) var(--app-space-md);
+  background: var(--app-color-surface);
+  border: 1px solid var(--app-color-border);
+  border-radius: var(--app-radius-md);
+}
+
+.communication-assignment-name {
+  font-weight: 600;
+  color: var(--app-color-text);
+}
+
+.communication-assignment-meta {
+  color: var(--app-color-text-muted);
+  font-size: var(--app-font-size-meta);
+}
+
+.communication-assignment-actions {
+  display: flex;
+  gap: var(--app-space-sm);
+  margin-left: auto;
+}
+
+.edit-form {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: var(--app-space-sm);
+  width: 100%;
+}
+
+.add-form {
+  display: flex;
+  flex-direction: column;
+  gap: var(--app-space-xs);
+  max-width: 24rem;
+}
+
+.field {
+  display: flex;
+  flex-direction: column;
+  gap: var(--app-space-xs);
+  margin-bottom: var(--app-space-sm);
+}
+
+.field label {
+  font-size: var(--app-font-size-body);
+  color: var(--app-color-text-muted);
+}

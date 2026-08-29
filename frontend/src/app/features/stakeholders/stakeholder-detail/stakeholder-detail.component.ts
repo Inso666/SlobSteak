@@ -7,6 +7,7 @@ import { ProjectsService } from '../../projects/projects.service';
 import { EditStakeholderFormComponent } from '../edit-stakeholder-form/edit-stakeholder-form.component';
 import { DeleteStakeholderDialogComponent } from '../delete-stakeholder-dialog/delete-stakeholder-dialog.component';
 import { AssessmentTabsComponent } from '../../assessments/assessment-tabs/assessment-tabs.component';
+import { CommunicationAssignmentPanelComponent } from '../communication-assignment-panel/communication-assignment-panel.component';
 
 /**
  * Stakeholder-Detailseite (US-026, Screen S4). Lädt einen einzelnen Stakeholder über
@@ -18,9 +19,10 @@ import { AssessmentTabsComponent } from '../../assessments/assessment-tabs/asses
  * rollen-beschränkten `PATCH`-Endpoint abgesichert. Der CTA „Löschen“ (über die bestehende
  * {@link DeleteStakeholderDialogComponent} aus US-023) ist ausschließlich für `PL` sichtbar
  * (Akzeptanzkriterium 4); nach erfolgreichem Löschen navigiert die Seite zurück zur Liste.
- * Reserviert einen Platzhalter-Slot für „Kommunikationszuordnungen“ (US-040) sowie seit US-029
- * den befüllten Assessment-Bereich ({@link AssessmentTabsComponent}, `currentUserRole` wird
- * durchgereicht, damit nur der Tab der eigenen Rolle editierbar ist). Seit US-030 ist dieser
+ * Zeigt seit US-040 den befüllten Kommunikationszuordnungen-Bereich
+ * ({@link CommunicationAssignmentPanelComponent}, Nachfolger des Platzhalter-Slots aus US-026)
+ * sowie seit US-029 den befüllten Assessment-Bereich ({@link AssessmentTabsComponent},
+ * `currentUserRole` wird an beide durchgereicht, damit nur die eigene Rolle schreiben darf). Seit US-030 ist dieser
  * gesamte Assessment-Slot für Rolle `User` per `@if` ({@link canViewAssessments}) vollständig aus
  * dem DOM entfernt (nicht nur per CSS versteckt) — eine zusätzliche UX-Schicht über der
  * serverseitigen 403-Sperre auf `GET .../assessments`. Ein 404 (Stakeholder nicht
@@ -30,7 +32,15 @@ import { AssessmentTabsComponent } from '../../assessments/assessment-tabs/asses
 @Component({
   selector: 'app-stakeholder-detail',
   standalone: true,
-  imports: [RouterLink, DatePipe, EditStakeholderFormComponent, DeleteStakeholderDialogComponent, AssessmentTabsComponent, ButtonDirective],
+  imports: [
+    RouterLink,
+    DatePipe,
+    EditStakeholderFormComponent,
+    DeleteStakeholderDialogComponent,
+    AssessmentTabsComponent,
+    CommunicationAssignmentPanelComponent,
+    ButtonDirective,
+  ],
   templateUrl: './stakeholder-detail.component.html',
   styleUrl: './stakeholder-detail.component.css',
 })
