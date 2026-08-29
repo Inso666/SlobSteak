@@ -2,11 +2,13 @@ using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using SlobSteak.Domain.Assessments;
+using SlobSteak.Domain.Communications;
 using SlobSteak.Domain.Identity;
 using SlobSteak.Domain.Projects;
 using SlobSteak.Domain.Stakeholders;
 using SlobSteak.Infrastructure.Persistence;
 using SlobSteak.Infrastructure.Persistence.Assessments;
+using SlobSteak.Infrastructure.Persistence.Communications;
 using SlobSteak.Infrastructure.Persistence.Identity;
 using SlobSteak.Infrastructure.Persistence.Projects;
 using SlobSteak.Infrastructure.Persistence.Stakeholders;
@@ -39,6 +41,7 @@ public static class ServiceCollectionExtensions
         services.AddScoped<IStakeholderRepository, StakeholderRepository>();
         services.AddScoped<IStakeholderListQuery, StakeholderListQuery>();
         services.AddScoped<IStakeholderAssessmentRepository, StakeholderAssessmentRepository>();
+        services.AddScoped<ICommunicationTypeRepository, CommunicationTypeRepository>();
 
         return services;
     }

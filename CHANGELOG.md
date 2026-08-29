@@ -4,6 +4,35 @@ Alle nennenswerten Änderungen an diesem Projekt werden hier je User Story dokum
 
 ## [Unreleased]
 
+### US-037 — CommunicationType-Aggregate & Admin-Katalog-API
+
+- Neues `CommunicationType`-Aggregate (`src/SlobSteak.Domain/Communications/CommunicationType.cs`,
+  Bounded Context CommunicationCatalog) ergänzt das bewusst minimale Skeleton aus US-003 um
+  Verhalten: `Create` (neuer, aktiver Katalogeintrag), `Rename`, `Deactivate`/`Activate` (beide
+  idempotent). Kein Löschen — ein deaktivierter Eintrag bleibt in `communication_types` erhalten
+  (PRD Abschnitt F5.3). Keine neue EF-Core-Migration nötig: Tabelle und Unique-Index
+  `ix_communication_types_name` existieren bereits seit der `InitialCreate`-Migration aus US-003.
+- `ICommunicationTypeRepository` (Domain) + EF-Core-Implementierung
+  `CommunicationTypeRepository` (Infrastructure): übersetzt eine parallele
+  DB-Unique-Constraint-Verletzung auf `communication_types.name` in
+  `CommunicationTypeNameAlreadyInUseError`, analog zu `UserRepository` (ADR-0006).
+- Application-Services `CreateCommunicationTypeService`, `UpdateCommunicationTypeService`
+  (Rename und/oder Aktivieren/Deaktivieren, unabhängig voneinander optional) und
+  `ListCommunicationTypesQuery` (`src/SlobSteak.Application/Communications/`).
+- `AdminCommunicationTypeController` (`POST`/`PATCH /api/v1/admin/communication-types[...]`,
+  ausschließlich für Systemadmins, Akzeptanzkriterium 5) und `CommunicationTypeController`
+  (`GET /api/v1/communication-types?activeOnly=true`, für jeden angemeldeten Nutzer ohne
+  Admin-Gate) — analog zur bestehenden Trennung `AdminProjectController`/`ProjectController`.
+- Abweichung vom technischen Hinweis der Story dokumentiert (Controller-Dateiname/-Klassenname
+  `AdminCommunicationTypeController` statt `CommunicationTypeController`, siehe „Anmerkungen des
+  Agenten" in der Story-Datei) — folgt der etablierten `AdminXController`-Namenskonvention des
+  Repos (`AdminProjectController`, `AdminUserController`, `AdminProjectMembershipController`).
+- Story-Test `tests/SlobSteak.Api.Tests/UserStories/US037_CommunicationTypeKatalogApiTests.cs`
+  (fünf `[Fact]`, ein Fact je Akzeptanzkriterium) sowie Unit-Tests für das Aggregate
+  (`tests/SlobSteak.Domain.Tests/Communications/CommunicationTypeTests.cs`) und die beiden
+  Application-Services (`tests/SlobSteak.Application.Tests/Communications/`).
+- `dotnet test SlobSteak.sln` (388 Tests) und `dotnet format --verify-no-changes` laufen grün.
+
 ### US-036 — Drag & Drop UI inkl. Zoom/Pan
 
 - Neue `DraggablePointComponent` (`frontend/src/app/features/map/draggable-point/`): rendert einen

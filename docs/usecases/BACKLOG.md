@@ -90,10 +90,10 @@ Jede Story ist so geschnitten, dass sie in einem einzigen fokussierten Entwicklu
 
 ### Phase 6 — Communication Catalog (Admin)
 
-| ID | Titel | Bounded Context | Abhängigkeiten | Datei |
-|---|---|---|---|---|
-| US-037 | CommunicationType-Aggregate & Admin-Katalog-API | CommunicationCatalog | US-002, US-003, US-007 | [US-037-communication-type-katalog-api.md](US-037-communication-type-katalog-api.md) |
-| US-038 | Kommunikationsarten-Katalog Admin-UI | CommunicationCatalog | US-037, US-017 | [US-038-communication-type-katalog-ui.md](US-038-communication-type-katalog-ui.md) |
+| ID | Titel | Bounded Context | Abhängigkeiten | Datei | Status |
+|---|---|---|---|---|---|
+| US-037 | CommunicationType-Aggregate & Admin-Katalog-API | CommunicationCatalog | US-002, US-003, US-007 | [US-037-communication-type-katalog-api.md](US-037-communication-type-katalog-api.md) | fertig (29.08.2026) |
+| US-038 | Kommunikationsarten-Katalog Admin-UI | CommunicationCatalog | US-037, US-017 | [US-038-communication-type-katalog-ui.md](US-038-communication-type-katalog-ui.md) | offen |
 
 ### Phase 7 — Stakeholder Communication Assignment
 
