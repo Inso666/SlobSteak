@@ -30,13 +30,23 @@ public sealed class StakeholderCommunicationAssignmentConfiguration
         builder.HasIndex(a => new { a.StakeholderId, a.CommunicationTypeId })
             .IsUnique();
 
-        // Reine ID-Fremdschlüssel: StakeholderCommunicationAssignment referenziert Stakeholder
-        // (eigenes Aggregate) und CommunicationType (anderer Bounded Context, CommunicationCatalog)
-        // ausschließlich über IDs, ohne EF-Navigationsproperties (CLAUDE.md 3.1).
+        // Stakeholder und StakeholderCommunicationAssignment bilden gemeinsam ein Aggregate
+        // (US-039) — dafür eine echte EF-Navigation (Stakeholder.CommunicationAssignments), damit
+        // der Aggregate Root seine Kind-Entities beim Laden/Speichern konsistent verwaltet.
+        // CommunicationType gehört dagegen zu einem anderen Bounded Context (CommunicationCatalog)
+        // und bleibt daher eine reine ID-Fremdschlüssel-Referenz ohne Navigation — CLAUDE.md
+        // Abschnitt 3.1 untersagt EF-Navigation nur über Aggregate-/Kontextgrenzen hinweg, nicht
+        // innerhalb eines Aggregates (siehe ADR-0001). ClientCascade (statt Restrict) für die
+        // Stakeholder-Beziehung: Entfernt Stakeholder.RemoveCommunicationAssignment (US-039) ein
+        // Element aus der geladenen CommunicationAssignments-Navigation, muss EF Core dies als
+        // Löschung behandeln, nicht als (bei einem Pflicht-Fremdschlüssel unmöglichen) Aushängen
+        // der Beziehung — die eigentliche DB-Spalte bleibt weiterhin ON DELETE RESTRICT
+        // (ClientCascade wirkt nur im Change Tracker, nicht auf Schema-Ebene, daher keine neue
+        // Migration nötig, siehe ADR-0006).
         builder.HasOne<Stakeholder>()
-            .WithMany()
+            .WithMany(s => s.CommunicationAssignments)
             .HasForeignKey(a => a.StakeholderId)
-            .OnDelete(DeleteBehavior.Restrict);
+            .OnDelete(DeleteBehavior.ClientCascade);
 
         builder.HasOne<CommunicationType>()
             .WithMany()

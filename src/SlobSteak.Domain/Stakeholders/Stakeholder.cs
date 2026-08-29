@@ -14,12 +14,17 @@ namespace SlobSteak.Domain.Stakeholders;
 /// <see cref="Restore"/> sind der einzige Weg, ihn zu ändern bzw. seinen Lebenszyklus zu steuern.
 /// Der öffentliche Konstruktor bleibt zusätzlich bestehen — er wird von EF Core zur
 /// Rematerialisierung aus der Datenbank verwendet (Parameterbindung nach Property-Namen), analog
-/// zu <see cref="Identity.User"/> (US-004). Kommunikationszuordnungen (<c>AssignCommunication</c>
-/// usw.) folgen erst in US-039, siehe
-/// <c>docs/adr/0001-domain-entity-skeletons-vor-aggregate-stories.md</c>.
+/// zu <see cref="Identity.User"/> (US-004). US-039: Umfasst als Teil des Aggregates auch die
+/// <see cref="StakeholderCommunicationAssignment"/>-Zuordnungen (<see cref="CommunicationAssignments"/>)
+/// — anders als Referenzen auf andere Bounded Contexts (z. B. <c>CommunicationType</c>) ist dies
+/// eine Intra-Aggregate-Beziehung, für die CLAUDE.md Abschnitt 3.1 eine EF-Core-Navigation nicht
+/// ausschließt (das Verbot gilt für Cross-Aggregate-/Cross-Bounded-Context-Referenzen), analog zu
+/// <see cref="Projects.Project"/>/<see cref="Projects.ProjectMembership"/> (US-011, siehe ADR-0006).
 /// </remarks>
 public sealed class Stakeholder
 {
+    private readonly List<StakeholderCommunicationAssignment> _communicationAssignments = new();
+
     public Stakeholder(
         Guid id,
         Guid projectId,
@@ -98,6 +103,12 @@ public sealed class Stakeholder
     public DateTimeOffset? DeletedAt { get; private set; }
 
     public Guid? DeletedBy { get; private set; }
+
+    /// <summary>Kommunikationszuordnungen dieses Stakeholders (US-039). Nur über
+    /// <see cref="AssignCommunication"/>/<see cref="UpdateCommunicationAssignment"/>/
+    /// <see cref="RemoveCommunicationAssignment"/> veränderbar.</summary>
+    public IReadOnlyCollection<StakeholderCommunicationAssignment> CommunicationAssignments =>
+        _communicationAssignments.AsReadOnly();
 
     /// <summary>Erzeugt einen neuen Stakeholder mit den übergebenen Stammdaten.</summary>
     /// <param name="email">Optional; wird nur bei nicht-leerem Wert als <see cref="ValueObjects.Email"/>
@@ -205,4 +216,44 @@ public sealed class Stakeholder
 
     /// <summary>Liefert <c>true</c>, wenn der Stakeholder soft-gelöscht ist.</summary>
     public bool IsDeleted() => DeletedAt is not null;
+
+    /// <summary>Ordnet diesem Stakeholder die Kommunikationsart <paramref name="communicationTypeId"/>
+    /// mit gegebener Frequenz/Kanal zu (US-039 Akzeptanzkriterium 1).</summary>
+    /// <exception cref="AssignmentAlreadyExistsError">Für <paramref name="communicationTypeId"/>
+    /// existiert bei diesem Stakeholder bereits eine Zuordnung — Frequenz/Kanal müssen stattdessen
+    /// über <see cref="UpdateCommunicationAssignment"/> geändert werden.</exception>
+    public void AssignCommunication(Guid communicationTypeId, CommunicationFrequency frequency, CommunicationChannel channel)
+    {
+        if (_communicationAssignments.Any(a => a.CommunicationTypeId == communicationTypeId))
+        {
+            throw new AssignmentAlreadyExistsError(Id, communicationTypeId);
+        }
+
+        _communicationAssignments.Add(new StakeholderCommunicationAssignment(Guid.NewGuid(), Id, communicationTypeId, frequency, channel));
+    }
+
+    /// <summary>Aktualisiert Frequenz/Kanal einer bestehenden Kommunikationszuordnung (US-039
+    /// Akzeptanzkriterium 2).</summary>
+    /// <exception cref="AssignmentNotFoundError">Für <paramref name="communicationTypeId"/>
+    /// existiert bei diesem Stakeholder keine Zuordnung.</exception>
+    public void UpdateCommunicationAssignment(Guid communicationTypeId, CommunicationFrequency frequency, CommunicationChannel channel)
+    {
+        var assignment = _communicationAssignments.SingleOrDefault(a => a.CommunicationTypeId == communicationTypeId)
+            ?? throw new AssignmentNotFoundError(Id, communicationTypeId);
+
+        assignment.UpdateFrequencyAndChannel(frequency, channel);
+    }
+
+    /// <summary>Entfernt die Kommunikationszuordnung für <paramref name="communicationTypeId"/>
+    /// (US-039 Akzeptanzkriterium 3). Idempotent, analog zu
+    /// <see cref="Projects.Project.RemoveMember"/> — existiert keine Zuordnung, passiert nichts
+    /// (kein Fehler).</summary>
+    public void RemoveCommunicationAssignment(Guid communicationTypeId)
+    {
+        var assignment = _communicationAssignments.SingleOrDefault(a => a.CommunicationTypeId == communicationTypeId);
+        if (assignment is not null)
+        {
+            _communicationAssignments.Remove(assignment);
+        }
+    }
 }

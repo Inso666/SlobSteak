@@ -97,9 +97,9 @@ Jede Story ist so geschnitten, dass sie in einem einzigen fokussierten Entwicklu
 
 ### Phase 7 — Stakeholder Communication Assignment
 
-| ID | Titel | Bounded Context | Abhängigkeiten | Datei |
-|---|---|---|---|---|
-| US-039 | StakeholderCommunicationAssignment-Entity (n:m, Invarianten) | StakeholderCommunication | US-020, US-037 | [US-039-communication-assignment-entity.md](US-039-communication-assignment-entity.md) |
+| ID | Titel | Bounded Context | Abhängigkeiten | Datei | Status |
+|---|---|---|---|---|---|
+| US-039 | StakeholderCommunicationAssignment-Entity (n:m, Invarianten) | StakeholderCommunication | US-020, US-037 | [US-039-communication-assignment-entity.md](US-039-communication-assignment-entity.md) | fertig (29.08.2026) |
 | US-040 | Kommunikationszuordnung API + UI auf Stakeholder-Detailseite | StakeholderCommunication | US-039, US-026, US-038 | [US-040-communication-assignment-ui.md](US-040-communication-assignment-ui.md) |
 
 ### Phase 8 — Distribution Lists (Verteilerlisten)

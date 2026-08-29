@@ -45,8 +45,9 @@ public interface IStakeholderRepository
 
     /// <summary>Zählt die <c>stakeholder_assessments</c>- und
     /// <c>stakeholder_communication_assignments</c>-Zeilen eines Stakeholders (US-023
-    /// Akzeptanzkriterium 2) — reines Read-Modell für den Lösch-Bestätigungsdialog, keine
-    /// Aggregate-Rekonstruktion der jeweils eigenen Aggregate (die existieren erst ab US-027/
-    /// US-039, siehe <c>docs/adr/0001-domain-entity-skeletons-vor-aggregate-stories.md</c>).</summary>
+    /// Akzeptanzkriterium 2) — reines Read-Modell für den Lösch-Bestätigungsdialog, ohne den
+    /// jeweiligen Aggregate Root (<see cref="Assessments.StakeholderAssessment"/> aus US-027 bzw.
+    /// <see cref="StakeholderCommunicationAssignment"/> aus US-039) vollständig zu laden — siehe
+    /// <c>docs/adr/0001-domain-entity-skeletons-vor-aggregate-stories.md</c>.</summary>
     Task<StakeholderDeletionImpact> GetDeletionImpactAsync(Guid stakeholderId, CancellationToken cancellationToken = default);
 }
