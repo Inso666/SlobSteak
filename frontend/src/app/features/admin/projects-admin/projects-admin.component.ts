@@ -82,6 +82,12 @@ export class ProjectsAdminComponent implements OnInit {
     this.createForm.reset();
   }
 
+  /** US-058: `changeDetectorRef.markForCheck()` in beiden Zweigen ergänzt — der `error`-Zweig
+   * blieb bislang ohne jeden Folgeaufruf dauerhaft im Verarbeitungs-Zustand hängen; der `next`-
+   * Zweig heilte sich bereits indirekt über den darin ausgelösten {@link loadProjects}-
+   * Folgerequest (dessen eigener `subscribe()` bereits `markForCheck()` aufruft), wird hier aber
+   * der Konsistenz halber ebenfalls direkt markiert.
+   */
   protected onCreateProject(): void {
     // US-043 Akzeptanzkriterium 3: ein zweiter Trigger während eines laufenden Requests löst
     // nachweislich keinen zweiten HTTP-Request aus.
@@ -99,10 +105,12 @@ export class ProjectsAdminComponent implements OnInit {
         this.createForm.reset();
         this.createDialogVisible.set(false);
         this.loadProjects();
+        this.changeDetectorRef.markForCheck();
       },
       error: () => {
         this.isCreatingProject = false;
         this.createErrorMessage = 'Projekt konnte nicht angelegt werden.';
+        this.changeDetectorRef.markForCheck();
       },
     });
   }
