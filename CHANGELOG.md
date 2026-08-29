@@ -4,6 +4,25 @@ Alle nennenswerten Änderungen an diesem Projekt werden hier je User Story dokum
 
 ## [Unreleased]
 
+### US-035 — Drag & Drop Update-API mit Konfliktregel
+
+- Kein neuer Endpoint und keine Produktionscode-Änderung: verifiziert, dass Drag & Drop denselben
+  `PUT /api/v1/stakeholders/{id}/assessments/{role}`-Endpoint aus US-028 verwendet
+  (`AssessmentController`/`UpsertStakeholderAssessmentService`) und dessen bestehende
+  Rollen-Schreibbeschränkung (`403 Forbidden` bei fremder Rolle) sowie Optimistic-Locking-
+  Konfliktregel (`409 Conflict`, `ASSESSMENT_MODIFIED` mit `modifiedBy`/`modifiedAt`) unverändert
+  für den Drag&Drop-Anwendungsfall gelten — inklusive des Zwei-Nutzer-Szenarios (zwei
+  unterschiedliche Nutzer mit identischer Projekt-Rolle).
+- Dedizierter Story-Test `tests/SlobSteak.Api.Tests/UserStories/US035_MapDragDropApiTests.cs` (ein
+  Fact je Akzeptanzkriterium) sowie ergänzender Integrationstest
+  `tests/SlobSteak.Api.Tests/Assessments/AssessmentController_DragDropConflictTests.cs` (Pfad gemäß
+  Story-Technik-Hinweis) für das im Story-Dokument beschriebene Zwei-Nutzer-Konfliktszenario
+  (Map laden bei Version X, paralleles Update durch zweiten Nutzer derselben Rolle auf Version
+  X+1, Drag-Drop-Save mit `expectedVersion = X` → `409`, ohne Überschreiben der gespeicherten
+  Position).
+- `dotnet test` (gesamte Solution: 93 Domain-/74 Application-/198 API-Tests) und
+  `dotnet format --verify-no-changes` laufen grün.
+
 ### US-034 — Vergleichsmodus-UI (zwei Punkte, Verbindungslinie, Legende, Diff)
 
 - `MapService` um `MapComparisonEntry`/`MapComparisonValue` (1:1 zum US-033-Response-Contract) und
