@@ -23,7 +23,9 @@ Alle nennenswerten Änderungen an diesem Projekt werden hier je User Story dokum
   Agenten"): ein `setValue()` auf einem Reactive-Form-Control direkt vor dem Methodenaufruf
   kann den fehlenden `markForCheck()`-Fix in Tests verdecken, ebenso ein gemeinsamer
   `detectChanges()` nach mehreren parallelen Flushes.
-- `ng test` (249/249, dreifach wiederholt zur Stabilitätsprüfung), `ng lint`, `ng build`
+- Nach US-056-Merge auf `main` rebased (drei Admin-Story-Tests an die dort eingeführten
+  Dialoge angepasst — Formular lebt seit US-056 in einem per Button geöffneten `p-dialog`).
+- `ng test` (255/255, dreifach wiederholt zur Stabilitätsprüfung), `ng lint`, `ng build`
   grün; `dotnet test` unverändert grün (kein Backend-Anteil).
 
 ### US-056 — Admin-Bereich gemäß SPEC-07 angleichen (Tab-Host mit Dialog-Formularen)

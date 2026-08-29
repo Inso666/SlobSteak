@@ -48,6 +48,10 @@ describe('US-058: Zoneless-Reaktivität systematisch nachziehen', () => {
       fixture.detectChanges();
       http.expectOne('/api/v1/admin/users').flush([]);
       fixture.detectChanges();
+      // Das Formular lebt seit US-056 in einem per Button geöffneten `p-dialog` — geöffnet, um
+      // dasselbe Formularverhalten wie zuvor zu prüfen (Verhalten selbst unverändert).
+      fixture.componentInstance['openCreateDialog']();
+      fixture.detectChanges();
       return fixture;
     }
 
@@ -115,6 +119,10 @@ describe('US-058: Zoneless-Reaktivität systematisch nachziehen', () => {
       const fixture = TestBed.createComponent(ProjectsAdminComponent);
       fixture.detectChanges();
       http.expectOne('/api/v1/admin/projects').flush([]);
+      fixture.detectChanges();
+      // Das Formular lebt seit US-056 in einem per Button geöffneten `p-dialog` — geöffnet, um
+      // dasselbe Formularverhalten wie zuvor zu prüfen (Verhalten selbst unverändert).
+      fixture.componentInstance['openCreateDialog']();
       fixture.detectChanges();
       return fixture;
     }
