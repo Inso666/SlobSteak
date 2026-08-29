@@ -3,17 +3,20 @@ using SlobSteak.Domain.Shared.Enums;
 namespace SlobSteak.Domain.Stakeholders;
 
 /// <summary>
-/// n:m-Zuordnung zwischen einem <see cref="Stakeholder"/> und einer Kommunikationsart
-/// (Bounded Context StakeholderCommunication, referenziert von Aggregate <see cref="Stakeholder"/>),
-/// Felder gemäß PRD Abschnitt 4.1 (Entität <c>stakeholder_communication_assignments</c>).
+/// n:m-Zuordnung zwischen einem <see cref="Stakeholder"/> und einer Kommunikationsart (Bounded
+/// Context StakeholderCommunication), Felder gemäß PRD Abschnitt 4.1 (Entität
+/// <c>stakeholder_communication_assignments</c>). Teil des Aggregates <see cref="Stakeholder"/>
+/// (US-039) — anders als die Referenz auf <c>CommunicationType</c> (anderer Bounded Context,
+/// reine ID-Fremdschlüssel-Referenz ohne EF-Navigation) ist dies eine Intra-Aggregate-Beziehung,
+/// analog zu <see cref="Projects.ProjectMembership"/> (US-011, siehe ADR-0006).
 /// </summary>
 /// <remarks>
-/// Bewusst minimales Skeleton im Rahmen von US-003 (Datenbankschema): Die Invariante "höchstens
-/// eine Zuordnung je (StakeholderId, CommunicationTypeId)" wird hier nur als DB-Unique-Index
-/// durchgesetzt (<c>StakeholderCommunicationAssignmentConfiguration</c>). Die Methoden
-/// <c>Stakeholder.AssignCommunication</c>/<c>UpdateCommunicationAssignment</c>/
-/// <c>RemoveCommunicationAssignment</c> inkl. <c>AssignmentAlreadyExistsError</c> werden erst in
-/// US-039 ergänzt — siehe <c>docs/adr/0001-domain-entity-skeletons-vor-aggregate-stories.md</c>.
+/// US-039: Erzeugung/Änderung/Löschung dieser Entity erfolgt ausschließlich über die Methoden des
+/// Aggregate Root <see cref="Stakeholder"/> (<c>AssignCommunication</c>/
+/// <c>UpdateCommunicationAssignment</c>/<c>RemoveCommunicationAssignment</c>) — die Invariante
+/// "höchstens eine Zuordnung je (StakeholderId, CommunicationTypeId)" wird dort in-memory geprüft
+/// und zusätzlich über den DB-Unique-Index (<c>StakeholderCommunicationAssignmentConfiguration</c>)
+/// als zweite Verteidigungslinie erzwungen.
 /// </remarks>
 public sealed class StakeholderCommunicationAssignment
 {
@@ -40,4 +43,12 @@ public sealed class StakeholderCommunicationAssignment
     public CommunicationFrequency Frequency { get; private set; }
 
     public CommunicationChannel Channel { get; private set; }
+
+    /// <summary>Nur vom Aggregate Root <see cref="Stakeholder"/> (<see cref="Stakeholder.UpdateCommunicationAssignment"/>)
+    /// aufzurufen — daher <c>internal</c> statt eines öffentlichen Setters.</summary>
+    internal void UpdateFrequencyAndChannel(CommunicationFrequency frequency, CommunicationChannel channel)
+    {
+        Frequency = frequency;
+        Channel = channel;
+    }
 }
