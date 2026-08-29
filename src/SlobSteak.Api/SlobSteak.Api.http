@@ -123,3 +123,24 @@ Authorization: Bearer {{userToken}}
 }
 
 ###
+
+### Verteilerliste abfragen (US-041 Akzeptanzkriterium 1) — Token einer/eines PL/Coreteam in {{plToken}},
+### alle vier Query-Parameter optional/beliebig kombinierbar, liefert 200 OK mit einem Eintrag je
+### (aktivem Stakeholder × passender Kommunikationszuordnung)
+GET {{SlobSteak.Api_HostAddress}}/api/v1/projects/{{projectId}}/distribution-list?communicationTypeId={{communicationTypeId}}&frequency=Weekly&channel=Email&stakeholderType=Person
+Authorization: Bearer {{plToken}}
+
+###
+
+### Verteilerliste ohne Filter (alle Zuordnungen aller aktiven Stakeholder)
+GET {{SlobSteak.Api_HostAddress}}/api/v1/projects/{{projectId}}/distribution-list
+Authorization: Bearer {{plToken}}
+
+###
+
+### Verteilerliste mit Rolle Architect (US-041 Akzeptanzkriterium 2) — liefert 403 Forbidden
+### (anders als bei den Kommunikationszuordnungen selbst, US-040, wo Architect mitschreiben darf)
+GET {{SlobSteak.Api_HostAddress}}/api/v1/projects/{{projectId}}/distribution-list
+Authorization: Bearer {{architectToken}}
+
+###

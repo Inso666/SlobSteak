@@ -4,6 +4,28 @@ Alle nennenswerten Änderungen an diesem Projekt werden hier je User Story dokum
 
 ## [Unreleased]
 
+### US-041 — Verteilerlisten-Filter-Query-API inkl. Berechtigungsregel
+
+- `DistributionListQuery` (Application-Layer, Bounded Context DistributionList) liefert das
+  Read-Modell für `GET /api/v1/projects/{projectId}/distribution-list`: ein Ergebniseintrag je
+  aktivem Stakeholder × passender Kommunikationszuordnung, gefiltert nach beliebiger Kombination
+  aus `communicationTypeId`/`frequency`/`channel`/`stakeholderType` (alle optional). Orchestriert
+  ausschließlich die bestehenden `IStakeholderRepository`/`ICommunicationTypeRepository` — keine
+  neue Infrastructure-seitige EF-Core-Query nötig (siehe „Anmerkungen des Agenten“ in der
+  Story-Datei).
+- `StakeholderRepository.FindActiveByProjectAsync` lädt jetzt zusätzlich die
+  `CommunicationAssignments`-Kollektion (`Include`, analog zu `FindByIdAsync`) — das Aggregate
+  wird dadurch konsistent vollständig geladen.
+- `DistributionListController`: `GET /api/v1/projects/{projectId}/distribution-list` —
+  ausschließlich für `PL`/`Coreteam` erreichbar (`Architect`/`User` → 403 Forbidden, bewusste
+  Abgrenzung zu US-040, wo `Architect` an den Zuordnungen selbst mitschreiben darf). Soft-gelöschte
+  Stakeholder sind serverseitig ausgeschlossen; Stakeholder ohne E-Mail bleiben mit `hasEmail:
+  false` enthalten; ungültige Filterwerte werden ignoriert statt mit `400` abgelehnt (analog zu
+  `GET /stakeholders?type=`, US-025). Kein UI in dieser Story (folgt mit US-042).
+- Tests: `DistributionListQueryTests` (Application, gemockte Repositories),
+  `DistributionListControllerTests` (Integrationstest, Response-Contract/Randfälle), Story-Test
+  `US041_DistributionListApiTests` (alle Akzeptanzkriterien, echte Testcontainers-PostgreSQL).
+
 ### US-040 — Kommunikationszuordnung API + UI auf Stakeholder-Detailseite
 
 - `ManageStakeholderCommunicationService` (Application-Layer, Bounded Context
