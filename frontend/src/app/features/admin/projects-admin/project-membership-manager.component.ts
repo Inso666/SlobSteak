@@ -111,6 +111,12 @@ export class ProjectMembershipManagerComponent implements OnInit {
     this.assignForm.reset({ userId: '', role: 'PL' });
   }
 
+  /** US-058: `changeDetectorRef.markForCheck()` in beiden Zweigen ergänzt — der `error`-Zweig
+   * blieb bislang ohne jeden Folgeaufruf dauerhaft im Verarbeitungs-Zustand hängen; der `next`-
+   * Zweig heilte sich bereits indirekt über den darin ausgelösten {@link loadMemberships}-
+   * Folgerequest (dessen eigener `subscribe()` bereits `markForCheck()` aufruft), wird hier aber
+   * der Konsistenz halber ebenfalls direkt markiert.
+   */
   protected onAssignMember(): void {
     // US-043 Akzeptanzkriterium 3: ein zweiter Trigger während eines laufenden Requests löst
     // nachweislich keinen zweiten HTTP-Request aus.
@@ -128,14 +134,17 @@ export class ProjectMembershipManagerComponent implements OnInit {
         this.assignForm.reset({ userId: '', role: 'PL' });
         this.assignDialogVisible.set(false);
         this.loadMemberships();
+        this.changeDetectorRef.markForCheck();
       },
       error: () => {
         this.isAssigning = false;
         this.errorMessage = 'Nutzer konnte nicht zugewiesen werden.';
+        this.changeDetectorRef.markForCheck();
       },
     });
   }
 
+  /** US-058: `changeDetectorRef.markForCheck()` in beiden Zweigen ergänzt (siehe {@link onAssignMember}). */
   protected onChangeRole(membership: AdminProjectMembership, newRole: string): void {
     // US-043 Akzeptanzkriterium 3: ein zweiter Trigger während eines laufenden Requests löst
     // nachweislich keinen zweiten HTTP-Request aus.
@@ -148,14 +157,17 @@ export class ProjectMembershipManagerComponent implements OnInit {
       next: () => {
         this.changingRoleUserIds.delete(membership.userId);
         this.loadMemberships();
+        this.changeDetectorRef.markForCheck();
       },
       error: () => {
         this.changingRoleUserIds.delete(membership.userId);
         this.errorMessage = `Rolle für ${membership.userName} konnte nicht geändert werden.`;
+        this.changeDetectorRef.markForCheck();
       },
     });
   }
 
+  /** US-058: `changeDetectorRef.markForCheck()` in beiden Zweigen ergänzt (siehe {@link onAssignMember}). */
   protected onRemoveMember(membership: AdminProjectMembership): void {
     // US-043 Akzeptanzkriterium 3: ein zweiter Trigger während eines laufenden Requests löst
     // nachweislich keinen zweiten HTTP-Request aus.
@@ -172,6 +184,7 @@ export class ProjectMembershipManagerComponent implements OnInit {
       next: () => {
         this.removingMemberUserIds.delete(membership.userId);
         this.loadMemberships();
+        this.changeDetectorRef.markForCheck();
       },
       error: (error: HttpErrorResponse) => {
         this.removingMemberUserIds.delete(membership.userId);
@@ -179,6 +192,7 @@ export class ProjectMembershipManagerComponent implements OnInit {
           error.status === 404
             ? `${membership.userName} war bereits nicht mehr Mitglied.`
             : `${membership.userName} konnte nicht entfernt werden.`;
+        this.changeDetectorRef.markForCheck();
       },
     });
   }
