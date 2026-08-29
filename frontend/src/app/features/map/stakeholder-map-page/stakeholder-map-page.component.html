@@ -1,0 +1,41 @@
+<section class="stakeholder-map-page">
+  <h1>Map</h1>
+
+  @if (viewState === 'error') {
+    <p class="load-error" role="alert">
+      {{ loadErrorMessage }}
+      <button type="button" pButton [outlined]="true" severity="secondary" (click)="onRetry()">Erneut versuchen</button>
+    </p>
+  }
+
+  <form [formGroup]="filterForm" class="toolbar">
+    <div class="field">
+      <label for="ownPerspective">Meine Sicht:</label>
+      <select id="ownPerspective" formControlName="ownPerspective">
+        @for (option of perspectiveOptions; track option) {
+          <option [value]="option">{{ option }}</option>
+        }
+      </select>
+    </div>
+  </form>
+
+  @if (viewState !== 'error') {
+    <p-card>
+      @switch (viewState) {
+        @case ('loading') {
+          <span class="sr-only" role="status">Wird geladen…</span>
+          <p-skeleton width="100%" height="640px" styleClass="border-round" />
+        }
+        @case ('empty') {
+          <p class="empty-state">
+            {{ emptyMessage }}
+            <a routerLink="../stakeholders">Zur Stakeholder-Liste</a>
+          </p>
+        }
+        @default {
+          <app-quadrant-chart [points]="points" [perspective]="selectedPerspective" (pointSelected)="onPointSelected($event)" />
+        }
+      }
+    </p-card>
+  }
+</section>

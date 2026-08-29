@@ -1,0 +1,145 @@
+/* SPEC-00 §1.4 / §1.2: ausschließlich Design-Tokens/PrimeFlex-Abstände, keine hartkodierten
+   Hex-/px-Werte für Farbe, Radius oder Abstand. 1px-Rahmen-/Trennlinienstärke ist projektweit
+   etablierte Ausnahme (vgl. `select:not(.p-select)`-Regel in `styles.css`) — keine Spacing-Token
+   dafür vorgesehen. */
+
+.quadrant-chart {
+  display: grid;
+  grid-template-columns: auto auto 1fr;
+  align-items: stretch;
+  gap: var(--app-space-sm);
+}
+
+.axis-title--y {
+  writing-mode: vertical-rl;
+  transform: rotate(180deg);
+  color: var(--app-color-text-muted);
+  font-size: var(--app-font-size-body);
+  align-self: center;
+  white-space: nowrap;
+}
+
+.y-ticks {
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+  color: var(--app-color-text-muted);
+  font-size: var(--app-font-size-meta);
+}
+
+/* `max-width: 40rem` (= 640px) übernimmt bewusst denselben Wert, den SPEC-04 §1 bereits für den
+   Loading-Skeleton dieses Screens festlegt (`p-skeleton height="640px"`) — kein neu erfundener
+   px-Wert, sondern derselbe, bereits durch die Spec getroffene Größenentscheidung, angewendet als
+   Obergrenze auf den quadratischen Plot-Bereich. Ohne diese Grenze würde `width:100%` in
+   Kombination mit `aspect-ratio:1/1` auf breiten Bildschirmen einen unverhältnismäßig hohen
+   Canvas erzeugen (reale Beobachtung beim manuellen Smoke-Test dieser Story) und stünde zudem im
+   Widerspruch zum „Ersetzt Inhalte 1:1 in Form/Größe“-Grundsatz aus SPEC-00 §3, da der geladene
+   Zustand sonst deutlich größer wäre als der zuvor gezeigte Skeleton-Platzhalter. */
+.plot-col {
+  display: flex;
+  flex-direction: column;
+  gap: var(--app-space-sm);
+  min-width: 0;
+  max-width: 40rem;
+}
+
+.plot-area {
+  position: relative;
+  width: 100%;
+  aspect-ratio: 1 / 1;
+  background: var(--app-color-surface);
+  border: 1px solid var(--app-color-border);
+  border-radius: var(--app-radius-lg);
+  overflow: hidden;
+}
+
+.grid-line {
+  position: absolute;
+}
+
+.grid-line--x {
+  left: 0;
+  right: 0;
+  top: 50%;
+  border-top: 1px dashed var(--app-color-border);
+}
+
+.grid-line--y {
+  top: 0;
+  bottom: 0;
+  left: 50%;
+  border-left: 1px dashed var(--app-color-border);
+}
+
+.quadrant-label {
+  position: absolute;
+  color: var(--app-color-text-muted);
+  font-size: var(--app-font-size-meta);
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+  pointer-events: none;
+}
+
+.quadrant-label--top-left {
+  top: var(--app-space-sm);
+  left: var(--app-space-sm);
+}
+
+.quadrant-label--top-right {
+  top: var(--app-space-sm);
+  right: var(--app-space-sm);
+  text-align: right;
+}
+
+.quadrant-label--bottom-left {
+  bottom: var(--app-space-sm);
+  left: var(--app-space-sm);
+}
+
+.quadrant-label--bottom-right {
+  bottom: var(--app-space-sm);
+  right: var(--app-space-sm);
+  text-align: right;
+}
+
+/* Punktdurchmesser aus der Abstands-Token-Skala abgeleitet (`space.lg`) statt eines frei
+   erfundenen px-Werts (SPEC-00 §1.2 Hinweis für Folge-Specs). */
+.map-point {
+  position: absolute;
+  width: var(--app-space-lg);
+  height: var(--app-space-lg);
+  border-radius: var(--app-radius-full);
+  border: 2px solid var(--app-color-surface);
+  transform: translate(-50%, 50%);
+  padding: 0;
+  cursor: pointer;
+}
+
+.map-point--pl {
+  background: var(--app-role-pl);
+}
+
+.map-point--coreteam {
+  background: var(--app-role-ct);
+}
+
+.map-point--architect {
+  background: var(--app-role-ar);
+}
+
+.x-ticks {
+  display: flex;
+  justify-content: space-between;
+  color: var(--app-color-text-muted);
+  font-size: var(--app-font-size-meta);
+}
+
+.axis-title--x {
+  color: var(--app-color-text-muted);
+  font-size: var(--app-font-size-body);
+  text-align: center;
+}
+
+.mono {
+  font-family: var(--app-font-family-mono);
+}

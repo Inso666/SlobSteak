@@ -9,7 +9,6 @@ import { ProjectOverviewComponent } from './features/projects/project-overview/p
 import { roleGuard } from './core/guards/role.guard';
 import { AccessDeniedComponent } from './features/workspace/access-denied/access-denied.component';
 import { DistributionPlaceholderComponent } from './features/workspace/distribution-placeholder/distribution-placeholder.component';
-import { MapPlaceholderComponent } from './features/workspace/map-placeholder/map-placeholder.component';
 import { ProjectWorkspaceLayoutComponent } from './features/workspace/project-workspace-layout/project-workspace-layout.component';
 import { StakeholderListComponent } from './features/stakeholders/stakeholder-list/stakeholder-list.component';
 import { StakeholderDetailComponent } from './features/stakeholders/stakeholder-detail/stakeholder-detail.component';
@@ -43,6 +42,11 @@ const ALL_PROJECT_ROLES = ['PL', 'Coreteam', 'Architect', 'User'] as const;
  * die Liste (kein zusätzlicher `roleGuard` — die Detailseite ist für jedes Projektmitglied lesbar,
  * Akzeptanzkriterium 2; Bearbeiten-/Löschen-Sichtbarkeit ist komponenteninterne Rollenlogik,
  * serverseitig ohnehin weiterhin über die bestehenden `PATCH`/`DELETE`-Endpunkte abgesichert).
+ *
+ * US-032: `map` rendert seit dieser Story `StakeholderMapPageComponent` (löst den bisherigen
+ * `MapPlaceholderComponent`-Platzhalter aus US-019 ab) — per `loadComponent` lazy geladen
+ * (frontend.md Abschnitt 3), unverändert weiterhin durch `roleGuard(['PL','Coreteam','Architect'])`
+ * geschützt.
  */
 export const routes: Routes = [
   { path: 'login', component: LoginPageComponent },
@@ -55,7 +59,11 @@ export const routes: Routes = [
       { path: '', redirectTo: 'stakeholders', pathMatch: 'full' },
       { path: 'stakeholders', component: StakeholderListComponent },
       { path: 'stakeholders/:stakeholderId', component: StakeholderDetailComponent },
-      { path: 'map', component: MapPlaceholderComponent, canActivate: [roleGuard(['PL', 'Coreteam', 'Architect'])] },
+      {
+        path: 'map',
+        loadComponent: () => import('./features/map/stakeholder-map-page/stakeholder-map-page.component').then((m) => m.StakeholderMapPageComponent),
+        canActivate: [roleGuard(['PL', 'Coreteam', 'Architect'])],
+      },
       { path: 'distribution', component: DistributionPlaceholderComponent, canActivate: [roleGuard(['PL', 'Coreteam'])] },
       { path: 'access-denied', component: AccessDeniedComponent },
     ],
