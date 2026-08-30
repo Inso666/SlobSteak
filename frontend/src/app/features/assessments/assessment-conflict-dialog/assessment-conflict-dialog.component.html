@@ -1,5 +1,5 @@
 <div class="conflict-dialog">
-  <p>Diese Bewertung wurde zwischenzeitlich von {{ modifiedBy }} am {{ modifiedAt | date: 'medium' }} aktualisiert. Trotzdem speichern?</p>
+  <p>Diese Bewertung wurde zwischenzeitlich von {{ modifiedBy }} am {{ modifiedAt | date: 'dd.MM.yyyy, HH:mm' }} aktualisiert. Trotzdem speichern?</p>
 
   <div class="actions">
     <button type="button" pButton severity="danger" (click)="overwrite.emit()">Trotzdem speichern</button>

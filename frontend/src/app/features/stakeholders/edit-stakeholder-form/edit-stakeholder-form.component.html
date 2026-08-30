@@ -1,6 +1,6 @@
 <section class="edit-stakeholder">
   <h3>Stakeholder bearbeiten</h3>
-  <p class="last-modified">Zuletzt geändert von {{ stakeholder.updatedByName }} am {{ stakeholder.updatedAt | date: 'medium' }}</p>
+  <p class="last-modified">Zuletzt geändert von {{ stakeholder.updatedByName }} am {{ stakeholder.updatedAt | date: 'dd.MM.yyyy, HH:mm' }}</p>
 
   <form [formGroup]="form" (ngSubmit)="onSubmit()">
     <div class="field">

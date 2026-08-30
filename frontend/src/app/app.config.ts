@@ -1,4 +1,6 @@
-import { ApplicationConfig, provideBrowserGlobalErrorListeners } from '@angular/core';
+import { ApplicationConfig, LOCALE_ID, provideBrowserGlobalErrorListeners } from '@angular/core';
+import { registerLocaleData } from '@angular/common';
+import localeDe from '@angular/common/locales/de';
 import { provideAnimationsAsync } from '@angular/platform-browser/animations/async';
 import { provideHttpClient, withInterceptors } from '@angular/common/http';
 import { provideRouter } from '@angular/router';
@@ -7,6 +9,14 @@ import { routes } from './app.routes';
 import { authInterceptor } from './features/auth/auth.interceptor';
 import { httpErrorInterceptor } from './core/interceptors/http-error.interceptor';
 import { SlobSteakPreset } from './core/theme/slobsteak-preset';
+
+/**
+ * US-070: Ohne explizite Registrierung fällt Angulars `DatePipe` auf `en-US` zurück (US-Format,
+ * inkl. AM/PM). `registerLocaleData` muss einmalig auf Modul-Ebene laufen, bevor `LOCALE_ID` als
+ * `'de-DE'` bereitgestellt wird — sonst wirft `LOCALE_ID: 'de-DE'` beim ersten `date`-Pipe-Aufruf,
+ * weil Angular die zugehörigen Locale-Daten (Monatsnamen, Datums-/Zeit-Formate) nicht kennt.
+ */
+registerLocaleData(localeDe);
 
 /**
  * Reihenfolge ist bindend (US-044): `authInterceptor` muss vor `httpErrorInterceptor` laufen, damit
@@ -36,6 +46,7 @@ export function createAppConfig(primeNgLicenseKey: string | null): ApplicationCo
   return {
     providers: [
       provideBrowserGlobalErrorListeners(),
+      { provide: LOCALE_ID, useValue: 'de-DE' },
       provideAnimationsAsync(),
       provideHttpClient(withInterceptors(HTTP_INTERCEPTORS_ORDER)),
       provideRouter(routes),

@@ -4,6 +4,22 @@ Alle nennenswerten Änderungen an diesem Projekt werden hier je User Story dokum
 
 ## [Unreleased]
 
+### US-070 — Zeitstempel systemweit im deutschen Format (TT.MM.JJJJ, 24h) statt US-Format darstellen
+
+- Root Cause (Issue #104, QA-Design-Abgleich-Gesamtaudit vom 30.08.2026): Ohne registrierte Angular-
+  Locale fiel jede `date`-Pipe im Frontend auf `en-US` zurück (z. B. „Aug 30, 2026, 2:52:25 PM"),
+  zusätzlich zeigte das verwendete Format `medium` überall Sekunden an.
+- Fix: `registerLocaleData(localeDe)` + `{ provide: LOCALE_ID, useValue: 'de-DE' }` in
+  `frontend/src/app/app.config.ts` ergänzt; alle fünf `date`-Pipe-Fundstellen
+  (`assessment-conflict-dialog`, `assessment-tabs`, `edit-stakeholder-form`, `stakeholder-detail`,
+  `stakeholder-list`) von `date: 'medium'` auf `date: 'dd.MM.yyyy, HH:mm'` umgestellt — keine
+  Änderung an zugrundeliegenden Zeitwerten oder der Zeitzone, ausschließlich die Darstellung.
+- Story-Test: `frontend/src/app/us-070-zeitstempel-deutsches-format.spec.ts`. Einzeln ausführen:
+  `ng test --include='**/us-070*.spec.ts'`. Vollständiger `ng test`-Lauf: 465/465 grün, `ng lint`
+  fehlerfrei, `ng build` erfolgreich. Manueller Smoke-Test gegen `docker-compose up` durchgeführt
+  (Stakeholder-Detail und Papierkorb-Ansicht zeigen `dd.MM.yyyy, HH:mm`, siehe Story-Datei
+  „Anmerkungen des Agenten" für Screenshots und Details).
+
 ### US-069 — Assessment-Inhalt des standardmäßig aktiven Tabs zuverlässig bei Erstaufruf rendern
 
 - Root Cause (Issue #103, Design-Abgleich-Gesamtaudit vom 30.08.2026): `AssessmentTabsComponent.loadAssessments()`
