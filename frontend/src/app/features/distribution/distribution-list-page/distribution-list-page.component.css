@@ -77,6 +77,26 @@
   font-size: var(--app-font-size-body);
 }
 
+/* US-067 / Issue #83: Kommunikationsart als abgesetzter Pillen-Chip statt reinem Zellentext,
+   analog zum Wireframe-Vorbild `.chip` in `Verteiler.dc.html`. Ausschließlich bestehende
+   SPEC-00-Tokens — kein neues Token erfunden (siehe Anmerkungen des Agenten in der Story-Datei
+   zum nicht 1:1 vorhandenen Wireframe-Tokennamen `var(--surface-2)`): `--app-color-surface-hover`
+   als vom Zeilenhintergrund abgesetzte Fläche, `--app-radius-full` für die Pillenform (analog zu
+   `.role-badge`/`.status-tag` in `styles.css`, dieselbe 0.15rem-Vertikalpolsterung wie dort).
+   `white-space: normal` + `word-break: break-word` verhindern jedes Abschneiden langer
+   Kommunikationsart-Namen (Akzeptanzkriterium 3) — kein Tooltip nötig, da nichts trunkiert wird. */
+.dl-communication-type-chip {
+  display: inline-flex;
+  align-items: center;
+  padding: 0.15rem var(--app-space-sm);
+  border-radius: var(--app-radius-full);
+  background: var(--app-color-surface-hover);
+  color: var(--app-color-text);
+  font-size: var(--app-font-size-body);
+  white-space: normal;
+  word-break: break-word;
+}
+
 /* SPEC-05 §3.6: Kennzeichnung fehlender E-Mail-Adresse nie nur farblich — Icon **und** Text
    tragen die Information; die Attention-Farbe (SPEC-00 §1.2/§4) passt inhaltlich exakt, da eine
    fehlende E-Mail-Adresse ein „braucht Aufmerksamkeit"-Signal für die Kopieraktion ist (siehe
