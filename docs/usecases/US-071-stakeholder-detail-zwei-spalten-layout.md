@@ -2,7 +2,7 @@
 **Titel:** Stakeholder-Detailseite als Zwei-Spalten-Layout mit direkt editierbaren Stammdaten und Typ-Badge
 **Bounded Context / Domain:** StakeholderManagement (Frontend, Presentation-Schicht)
 **Abhängigkeiten:** US-070
-**Status:** fertig am 30.08.2026 (Branch `feature/US-071-stakeholder-detail-zwei-spalten-layout`)
+**Status:** fertig am 30.08.2026 (PR [#109](https://github.com/Inso666/SlobSteak/pull/109), Branch `feature/US-071-stakeholder-detail-zwei-spalten-layout`)
 
 ---
 
