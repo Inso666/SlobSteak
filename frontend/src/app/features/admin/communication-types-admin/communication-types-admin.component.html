@@ -3,112 +3,102 @@
     <p class="load-error" role="alert">{{ loadError }}</p>
   }
 
-  <div class="admin-communication-types__toolbar">
-    <button type="button" pButton icon="pi pi-plus" (click)="openCreateDialog()">Kommunikationsart anlegen</button>
-  </div>
-
-  <app-view-state [state]="typesState" emptyMessage="Es sind noch keine Kommunikationsarten angelegt." [skeletonCount]="3">
-    <div class="communication-type-cards" role="list">
-      @for (communicationType of communicationTypes; track communicationType.id) {
-        <article class="communication-type-card" role="listitem">
-          <div class="communication-type-card__head">
-            <span class="communication-type-card__name" [class.communication-type-card__name--inactive]="!communicationType.isActive">
+  <div class="catalog-panel">
+    <app-view-state [state]="typesState" emptyMessage="Es sind noch keine Kommunikationsarten angelegt." [skeletonCount]="3">
+      <div role="list">
+        @for (communicationType of communicationTypes; track communicationType.id) {
+          <div class="catalog-row" role="listitem">
+            <span class="catalog-row__name" [class.catalog-row__name--inactive]="!communicationType.isActive">
               {{ communicationType.name }}
             </span>
             <span class="status-tag" [class.status-tag--archived]="!communicationType.isActive">
               {{ communicationType.isActive ? 'Aktiv' : 'Deaktiviert' }}
             </span>
+            <p-button
+              [text]="true"
+              [rounded]="true"
+              severity="secondary"
+              icon="pi pi-pencil"
+              styleClass="catalog-row__edit"
+              [ariaLabel]="'Kommunikationsart ' + communicationType.name + ' bearbeiten'"
+              (onClick)="openEditDialog(communicationType)"
+            ></p-button>
           </div>
+        }
+      </div>
+    </app-view-state>
 
-          <div class="communication-type-card__actions">
-            <button type="button" pButton [outlined]="true" severity="secondary" (click)="openRenameDialog(communicationType)">Umbenennen</button>
-            <app-processing-button
-              type="button"
-              [isSubmitting]="togglingIds.has(communicationType.id)"
-              [label]="communicationType.isActive ? 'Deaktivieren' : 'Aktivieren'"
-              submittingLabel="Wird gespeichert…"
-              (click)="onToggleActive(communicationType)"
-            />
-          </div>
-        </article>
-      }
-    </div>
-  </app-view-state>
-
-  @if (toggleErrorMessage) {
-    <p-message severity="error" styleClass="w-full" role="alert">{{ toggleErrorMessage }}</p-message>
-  }
+    @if (!isAddingType) {
+      <button type="button" class="catalog-add-row catalog-add-row--trigger" (click)="openInlineAdd()">
+        <span class="pi pi-plus" aria-hidden="true"></span>
+        Kommunikationsart hinzufügen
+      </button>
+    } @else {
+      <form class="catalog-add-row catalog-add-row--form" [formGroup]="createForm" (ngSubmit)="onCreateType()" novalidate>
+        <div class="catalog-add-row__field">
+          <label for="communication-type-name" class="sr-only">Bezeichnung der neuen Kommunikationsart</label>
+          <input
+            pInputText
+            id="communication-type-name"
+            formControlName="name"
+            placeholder="z. B. Newsletter"
+            class="w-full"
+            [attr.aria-invalid]="createErrorMessage ? true : null"
+            [attr.aria-describedby]="createErrorMessage ? 'create-communication-type-error' : null"
+          />
+          @if (createErrorMessage) {
+            <p-message id="create-communication-type-error" severity="error" styleClass="w-full" role="alert">{{ createErrorMessage }}</p-message>
+          }
+        </div>
+        <app-processing-button
+          type="submit"
+          [disabled]="createForm.invalid"
+          [isSubmitting]="isCreatingType"
+          label="Hinzufügen"
+          submittingLabel="Wird angelegt…"
+        />
+        <p-button [text]="true" [rounded]="true" severity="secondary" icon="pi pi-times" ariaLabel="Anlegen abbrechen" (onClick)="closeInlineAdd()"></p-button>
+      </form>
+    }
+  </div>
 
   <p-dialog
-    header="Kommunikationsart anlegen"
-    [(visible)]="createDialogVisible"
+    header="Kommunikationsart bearbeiten"
+    [(visible)]="editDialogVisible"
     [modal]="true"
     [style]="{ width: '26rem', 'max-width': 'calc(100vw - 2rem)' }"
   >
-    <form [formGroup]="createForm" (ngSubmit)="onCreateType()">
+    <form [formGroup]="editForm" (ngSubmit)="onSubmitEdit()">
       <div class="field">
-        <label for="communication-type-name">Bezeichnung</label>
+        <label for="communication-type-edit-name">Bezeichnung</label>
         <input
           pInputText
-          id="communication-type-name"
+          id="communication-type-edit-name"
           formControlName="name"
           class="w-full"
-          [class.ng-invalid]="!!createErrorMessage"
-          [attr.aria-invalid]="createErrorMessage ? true : null"
-          [attr.aria-describedby]="createErrorMessage ? 'create-communication-type-error' : null"
+          [attr.aria-invalid]="editErrorMessage ? true : null"
+          [attr.aria-describedby]="editErrorMessage ? 'edit-communication-type-error' : null"
         />
-        @if (createErrorMessage) {
-          <p-message id="create-communication-type-error" severity="error" styleClass="w-full" role="alert">{{ createErrorMessage }}</p-message>
+        @if (editErrorMessage) {
+          <p-message id="edit-communication-type-error" severity="error" styleClass="w-full" role="alert">{{ editErrorMessage }}</p-message>
         }
+      </div>
+
+      <div class="field field--toggle">
+        <p-toggleswitch inputId="communication-type-edit-active" formControlName="active"></p-toggleswitch>
+        <label for="communication-type-edit-active">Aktiv</label>
       </div>
     </form>
 
     <ng-template #footer>
-      <button type="button" pButton [text]="true" (click)="closeCreateDialog()">Abbrechen</button>
+      <button type="button" pButton [text]="true" (click)="closeEditDialog()">Abbrechen</button>
       <app-processing-button
         type="button"
-        [disabled]="createForm.invalid"
-        [isSubmitting]="isCreatingType"
-        label="Kommunikationsart anlegen"
-        submittingLabel="Wird angelegt…"
-        (click)="onCreateType()"
-      />
-    </ng-template>
-  </p-dialog>
-
-  <p-dialog
-    header="Kommunikationsart umbenennen"
-    [(visible)]="renameDialogVisible"
-    [modal]="true"
-    [style]="{ width: '26rem', 'max-width': 'calc(100vw - 2rem)' }"
-  >
-    <form [formGroup]="renameForm" (ngSubmit)="onRenameType()">
-      <div class="field">
-        <label for="communication-type-rename">Bezeichnung</label>
-        <input
-          pInputText
-          id="communication-type-rename"
-          formControlName="name"
-          class="w-full"
-          [class.ng-invalid]="!!renameErrorMessage"
-          [attr.aria-invalid]="renameErrorMessage ? true : null"
-          [attr.aria-describedby]="renameErrorMessage ? 'rename-communication-type-error' : null"
-        />
-        @if (renameErrorMessage) {
-          <p-message id="rename-communication-type-error" severity="error" styleClass="w-full" role="alert">{{ renameErrorMessage }}</p-message>
-        }
-      </div>
-    </form>
-
-    <ng-template #footer>
-      <button type="button" pButton [text]="true" (click)="closeRenameDialog()">Abbrechen</button>
-      <app-processing-button
-        type="button"
-        [disabled]="renameForm.invalid"
-        [isSubmitting]="isRenamingType"
+        [disabled]="editForm.invalid"
+        [isSubmitting]="isSavingEdit"
         label="Speichern"
         submittingLabel="Wird gespeichert…"
-        (click)="onRenameType()"
+        (click)="onSubmitEdit()"
       />
     </ng-template>
   </p-dialog>
