@@ -40,12 +40,18 @@ describe('US-042: Verteilerlisten-UI: Filter, Tabelle, Copy-E-Mails, CSV-Export'
     };
   }
 
+  // US-066: `getDistributionList` liefert seit dieser Story `{ rows, totalStakeholderCount }`
+  // (siehe `distribution-list.service.ts`); die Fußzeilen-Formel selbst ist Gegenstand von
+  // `us-066-verteiler-fusszeile-gesamtzahl.spec.ts`, hier bleibt `totalStakeholderCount` daher ein
+  // unauffälliger Standardwert.
   function configure(rows: DistributionListRow[]): void {
     TestBed.resetTestingModule();
     distributionListServiceSpy = jasmine.createSpyObj('DistributionListService', [
       'getDistributionList',
     ]);
-    distributionListServiceSpy.getDistributionList.and.returnValue(of(rows));
+    distributionListServiceSpy.getDistributionList.and.returnValue(
+      of({ rows, totalStakeholderCount: rows.length }),
+    );
 
     communicationTypesServiceSpy = jasmine.createSpyObj('AdminCommunicationTypesService', [
       'listActiveCommunicationTypes',

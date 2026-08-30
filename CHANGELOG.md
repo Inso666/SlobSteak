@@ -33,6 +33,28 @@ Alle nennenswerten Änderungen an diesem Projekt werden hier je User Story dokum
   `us-038-communication-type-katalog-ui.spec.ts`) an das neue Markup angepasst, ohne bisher
   geprüfte fachliche Aussagen zu verlieren.
 
+### US-066 — Verteiler-Fußzeile zeigt unfilterte Gesamtzahl der Projekt-Stakeholder
+
+- Fußzeile des Verteiler-Tabs zeigt jetzt „N von M Stakeholdern entsprechen dem Filter · K mit
+  E-Mail-Adresse (J ausgeschlossen)“ statt „N Einträge in der Verteilerliste · M mit E-Mail-Adresse
+  (K ohne E-Mail-Adresse)“ (Issue #82, `docs/design/Verteiler.dc.html`). `N`
+  (`distinctFilteredStakeholderCount`) zählt unterschiedliche Stakeholder im Filterergebnis
+  (Deduplizierung über `stakeholderId`, nicht `rows.length`); `M` (`totalStakeholderCount`) ist die
+  unfilterte Gesamtzahl aller aktiven Projekt-Stakeholder.
+- `DistributionListService.getDistributionList` liefert seit dieser Story `{ rows,
+  totalStakeholderCount }` statt eines reinen `DistributionListRow[]` — `totalStakeholderCount` ist
+  die Länge der ohnehin für die Organisations-Anreicherung (US-042) geladenen, unfilterten
+  Stakeholderliste, **kein** zusätzlicher HTTP-Request.
+- Die Fußzeile (`.dl-foot-row`) wird im Leerzustand (kein Filtertreffer) jetzt vollständig
+  ausgeblendet statt „0 von M Stakeholdern …“ mit deaktivierten Aktions-Buttons zu zeigen.
+- Korrigiert bewusst die in US-042 „Anmerkungen des Agenten“ Punkt 5 dokumentierte Abweichung,
+  nachdem `docs/design/Verteiler.dc.html` als zum Story-Zeitpunkt bereits existierende, aber nicht
+  konsultierte verbindliche Design-Quelle identifiziert wurde (siehe Story-Datei „Anmerkungen des
+  Agenten“).
+- Story-Test: `frontend/src/app/features/distribution/us-066-verteiler-fusszeile-gesamtzahl.spec.ts`
+  (AC 1–5); zusätzlicher Service-Test in `distribution-list.service.spec.ts` belegt mit
+  `HttpTestingController`, dass `totalStakeholderCount` ohne dritten Request ermittelt wird.
+
 ### US-059 — StakeholderDetailComponent zuverlässig rendern (Assessment-Bereich, Stammdaten) statt leerem Inhaltsbereich
 
 - `stakeholder-detail.component.ts` injiziert jetzt `ChangeDetectorRef` und ruft
