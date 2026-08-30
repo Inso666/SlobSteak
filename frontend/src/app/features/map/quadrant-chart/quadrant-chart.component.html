@@ -76,6 +76,7 @@
               [draggable]="ownPointsDraggable"
               [ariaLabel]="pointAriaLabel(point)"
               [surfaceRef]="plotSurfaceRef"
+              [markerScale]="markerScale"
               (activated)="onSelect(point)"
               (dragEnd)="onDragEnd(point, $event)"
             />
@@ -89,6 +90,7 @@
               [draggable]="false"
               [ariaLabel]="comparePointAriaLabel(point)"
               [surfaceRef]="plotSurfaceRef"
+              [markerScale]="markerScale"
               (activated)="onSelect(point)"
             />
           }

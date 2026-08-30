@@ -153,7 +153,7 @@ Aus den offenen GitHub-Issues abgeleitete Stories (kein neuer Bug-Report in `doc
 |---|---|---|---|---|---|
 | US-059 | StakeholderDetailComponent zuverlässig rendern (Assessment-Bereich, Stammdaten) statt leerem Inhaltsbereich | StakeholderManagement / StakeholderAssessment | US-026, US-029, US-030 | [US-059-stakeholder-detail-markforcheck.md](US-059-stakeholder-detail-markforcheck.md) | fertig (30.08.2026) |
 | US-060 | Zoom-Cluster-Buttons auf der Map sichtbar und auffindbar machen | StakeholderMap | US-036 | [US-060-map-zoom-buttons-sichtbar.md](US-060-map-zoom-buttons-sichtbar.md) | fertig (30.08.2026) |
-| US-061 | Map-Zoom skaliert Positionen statt Punkt-Marker unverhältnismäßig zu vergrößern | StakeholderMap | US-036, US-060 | [US-061-map-zoom-skalierung.md](US-061-map-zoom-skalierung.md) | offen |
+| US-061 | Map-Zoom skaliert Positionen statt Punkt-Marker unverhältnismäßig zu vergrößern | StakeholderMap | US-036, US-060 | [US-061-map-zoom-skalierung.md](US-061-map-zoom-skalierung.md) | fertig (30.08.2026) |
 | US-062 | Tastatur-Positionierung eigener Map-Punkte für Screenreader-Nutzer:innen zuverlässig ankündigen | StakeholderMap | US-036, US-061 | [US-062-map-tastatur-positionierung-ankuendigen.md](US-062-map-tastatur-positionierung-ankuendigen.md) | offen |
 | US-063 | Toolbar-Hinweistext „X von Y Stakeholdern sichtbar“ auf der Map ergänzen | StakeholderMap | US-032, US-062 | [US-063-map-toolbar-sichtbarkeits-hinweis.md](US-063-map-toolbar-sichtbarkeits-hinweis.md) | offen |
 | US-064 | Einheitlicher, tokenisierter Opacity-Wert für gesperrte Map-Punkte | StakeholderMap | US-034, US-036, US-063 | [US-064-map-opacity-token-vereinheitlichen.md](US-064-map-opacity-token-vereinheitlichen.md) | offen |

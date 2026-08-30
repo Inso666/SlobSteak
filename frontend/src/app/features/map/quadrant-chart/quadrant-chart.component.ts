@@ -180,6 +180,17 @@ export class QuadrantChartComponent {
     return `translate(${this.panPx.x}px, ${this.panPx.y}px) scale(${this.zoomLevel})`;
   }
 
+  /** US-061 Akzeptanzkriterium 1/5: Gegenskalierung für die einzelnen Punkt-Marker
+   * (`DraggablePointComponent.markerScale`), damit deren visuelle Größe trotz
+   * `surfaceTransform`s `scale(zoomLevel)` auf dem gesamten `.plot-surface`-Container konstant
+   * bleibt — nur die Abstände zwischen Punkten sollen mit dem Zoom wachsen, nicht deren
+   * Durchmesser (SPEC-04 §3.4, Issue #68). Reiner Kehrwert des Zoom-Faktors: bei `zoomLevel === 1`
+   * ergibt sich `1` (keine Änderung ggü. dem Vor-US-061-Verhalten), bei `zoomLevel === 4` (MAX_ZOOM)
+   * `0.25` — der Marker bleibt dadurch bei jedem Zoom-Level exakt gleich groß auf dem Bildschirm. */
+  protected get markerScale(): number {
+    return 1 / this.zoomLevel;
+  }
+
   protected get roleClass(): string {
     return ROLE_CLASS[this.perspective];
   }

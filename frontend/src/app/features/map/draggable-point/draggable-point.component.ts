@@ -41,6 +41,13 @@ export interface DragPosition {
  * Sprung entsteht. Schlägt der nachfolgende Speichervorgang fehl, macht die aufrufende Seite die
  * Datenquellen-Änderung rückgängig (SPEC-04 §3.7 „Punkt springt zurück“) — diese Komponente selbst
  * kennt den Erfolg/Misserfolg des Speicherns nicht.
+ *
+ * **Marker-Gegenskalierung (US-061):** {@link markerScale} skaliert ausschließlich das eigene
+ * `<button class="map-point">`-Element gegen den Container-Zoom, NICHT {@link surfaceRef} — die
+ * Pixel→Prozent-Umrechnung in {@link updateFromPointer} liest weiterhin unverändert
+ * `surfaceRef.nativeElement.getBoundingClientRect()` und bleibt dadurch von dieser Gegenskalierung
+ * vollständig unberührt (verifiziert gegen echte Maus-Drag-Interaktion nach Zoom, siehe
+ * `us-061-map-zoom-skalierung.spec.ts`).
  */
 @Component({
   selector: 'app-draggable-point',
@@ -71,6 +78,16 @@ export class DraggablePointComponent {
    * für Maus-Drags liefert (US-036 Akzeptanzkriterium 5). Bei rein per Tastatur bedienten Punkten
    * unbenutzt. */
   @Input({ required: true }) surfaceRef!: ElementRef<HTMLElement>;
+  /** US-061 Akzeptanzkriterium 1/5: Gegenskalierung, mit der die aufrufende
+   * {@link QuadrantChartComponent} den Container-Zoom (`transform: scale(zoomLevel)` auf
+   * `.plot-surface`) für die visuelle Marker-**Größe** neutralisiert — üblicherweise
+   * `1 / zoomLevel`. Als CSS Custom Property (`--marker-counter-scale`, siehe `.css`) statt als
+   * direkt gebundener `[style.transform]` umgesetzt, damit die vorhandenen, formabhängigen
+   * `transform`-Werte aus `.map-point`/`.map-point--compare` (Zentrierung, Diamant-Rotation)
+   * unverändert in derselben CSS-Regel stehen bleiben, statt sie hier dupliziert in TypeScript
+   * nachzubauen. Diese Komponente kennt bewusst nur den fertigen Skalierungsfaktor, nicht den
+   * `zoomLevel` selbst — sie bleibt agnostisch gegenüber Zoom-/Pan-Semantik (siehe Klassendoku). */
+  @Input() markerScale = 1;
 
   /** Klick/Enter ohne aktive Bewegung — Navigation zur Stakeholder-Detailseite (US-032), unverändert
    * für ziehbare wie nicht-ziehbare Punkte. */
