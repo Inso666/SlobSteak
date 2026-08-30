@@ -1,5 +1,5 @@
 **ID:** US-069
-**Status:** fertig am 30.08.2026, PR wird nach Erstellen ergänzt
+**Status:** fertig am 30.08.2026, [PR #107](https://github.com/Inso666/SlobSteak/pull/107)
 **Titel:** Assessment-Inhalt des standardmäßig aktiven Tabs zuverlässig bei Erstaufruf rendern
 **Bounded Context / Domain:** StakeholderAssessment (Frontend, Presentation-Schicht)
 **Abhängigkeiten:** US-029, US-030, US-059
