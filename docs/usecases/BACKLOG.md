@@ -162,6 +162,19 @@ Aus den offenen GitHub-Issues abgeleitete Stories (kein neuer Bug-Report in `doc
 
 **Hinweis zu US-062:** Der Issue-Titel (#69) suggeriert eine vollständig fehlende Tastatursteuerung; Code-Review vor Story-Anlage zeigt, dass die Kernmechanik (Pfeiltasten, Bestätigen, Verwerfen) in `DraggablePointComponent` bereits existiert (US-036) — nur die Screenreader-Ankündigung während einer laufenden Bewegung ist lückenhaft. Scope entsprechend präzisiert statt den ursprünglichen Befund unkritisch zu übernehmen (CLAUDE.md Abschnitt 6).
 
+### Phase 12 — Design-Abgleich Bugfixing (GitHub Issues #80, #82–#84, PO-Review vom 30.08.2026)
+
+Aus den offenen GitHub-Issues abgeleitete Stories (QA-Design-Abgleich der Phasen 6–8: Communication Catalog Admin-UI (US-038) und Verteilerlisten-UI (US-042), jeweils gegen die verbindliche Design-Quelle `docs/design/S2-Projektuebersicht-Wireframe.html`). US-065 betrifft ausschließlich den Kommunikationsarten-Katalog (eigene Datei, unabhängig von den übrigen drei). US-066–US-068 betreffen ausschließlich die Verteiler-Seite und sind bewusst sequenziell verkettet, um parallele Änderungen an denselben Dateien (`distribution-list-page.component.html`/`.css`/`.ts`) zu vermeiden.
+
+| ID | Titel | Bounded Context | Abhängigkeiten | Datei | Status |
+|---|---|---|---|---|---|
+| US-065 | Kommunikationsarten-Katalog Admin-UI als kompaktes Listen-Panel statt Einzelkarten | CommunicationCatalog | US-038 | [US-065-communication-type-katalog-listenpanel.md](US-065-communication-type-katalog-listenpanel.md) | offen |
+| US-066 | Verteiler-Fußzeile zeigt unfilterte Gesamtzahl der Projekt-Stakeholder | DistributionList | US-042 | [US-066-verteiler-fusszeile-gesamtzahl.md](US-066-verteiler-fusszeile-gesamtzahl.md) | offen |
+| US-067 | Kommunikationsart-Spalte im Verteiler als Chip darstellen | DistributionList | US-066 | [US-067-verteiler-kommunikationsart-chip.md](US-067-verteiler-kommunikationsart-chip.md) | offen |
+| US-068 | „Keine E-Mail hinterlegt“-Hinweis: nur Icon in Attention-Farbe, Text gedämpft | DistributionList | US-067 | [US-068-verteiler-mail-cell-attention-farbe.md](US-068-verteiler-mail-cell-attention-farbe.md) | offen |
+
+**Hinweis zu Issue #81:** Kein eigene Story angelegt. Issue #81 („Stakeholder-Detailseite (S4) rendert leer — Kommunikationszuordnungen-Panel aus US-040 nicht erreichbar“) beschreibt exakt dieselbe, bereits in [US-059](US-059-stakeholder-detail-markforcheck.md) (Phase 11, Issue #61) dokumentierte und noch offene Root Cause (fehlendes `markForCheck()` in `StakeholderDetailComponent`, zoneless Change Detection) — diesmal entdeckt beim Design-Abgleich von US-040 statt beim ursprünglichen Map-Smoke-Test. Siehe „Anmerkungen des Product Owners“ (Update 30.08.2026) in der US-059-Story-Datei.
+
 ## Hinweise zur Nutzung durch den Dev-Agenten
 
 Jede Story wird in genau einer isolierten Iteration umgesetzt. Vor Beginn einer Story müssen alle in „Abhängigkeiten“ genannten Stories bereits abgeschlossen und deren Akzeptanzkriterien grün sein. Die Reihenfolge innerhalb einer Phase ist ebenfalls verbindlich, da spätere Stories einer Phase häufig auf den unmittelbar vorangehenden aufbauen (z. B. US-023 Soft-Delete vor US-024 Restore). Domain-Invarianten aus Abschnitt 4.3 des PRD (`stakeholder_assessments` max. 1 je Rolle, `project_memberships` max. 1 je Nutzer, Rollen-Schreibrechte, `deleted_at`-Filterung, Sichtbarkeitsregel für Rolle User) sind kontextübergreifend gültig und werden in mehreren Stories wiederholt referenziert — sie dürfen in keiner Story verletzt werden, auch wenn eine einzelne Story sie nicht explizit als Akzeptanzkriterium führt.
