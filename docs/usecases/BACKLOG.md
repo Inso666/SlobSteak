@@ -107,7 +107,7 @@ Jede Story ist so geschnitten, dass sie in einem einzigen fokussierten Entwicklu
 | ID | Titel | Bounded Context | Abhängigkeiten | Datei | Status |
 |---|---|---|---|---|---|
 | US-041 | Verteilerlisten-Filter-Query-API inkl. Berechtigungsregel | DistributionList | US-039, US-025, US-007 | [US-041-distribution-list-api.md](US-041-distribution-list-api.md) | fertig (30.08.2026) |
-| US-042 | Verteilerlisten-UI: Filter, Tabelle, Copy-E-Mails, CSV-Export | DistributionList | US-041, US-019 | [US-042-distribution-list-ui.md](US-042-distribution-list-ui.md) | offen |
+| US-042 | Verteilerlisten-UI: Filter, Tabelle, Copy-E-Mails, CSV-Export | DistributionList | US-041, US-019 | [US-042-distribution-list-ui.md](US-042-distribution-list-ui.md) | fertig (30.08.2026) |
 
 ### Phase 9 — Frontend UX-Härtung (Cross-Cutting)
 

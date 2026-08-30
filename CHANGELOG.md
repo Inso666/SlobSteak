@@ -4,6 +4,36 @@ Alle nennenswerten Änderungen an diesem Projekt werden hier je User Story dokum
 
 ## [Unreleased]
 
+### US-042 — Verteilerlisten-UI: Filter, Tabelle, Copy-E-Mails, CSV-Export
+
+- `DistributionListPageComponent` (`frontend/src/app/features/distribution/`) ersetzt den
+  `DistributionPlaceholderComponent`-Platzhalter aus US-019 auf der Route `/projects/:id/
+  distribution` (lazy geladen, unverändert per `roleGuard(['PL','Coreteam'])` geschützt):
+  Filterleiste (Kommunikationsart-Dropdown aus `GET /api/v1/communication-types?activeOnly=true`,
+  Frequenz-/Kanal-/Typ-Select) + Ergebnistabelle (Name, Organisation, E-Mail, Kommunikationsart,
+  Frequenz, Kanal), gespeist aus US-041. Jede Filteränderung lädt die Liste serverseitig neu;
+  „Filter zurücksetzen“ ist deaktiviert, solange kein Filter aktiv ist.
+- `DistributionListService.getDistributionList` reichert jeden US-041-Eintrag zusätzlich um die
+  Organisation des Stakeholders an (client-seitiger Abgleich gegen die bestehende
+  Stakeholderliste) — der US-041-Response-Contract enthält kein `organization`-Feld, siehe
+  „Anmerkungen des Agenten“ in der Story-Datei.
+- „E-Mails kopieren“ (Angular-CDK-`Clipboard`) kopiert ausschließlich E-Mail-Adressen von Zeilen
+  mit `hasEmail: true`, kommasepariert (Story-Wortlaut Akzeptanzkriterium 2); Erfolgs-/Warn-/
+  Fehlerfall werden über `p-toast` gemeldet, der
+  Ausschluss ohne E-Mail-Adresse wird nie stillschweigend übergangen (Anzahl im Toast **und**
+  dauerhaft in der Fußzeile). „CSV exportieren“ (`csv-export.util.ts`) exportiert die vollständige
+  gefilterte Menge inklusive Zeilen ohne E-Mail als `;`-getrennte CSV-Datei
+  (`verteiler-<projectId>-<Datum>.csv`, UTF-8-BOM für Excel-Umlaute) über einen reinen
+  Client-Download (Blob + `<a download>`).
+- Zeilen ohne hinterlegte E-Mail-Adresse bleiben in der Tabelle sichtbar und sind durch Icon
+  **und** Text **und** Tooltip als „keine E-Mail hinterlegt“ gekennzeichnet (Attention-Farbe aus
+  SPEC-00 §1.2, kein neu erfundener Farbwert). Ein leeres Filterergebnis zeigt eine
+  Leerzustand-Meldung statt einer leeren Tabelle. Kein Mailversand-UI-Element (bewusste
+  MVP-Auslassung).
+- Tests: `distribution-list.service.spec.ts`, `csv-export.util.spec.ts`,
+  `distribution-list-page.component.spec.ts`, Story-Test `us-042-verteilerlisten-ui.spec.ts` (alle
+  sechs Akzeptanzkriterien der Story-Datei).
+
 ### US-041 — Verteilerlisten-Filter-Query-API inkl. Berechtigungsregel
 
 - `DistributionListQuery` (Application-Layer, Bounded Context DistributionList) liefert das
