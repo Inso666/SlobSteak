@@ -74,3 +74,71 @@ Alle übrigen geprüften Zustände (Default-Ansicht, Vergleichsmodus mit beidsei
 Bewertungen, Legende, Rollenfarben/-formen, Fokus-Ring, Drag&Drop-Persistenz, Rollen-Sichtbarkeit
 für `User` inkl. Route-Guard-Redirect auf „Kein Zugriff“) entsprachen SPEC-04/SPEC-00 bzw. den
 bereits dokumentierten Abweichungen.
+
+# Design-Abgleich Phase 6–8: Kommunikationsarten-Katalog, Kommunikationszuordnung, Verteiler (30.08.2026)
+
+QA-Design-Abgleich der Phase-6–8-Stories US-038 (Kommunikationsarten-Katalog Admin-UI,
+`/admin/communication-types`), US-040 (Kommunikationszuordnung auf der Stakeholder-Detailseite,
+`StakeholderDetailComponent`) und US-042 (Verteilerlisten-UI, Tab „Verteiler“ im
+Projekt-Workspace) gegen `docs/design` — ausdrücklich **nicht** gegen `docs/specs/SPEC-*`
+(Vorgabe des Product Owners für diesen Audit).
+
+**Zum Umfang von `docs/design`:** Der Ordner enthält aktuell nur eine Datei,
+`S2-Projektuebersicht-Wireframe.html`. Der Dateiname legt nahe, dass sie ausschließlich die
+Projektübersicht (S2) betrifft — tatsächlich ist es ein mehrseitiger Design-Canvas-Export mit
+zwölf eingebetteten Artboards (u. a. `Detail.dc.html`, `Verteiler.dc.html`, `Admin.dc.html`,
+`AdminCatalogs.dc.html`), die als ein einziger, JSON-escapter ~2,3-MB-String in einem
+`<script id="appifact-doc">`-Block liegen. Damit enthält `docs/design` entgegen der Erwartung aus
+der Aufgabenstellung doch einschlägige Vorgaben für **alle drei** geprüften Features — sie sind
+nur wegen des irreführenden Dateinamens und der stark verschachtelten Kodierung leicht zu
+übersehen. Der Commit, der diese Datei einführt (`de23df9`, 2026-08-23), liegt vor dem Abschluss
+aller drei geprüften Stories; die Vorgaben waren also verfügbar, scheinen aber bei keiner der drei
+Stories konsultiert worden zu sein (die jeweiligen „Anmerkungen des Agenten“ vergleichen
+ausschließlich gegen `docs/specs/SPEC-*`).
+
+## /admin/communication-types (US-038)
+
+- Kartenlisten-Layout mit zwei dauerhaft sichtbaren Text-Buttons („Umbenennen“/
+  „Aktivieren“|„Deaktivieren“) je Eintrag statt eines kompakten, gemeinsamen Listen-Panels mit
+  einem einzelnen Bearbeiten-Icon pro Zeile (`docs/design`-Artboard `AdminCatalogs.dc.html`).
+  Anlegen erfolgt über einen Button + modalen Dialog außerhalb der Liste statt über eine inline
+  „hinzufügen“-Zeile im selben Panel.
+  → [Issue #80](https://github.com/Inso666/SlobSteak/issues/80) (Major)
+
+## Stakeholder-Detailseite / Kommunikationszuordnungen (US-040)
+
+- **Blocker, gefunden vor dem eigentlichen Design-Abgleich:** Die gesamte Stakeholder-Detailseite
+  (`/projects/:id/stakeholders/:stakeholderId`) rendert leer — weder Stammdaten- noch
+  Kommunikationszuordnungen- noch Assessment-Panel erscheinen, obwohl `GET
+  /api/v1/stakeholders/{id}` serverseitig `200` mit vollständigen Daten liefert und keine
+  Konsolenfehler auftreten. Vermutliche Ursache: Die Anwendung läuft ohne `zone.js` (zoneless,
+  `window.Zone === undefined`), `StakeholderDetailComponent` mutiert aber reine Klassenfelder in
+  einem `.subscribe()`-Callback statt Signals zu verwenden, wodurch nach Eintreffen der
+  asynchronen Antwort offenbar kein Render-Zyklus mehr angestoßen wird.
+  → [Issue #81](https://github.com/Inso666/SlobSteak/issues/81) (Blocker/Critical)
+- **Design-Abgleich des Kommunikationszuordnungen-Panels (`docs/design`-Artboard `Detail.dc.html`)
+  konnte wegen des obigen Blockers nicht durchgeführt werden** — das Panel ist über die laufende
+  Anwendung nicht erreichbar. Nach Behebung von #81 nachzuholen.
+
+## Tab „Verteiler“ (US-042)
+
+Für den Funktionstest wurden Kommunikationszuordnungen direkt über die API angelegt (UI-Weg über
+die Stakeholder-Detailseite war durch den obigen Blocker versperrt).
+
+- Fußzeile zeigt „N Einträge in der Verteilerliste · M mit E-Mail-Adresse (K ohne
+  E-Mail-Adresse)“ statt der in `docs/design`-Artboard `Verteiler.dc.html` vorgegebenen Formel
+  „N von **M-gesamt** Stakeholdern entsprechen dem Filter · …“ — die unfilterte Gesamtzahl fehlt.
+  → [Issue #82](https://github.com/Inso666/SlobSteak/issues/82) (Minor)
+- Spalte „Kommunikationsart“ zeigt reinen Fließtext statt der im Design vorgesehenen
+  Chip-/Pillen-Darstellung (`.chip`, eigener Hintergrund + Rahmen).
+  → [Issue #83](https://github.com/Inso666/SlobSteak/issues/83) (Minor)
+- Hinweis „keine E-Mail hinterlegt“ ist komplett (Icon **und** Text) in der Attention-Farbe
+  gehalten; im Design trägt nur das Icon die Signalfarbe, der Text ist gedämpft/kursiv.
+  → [Issue #84](https://github.com/Inso666/SlobSteak/issues/84) (Minor)
+
+Übereinstimmend mit `docs/design/Verteiler.dc.html`: Reihenfolge/Beschriftung der Filterleiste
+(Kommunikationsart/Frequenz/Kanal/Typ + „Filter zurücksetzen“), Tabellenspalten (Name,
+Organisation, E-Mail, Kommunikationsart, Frequenz, Kanal), Button-Reihenfolge und -Hierarchie
+(„E-Mails kopieren“ als sekundärer Outline-Button vor „CSV exportieren“ als primärem Button) sowie
+Icon, Überschrift und Beschreibungstext des Leerzustands-Panels („Keine Stakeholder entsprechen
+diesem Filter“ / „Ändere die Filterkombination oder setze sie zurück, um Stakeholder zu sehen.“).
