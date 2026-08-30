@@ -116,6 +116,11 @@ describe('US-042: Verteilerlisten-UI: Filter, Tabelle, Copy-E-Mails, CSV-Export'
     expect(rowText).toContain('ACME GmbH');
     expect(rowText).toContain('max@example.com');
     expect(rowText).toContain('Newsletter');
+    // US-067: Kommunikationsart wird als Chip-Element dargestellt (Detail-Nachweis in
+    // `us-067-verteiler-kommunikationsart-chip.spec.ts`).
+    expect(nativeElement.querySelector('.dl-communication-type-chip')?.textContent?.trim()).toBe(
+      'Newsletter',
+    );
   });
 
   // Akzeptanzkriterium 2: „E-Mails kopieren" kopiert alle E-Mail-Adressen der gefilterten Liste
