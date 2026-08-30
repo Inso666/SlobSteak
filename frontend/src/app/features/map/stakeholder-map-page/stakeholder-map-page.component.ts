@@ -7,6 +7,7 @@ import { Card } from 'primeng/card';
 import { Skeleton } from 'primeng/skeleton';
 import { MapComparisonEntry, MapComparisonValue, MapPoint, MapService, PerspectiveRole } from '../map.service';
 import { ProjectsService } from '../../projects/projects.service';
+import { StakeholdersService } from '../../stakeholders/stakeholders.service';
 import { QuadrantChartComponent, PointMovedEvent } from '../quadrant-chart/quadrant-chart.component';
 import { ComparisonModeToggleComponent } from '../comparison-mode-toggle/comparison-mode-toggle.component';
 import { AssessmentsService } from '../../assessments/assessments.service';
@@ -91,6 +92,7 @@ export class StakeholderMapPageComponent implements OnInit {
   private readonly router = inject(Router);
   private readonly mapService = inject(MapService);
   private readonly projectsService = inject(ProjectsService);
+  private readonly stakeholdersService = inject(StakeholdersService);
   private readonly assessmentsService = inject(AssessmentsService);
   private readonly formBuilder = inject(FormBuilder);
   private readonly changeDetectorRef = inject(ChangeDetectorRef);
@@ -112,6 +114,10 @@ export class StakeholderMapPageComponent implements OnInit {
   protected dragConflict: DragConflictState | null = null;
   /** US-036: allgemeiner (nicht-409) Fehler beim Speichern einer Drag-Position. */
   protected dragErrorMessage: string | null = null;
+  /** US-063 Akzeptanzkriterium 3: Gesamtzahl aller nicht-gelöschten Stakeholder des Projekts,
+   * unabhängig von deren Bewertungsstatus — geladen über den bereits bestehenden
+   * `StakeholdersService.listStakeholders`-Endpoint (US-025), kein neuer Endpoint. */
+  protected totalCount = 0;
 
   protected readonly filterForm = this.formBuilder.group({
     ownPerspective: this.formBuilder.nonNullable.control<PerspectiveRole>('PL'),
@@ -127,6 +133,13 @@ export class StakeholderMapPageComponent implements OnInit {
     return PERSPECTIVE_OPTIONS.filter((option) => option !== ownPerspective);
   }
 
+  /** US-063 Akzeptanzkriterium 2: Anzahl der in der aktuell gewählten Perspektive (bzw. im
+   * Vergleichsmodus: primäre Perspektive) tatsächlich angezeigten Punkte — aus dem bereits
+   * vorhandenen `points`/`comparisonEntries` abgeleitet, kein eigener Zustand. */
+  protected get visibleCount(): number {
+    return this.filterForm.controls.compareMode.value ? this.comparisonEntries.length : this.points.length;
+  }
+
   ngOnInit(): void {
     this.projectId = this.route.parent?.snapshot.paramMap.get('id') ?? '';
 
@@ -140,6 +153,14 @@ export class StakeholderMapPageComponent implements OnInit {
       this.filterForm.controls.ownPerspective.setValue(defaultPerspective, { emitEvent: false });
       this.selectedPerspective = defaultPerspective;
       this.reload();
+      this.changeDetectorRef.markForCheck();
+    });
+
+    // US-063 Akzeptanzkriterium 3: Gesamtzahl aller nicht-gelöschten Projekt-Stakeholder, unabhängig
+    // vom Ladezustand der Map-Punkte selbst — daher ein eigener, unabhängiger Ladeaufruf statt
+    // Teil von `reload()`.
+    this.stakeholdersService.listStakeholders(this.projectId).subscribe((stakeholders) => {
+      this.totalCount = stakeholders.length;
       this.changeDetectorRef.markForCheck();
     });
 

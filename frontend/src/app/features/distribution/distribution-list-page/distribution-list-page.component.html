@@ -113,7 +113,9 @@
                     </span>
                   }
                 </td>
-                <td>{{ row.communicationTypeName }}</td>
+                <td>
+                  <span class="dl-communication-type-chip">{{ row.communicationTypeName }}</span>
+                </td>
                 <td>{{ frequencyLabel(row.frequency) }}</td>
                 <td>{{ channelLabel(row.channel) }}</td>
               </tr>
@@ -123,37 +125,42 @@
       </table>
     </div>
 
-    <div class="dl-foot-row">
-      <span class="dl-foot-info">
-        {{ rows.length }} {{ rows.length === 1 ? 'Eintrag' : 'Einträge' }} in der Verteilerliste ·
-        {{ withEmailCount }} mit E-Mail-Adresse
-        @if (excludedCount > 0) {
-          <span class="dl-excluded-note">({{ excludedCount }} ohne E-Mail-Adresse)</span>
-        }
-      </span>
-      <div class="dl-foot-actions">
-        <button
-          type="button"
-          pButton
-          [outlined]="true"
-          severity="secondary"
-          [disabled]="withEmailCount === 0 || isLoading"
-          (click)="onCopyEmails()"
-        >
-          <i class="pi pi-copy" aria-hidden="true"></i>
-          E-Mails kopieren
-        </button>
-        <button
-          type="button"
-          pButton
-          [disabled]="rows.length === 0 || isLoading"
-          (click)="onExportCsv()"
-        >
-          <i class="pi pi-download" aria-hidden="true"></i>
-          CSV exportieren
-        </button>
+    @if (rows.length > 0) {
+      <!-- US-066 Akzeptanzkriterium 5: im Leerzustand (keine Treffer) bleibt die Fußzeile
+           vollständig ausgeblendet statt "0 von M Stakeholdern ..." mit deaktivierten Aktionen zu
+           zeigen (siehe Anmerkungen des Agenten in der Story-Datei). -->
+      <div class="dl-foot-row">
+        <span class="dl-foot-info">
+          {{ distinctFilteredStakeholderCount }} von {{ totalStakeholderCount }} Stakeholdern
+          entsprechen dem Filter · {{ withEmailCount }} mit E-Mail-Adresse
+          @if (excludedCount > 0) {
+            <span class="dl-excluded-note">({{ excludedCount }} ausgeschlossen)</span>
+          }
+        </span>
+        <div class="dl-foot-actions">
+          <button
+            type="button"
+            pButton
+            [outlined]="true"
+            severity="secondary"
+            [disabled]="withEmailCount === 0 || isLoading"
+            (click)="onCopyEmails()"
+          >
+            <i class="pi pi-copy" aria-hidden="true"></i>
+            E-Mails kopieren
+          </button>
+          <button
+            type="button"
+            pButton
+            [disabled]="rows.length === 0 || isLoading"
+            (click)="onExportCsv()"
+          >
+            <i class="pi pi-download" aria-hidden="true"></i>
+            CSV exportieren
+          </button>
+        </div>
       </div>
-    </div>
+    }
   }
 </section>
 

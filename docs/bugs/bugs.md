@@ -142,3 +142,88 @@ Organisation, E-Mail, Kommunikationsart, Frequenz, Kanal), Button-Reihenfolge un
 („E-Mails kopieren“ als sekundärer Outline-Button vor „CSV exportieren“ als primärem Button) sowie
 Icon, Überschrift und Beschreibungstext des Leerzustands-Panels („Keine Stakeholder entsprechen
 diesem Filter“ / „Ändere die Filterkombination oder setze sie zurück, um Stakeholder zu sehen.“).
+
+# Design-Abgleich Phase 0–12 (Gesamtaudit, 30.08.2026)
+
+Vollständiger QA-Design-Abgleich aller Screens/Bereiche der zum 30.08.2026 fertiggestellten
+Stories (US-001 bis US-068) gegen die verbindliche Design-Quelle
+`docs/design/S2-Projektuebersicht-Wireframe.html`. Trotz des irreführenden Dateinamens ist dies ein
+mehrseitiger Design-Canvas-Export mit **zwölf** eingebetteten Artboards (`Main.dc.html`,
+`States.dc.html`, `Mobile.dc.html`, `Components.dc.html`, `Detail.dc.html`, `DetailStates.dc.html`,
+`Map.dc.html`, `Login.dc.html`, `StakeholderList.dc.html`, `Verteiler.dc.html`, `Admin.dc.html`,
+`AdminCatalogs.dc.html`), als ein einziger JSON-escapter String in einem
+`<script type="application/json" id="appifact-doc">`-Block extrahiert und einzeln geprüft.
+
+**Vorgehen:** Isolierter `docker-compose`-Stack auf eigenen Ports (55000/54200/55432, Compose-
+Projekt `qa_audit`), Testdaten (Projekt, vier Nutzer in den Rollen PL/Coreteam/Architect/User,
+fünf Stakeholder, Assessments über mehrere Rollen, fünf Kommunikationsarten inkl. einer
+deaktivierten, Kommunikationszuordnungen, ein soft-gelöschter Stakeholder) über die REST-API
+angelegt, alle Screens per `claude-in-chrome` mit Systemadmin- und PL-Testnutzer durchlaufen.
+
+**Geprüft:** Login (S1), Projektübersicht (S2) inkl. Karten-/Toolbar-Details, Projekt-Workspace
+inkl. Navigation, Stakeholder-Liste inkl. Papierkorb, Stakeholder-Detail (Stammdaten,
+Kommunikationszuordnungen, Assessment-Tabs aller drei Rollen), Admin-Bereich (Nutzer, Projekte inkl.
+Mitgliederverwaltung, Kommunikationsarten-Katalog), Verteiler-Tab. Stichprobenartig gegengeprüft
+(bereits mehrfach in Phase 5/11/6–8/12 geprüft): Stakeholder-Map (Zoom-Buttons, Toolbar-Hinweistext,
+Quadranten-Labels — Phase-11-Fixes entsprechen dem Design), Kommunikationsarten-Katalog
+(kompaktes Listen-Panel mit Status-Pille + einzelnem Bearbeiten-Icon — US-065-Fix entspricht
+`AdminCatalogs.dc.html`), Verteiler-Tab (Chip-Darstellung, gedämpfter Hinweistext, Fußzeile mit
+Gesamtzahl — US-066–068-Fixes entsprechen `Verteiler.dc.html`). **Nicht geprüft:** `Components.dc.html`
+(reine Komponenten-Musterbibliothek ohne eigenen Screen), `Mobile.dc.html` (responsive/mobile
+Darstellung — PRD nennt keine explizite Mobile-Anforderung, daher als außerhalb des Scopes dieses
+Audits eingestuft) sowie `States.dc.html`/`DetailStates.dc.html` nur so weit, wie die entsprechenden
+Lade-/Leer-/Fehler-/Konflikt-Zustände beim regulären Durchlauf tatsächlich auftraten (kein gezieltes
+Erzwingen jedes Einzelzustands, z. B. kein Server-Fehler simuliert).
+
+Neu gefundene, bisher nicht dokumentierte Abweichungen:
+
+- **App-weit:** Das in allen zwölf Artboards identische Marken-SVG (stilisiertes gegrilltes Steak,
+  brauner Farbverlauf) fehlt komplett — Login-Screen, Sidebar-Brand-Zeile und Favicon zeigen
+  stattdessen ein bei US-053 bewusst ohne Rücksprache mit `docs/design` eingeführtes, unabhängiges
+  Drei-Kreise-Icon.
+  → [Issue #98](https://github.com/Inso666/SlobSteak/issues/98) (Major)
+- **Projektübersicht (S2):** Weicht in praktisch jedem Detail von `Main.dc.html` ab — Sidebar ohne
+  jegliche Icons/Nutzer-Avatar-Karte, Projekt-Karten nur als nackter Name/Rolle/Stakeholder-Zahl-
+  Text ohne Rollen-Badge-Pille, Bewertungsfortschritts-Ringe je Rolle, „X unbewertet“-Hinweisbanner
+  oder Footer-Meta/Chevron; Suchfeld und Sortier-Dropdown fehlen vollständig.
+  → [Issue #99](https://github.com/Inso666/SlobSteak/issues/99) (Major)
+- **Stakeholder-Liste, Admin-Nutzerverwaltung, Admin-Projektliste:** Karten-Raster statt der in
+  `StakeholderList.dc.html`/`Admin.dc.html` spezifizierten Tabellen-Listen; in der Stakeholder-Liste
+  fehlen zusätzlich die Spalten „Kommunikation“ (Chips) und „Meine Bewertung“ sowie die
+  Zeilenzahl-Zusammenfassung, „Gelöschte anzeigen“ ersetzt die aktive Liste statt sie um ein
+  zusätzliches Papierkorb-Panel zu ergänzen; in der Admin-Nutzerliste fehlen die Spalten „Status“ und
+  „Erstellt am“.
+  → [Issue #100](https://github.com/Inso666/SlobSteak/issues/100) (Major)
+- **Projekt-Kontext-Navigation:** Liegt als horizontale Tab-Leiste im Hauptbereich statt (wie in
+  `Detail.dc.html`/`Map.dc.html`/`StakeholderList.dc.html`/`Verteiler.dc.html` übereinstimmend
+  gezeigt) als eingerückte Unterpunkte unterhalb des Projekt-Labels in der linken Sidebar —
+  vermutlich ein Rückstand aus der ursprünglichen US-019-Tab-Navigation, den US-055 nicht auf die
+  Projekt-Ebene ausgeweitet hat.
+  → [Issue #101](https://github.com/Inso666/SlobSteak/issues/101) (Major)
+- **Stakeholder-Detail:** Stammdaten sind reiner Lesetext, „Bearbeiten“ öffnet ein separates,
+  redundantes Formular weiter unten auf derselben Seite statt die Felder (wie in `Detail.dc.html`)
+  direkt inline editierbar zu machen; Seite ist einspaltig statt im spezifizierten Zwei-Spalten-
+  Layout (Stammdaten/Kommunikation links, Assessment rechts); keine separate Typ-Tag-Pille neben
+  dem Namen.
+  → [Issue #102](https://github.com/Inso666/SlobSteak/issues/102) (Major)
+- **Blocker, kein Design-Befund sondern funktionale Regression, beim Design-Abgleich der
+  Stakeholder-Detailseite entdeckt:** Der Assessment-Bereich zeigt bei frischem Seitenaufruf für den
+  standardmäßig aktiven Tab (eigene Rolle) trotz vorhandener und erfolgreich geladener Daten
+  (`GET .../assessments` liefert `200`) überhaupt keinen Inhalt — weder Slider noch Notiz noch
+  „zuletzt geändert“-Zeile. Der Inhalt erscheint erst nach einem manuellen Tab-Wechsel. Root Cause:
+  `AssessmentTabsComponent.loadAssessments()` mutiert `this.roles` in einem `.subscribe()`-Callback
+  ohne `ChangeDetectorRef.markForCheck()` (zoneless Change Detection) — dieselbe Fehlerklasse wie
+  US-050/US-057/US-058/US-059, aber eine Fundstelle, die vom systematischen Sweep in US-058 nicht
+  erfasst wurde.
+  → [Issue #103](https://github.com/Inso666/SlobSteak/issues/103) (Blocker/Critical)
+- **Datums-/Zeitformat:** „Zuletzt geändert von/am“- und „Gelöscht am“-Metazeilen erscheinen
+  systemweit im US-Format („Aug 30, 2026, 2:52:25 PM“) statt im in mehreren Artboards explizit
+  vorgegebenen deutschen Format („21.08.2026, 14:32“) — ein durchgängiger Bruch mit der ansonsten
+  konsequent deutschen Lokalisierung der Anwendung.
+  → [Issue #104](https://github.com/Inso666/SlobSteak/issues/104) (Major)
+
+Alle übrigen geprüften Zustände (Login-Formularfelder/-Beschriftungen, Admin-Mitgliederverwaltung
+inkl. Rollen-Dropdown/Entfernen, Kommunikationsarten-Katalog, Map-Zoom/Toolbar-Hinweis/Quadranten-
+Labels, Verteiler-Tabelle/Chips/Fußzeile/Leerzustand, Soft-Delete/Wiederherstellen-Grundfunktion,
+Sichtbarkeits-/Berechtigungsregeln je Rolle) entsprachen `docs/design` bzw. den bereits in früheren
+Abschnitten dieser Datei dokumentierten, akzeptierten Abweichungen.

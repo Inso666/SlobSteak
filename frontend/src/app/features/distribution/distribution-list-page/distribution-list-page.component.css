@@ -77,17 +77,49 @@
   font-size: var(--app-font-size-body);
 }
 
+/* US-067 / Issue #83: Kommunikationsart als abgesetzter Pillen-Chip statt reinem Zellentext,
+   analog zum Wireframe-Vorbild `.chip` in `Verteiler.dc.html`. Ausschließlich bestehende
+   SPEC-00-Tokens — kein neues Token erfunden (siehe Anmerkungen des Agenten in der Story-Datei
+   zum nicht 1:1 vorhandenen Wireframe-Tokennamen `var(--surface-2)`): `--app-color-surface-hover`
+   als vom Zeilenhintergrund abgesetzte Fläche, `--app-radius-full` für die Pillenform (analog zu
+   `.role-badge`/`.status-tag` in `styles.css`, dieselbe 0.15rem-Vertikalpolsterung wie dort).
+   `white-space: normal` + `word-break: break-word` verhindern jedes Abschneiden langer
+   Kommunikationsart-Namen (Akzeptanzkriterium 3) — kein Tooltip nötig, da nichts trunkiert wird. */
+.dl-communication-type-chip {
+  display: inline-flex;
+  align-items: center;
+  padding: 0.15rem var(--app-space-sm);
+  border-radius: var(--app-radius-full);
+  background: var(--app-color-surface-hover);
+  color: var(--app-color-text);
+  font-size: var(--app-font-size-body);
+  white-space: normal;
+  word-break: break-word;
+}
+
 /* SPEC-05 §3.6: Kennzeichnung fehlender E-Mail-Adresse nie nur farblich — Icon **und** Text
    tragen die Information; die Attention-Farbe (SPEC-00 §1.2/§4) passt inhaltlich exakt, da eine
    fehlende E-Mail-Adresse ein „braucht Aufmerksamkeit"-Signal für die Kopieraktion ist (siehe
    Anmerkungen des Agenten in der Story-Datei zur Abweichung vom SPEC-05-Pseudocode
-   `var(--yellow-500)`, das kein SPEC-00-Token ist). */
+   `var(--yellow-500)`, das kein SPEC-00-Token ist). US-068/Issue #84: die Attention-Farbe bleibt
+   ausschließlich auf dem Warn-Icon konzentriert, der begleitende Text ist gedämpft/kursiv
+   dargestellt — das ändert nichts an obiger Begründung, Icon **und** Text bleiben Träger der
+   Information, unabhängig von der Textfarbe (WCAG „nicht nur Farbe" ist bereits durch
+   Icon-Präsenz + Klartext erfüllt). */
 .dl-mail-cell--missing {
   display: inline-flex;
   align-items: center;
   gap: var(--app-space-xs);
   font-family: var(--app-font-family-body);
+}
+
+.dl-mail-cell--missing i {
   color: var(--app-attention);
+}
+
+.dl-mail-cell--missing span {
+  color: var(--app-color-text-faint);
+  font-style: italic;
 }
 
 .dl-empty-panel {

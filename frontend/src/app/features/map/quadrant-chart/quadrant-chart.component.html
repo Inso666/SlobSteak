@@ -26,14 +26,21 @@
           <span class="quadrant-label quadrant-label--bottom-right">Zufriedenstellen</span>
 
           @if (connections.length > 0) {
-            <svg class="connections" viewBox="0 0 100 100" preserveAspectRatio="none" aria-hidden="true">
+            <svg
+              class="connections"
+              viewBox="0 0 100 100"
+              preserveAspectRatio="none"
+              aria-hidden="true"
+            >
               @for (connection of connections; track connection.stakeholderId) {
                 <g
                   class="connection"
                   tabindex="0"
                   role="button"
                   [attr.aria-label]="connectionAriaLabel(connection)"
-                  [class.connection--active]="activeConnection?.stakeholderId === connection.stakeholderId"
+                  [class.connection--active]="
+                    activeConnection?.stakeholderId === connection.stakeholderId
+                  "
                   (mouseenter)="onConnectionEnter(connection)"
                   (mouseleave)="onConnectionLeave()"
                   (focus)="onConnectionEnter(connection)"
@@ -69,6 +76,7 @@
               [draggable]="ownPointsDraggable"
               [ariaLabel]="pointAriaLabel(point)"
               [surfaceRef]="plotSurfaceRef"
+              [markerScale]="markerScale"
               (activated)="onSelect(point)"
               (dragEnd)="onDragEnd(point, $event)"
             />
@@ -82,6 +90,7 @@
               [draggable]="false"
               [ariaLabel]="comparePointAriaLabel(point)"
               [surfaceRef]="plotSurfaceRef"
+              [markerScale]="markerScale"
               (activated)="onSelect(point)"
             />
           }
@@ -94,9 +103,43 @@
         </div>
 
         <div class="zoom-cluster" (pointerdown)="$event.stopPropagation()">
-          <button type="button" pButton [text]="true" [rounded]="false" icon="pi pi-plus" aria-label="Vergrößern" (click)="zoomIn()"></button>
-          <button type="button" pButton [text]="true" [rounded]="false" icon="pi pi-minus" aria-label="Verkleinern" (click)="zoomOut()"></button>
-          <button type="button" pButton [text]="true" [rounded]="false" icon="pi pi-refresh" aria-label="Ansicht zurücksetzen" (click)="resetView()"></button>
+          <!-- US-060: `icon="…"` ist kein Input der `[pButton]`-Attribut-Direktive (PrimeNG v22,
+               siehe `ButtonDirective` in `primeng/button` — nur die separate `<p-button>`-Komponente
+               kennt einen `icon`-Input). Als reines HTML-Attribut auf `[pButton]` hat es keinerlei
+               Wirkung; das Icon-Glyph muss stattdessen als Kind-Element mit der `pButtonIcon`-
+               Content-Child-Direktive gerendert werden, damit sowohl das Icon selbst als auch die
+               von `ButtonDirective` automatisch abgeleitete `p-button-icon-only`-Klasse (Größen-
+               Referenz analog SPEC-00 §1.3) tatsächlich zur Anwendung kommen. -->
+          <button
+            type="button"
+            pButton
+            [text]="true"
+            [rounded]="false"
+            aria-label="Vergrößern"
+            (click)="zoomIn()"
+          >
+            <i class="pi pi-plus" pButtonIcon aria-hidden="true"></i>
+          </button>
+          <button
+            type="button"
+            pButton
+            [text]="true"
+            [rounded]="false"
+            aria-label="Verkleinern"
+            (click)="zoomOut()"
+          >
+            <i class="pi pi-minus" pButtonIcon aria-hidden="true"></i>
+          </button>
+          <button
+            type="button"
+            pButton
+            [text]="true"
+            [rounded]="false"
+            aria-label="Ansicht zurücksetzen"
+            (click)="resetView()"
+          >
+            <i class="pi pi-refresh" pButtonIcon aria-hidden="true"></i>
+          </button>
         </div>
       </div>
 
@@ -113,11 +156,17 @@
     <aside class="legend" [attr.aria-label]="legendTitle">
       <h2 class="legend__title">{{ legendTitle }}</h2>
       <div class="legend__row">
-        <span class="legend__swatch legend__swatch--circle" [class]="'legend__swatch--' + roleClass"></span>
+        <span
+          class="legend__swatch legend__swatch--circle"
+          [class]="'legend__swatch--' + roleClass"
+        ></span>
         <span>{{ perspective }} — deine Sicht</span>
       </div>
       <div class="legend__row">
-        <span class="legend__swatch legend__swatch--diamond" [class]="'legend__swatch--' + compareRoleClass"></span>
+        <span
+          class="legend__swatch legend__swatch--diamond"
+          [class]="'legend__swatch--' + compareRoleClass"
+        ></span>
         <span>{{ comparePerspective }} — Vergleich</span>
       </div>
       <div class="legend__row">

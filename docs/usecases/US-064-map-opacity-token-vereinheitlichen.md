@@ -21,13 +21,13 @@ Als **Nutzer der Stakeholder Map** möchte ich, dass „gesperrte“ (nicht zieh
 
 ### 3. Akzeptanzkriterien
 
-- [ ] Alle Vorkommen von `opacity`-Werten für „gesperrt/nicht ziehbar“ auf der Map sind auf einen einzigen, dokumentierten Wert vereinheitlicht (empfohlen: der bereits etablierte `0.72`-Wert aus US-034, sofern der Projektverantwortliche bei der PR-Abstimmung keinen fachlichen Unterschied zwischen den beiden Sperr-Gründen wünscht — siehe Anmerkung unten).
-- [ ] Der vereinheitlichte Wert ist als benanntes CSS-Custom-Property/Token (z. B. `--app-map-point-locked-opacity`) definiert statt als wiederholtes Zahlen-Literal, konsistent mit SPEC-00 §1.2 („zentral als Tokens definiert“).
-- [ ] `docs/specs/SPEC-00-Design-System.md` §1.2 (Token-Tabelle) wird um diesen neuen Token ergänzt, inkl. Verwendungszweck.
-- [ ] Sollte stattdessen ein bewusster fachlicher Unterschied beibehalten werden (Abweichung von der obigen Empfehlung), sind beide Werte als eigene, benannte Tokens dokumentiert und die Entscheidung im PR sowie in dieser Story-Datei unter „Anmerkungen des Agenten“ begründet (CLAUDE.md Abschnitt 6).
-- [ ] Visuelle Regression: keine ungewollte Änderung an anderen, nicht mit „gesperrt“ zusammenhängenden Opacity-Werten (z. B. Fokus-Ring, Hover-Zustände).
-- [ ] Story-Test bzw. Komponententest belegt den einheitlichen (oder bewusst unterschiedenen, klar benannten) Wert für beide Sperr-Fälle.
-- [ ] Bestehende Tests (`us-034-*.spec.ts`, `us-036-*.spec.ts`) bleiben grün bzw. werden an den neuen Token angepasst.
+- [x] Alle Vorkommen von `opacity`-Werten für „gesperrt/nicht ziehbar“ auf der Map sind auf einen einzigen, dokumentierten Wert vereinheitlicht (empfohlen: der bereits etablierte `0.72`-Wert aus US-034, sofern der Projektverantwortliche bei der PR-Abstimmung keinen fachlichen Unterschied zwischen den beiden Sperr-Gründen wünscht — siehe Anmerkung unten).
+- [x] Der vereinheitlichte Wert ist als benanntes CSS-Custom-Property/Token (z. B. `--app-map-point-locked-opacity`) definiert statt als wiederholtes Zahlen-Literal, konsistent mit SPEC-00 §1.2 („zentral als Tokens definiert“).
+- [x] `docs/specs/SPEC-00-Design-System.md` §1.2 (Token-Tabelle) wird um diesen neuen Token ergänzt, inkl. Verwendungszweck.
+- [x] Sollte stattdessen ein bewusster fachlicher Unterschied beibehalten werden (Abweichung von der obigen Empfehlung), sind beide Werte als eigene, benannte Tokens dokumentiert und die Entscheidung im PR sowie in dieser Story-Datei unter „Anmerkungen des Agenten“ begründet (CLAUDE.md Abschnitt 6). — *entfällt: PO-Empfehlung (Vereinheitlichung) umgesetzt, keine abweichende Vorgabe des Projektverantwortlichen.*
+- [x] Visuelle Regression: keine ungewollte Änderung an anderen, nicht mit „gesperrt“ zusammenhängenden Opacity-Werten (z. B. Fokus-Ring, Hover-Zustände).
+- [x] Story-Test bzw. Komponententest belegt den einheitlichen (oder bewusst unterschiedenen, klar benannten) Wert für beide Sperr-Fälle.
+- [x] Bestehende Tests (`us-034-*.spec.ts`, `us-036-*.spec.ts`) bleiben grün bzw. werden an den neuen Token angepasst.
 
 ### 4. Technische Hinweise für den Dev-Agenten
 
@@ -45,3 +45,43 @@ Als **Nutzer der Stakeholder Map** möchte ich, dass „gesperrte“ (nicht zieh
 Diese Story enthält eine echte fachliche Entscheidung, die über reine Bug-Behebung hinausgeht (soll ein einheitlicher Wert gelten, oder sind beide Sperr-Gründe bewusst unterschiedlich zu visualisieren?). Empfehlung des PO: Vereinheitlichung auf `0.72`, da SPEC-04 §3.1 keinen fachlichen Unterschied zwischen den beiden Sperr-Gründen beschreibt und die Legende ohnehin keine zwei getrennten „gesperrt“-Einträge vorsieht. Der Dev-Agent setzt diese Empfehlung um, sofern der Projektverantwortliche bei Story-Start keine andere Vorgabe macht (CLAUDE.md Abschnitt 6, Punkt 2: PRD-konformste, am wenigsten überraschende Interpretation).
 
 ### Anmerkungen des Agenten (bei Umsetzung zu ergänzen)
+
+**Status:** fertig am 30.08.2026, PR siehe Feature-Branch `feature/US-064-map-opacity-token-vereinheitlichen`.
+
+**Entscheidung (CLAUDE.md Abschnitt 6):** PO-Empfehlung übernommen — Vereinheitlichung auf `0.72`
+statt eines bewusst beibehaltenen fachlichen Unterschieds. Begründung: SPEC-04 §3.1 beschreibt
+beide Sperr-Gründe (Vergleichspunkt, eigener Punkt bei Rollen-/Perspektiven-Mismatch) durchgängig
+als gleichrangig „nicht ziehbar“, ohne eine unterschiedliche Bedeutung der beiden Fälle zu
+kommunizieren; die Legende (US-034) sieht ebenfalls keine zwei getrennten „gesperrt“-Einträge vor.
+Ein Beibehalten der Differenz (`0.72` vs. `0.55`) hätte eine fachliche Unterscheidung suggeriert,
+die es laut Spec nicht gibt — genau der in der Story beschriebene Bug (Issue #71). Keine abweichende
+Vorgabe des Projektverantwortlichen bekannt.
+
+**Neuer Token:** `--app-map-point-locked-opacity: 0.72` in `frontend/src/styles.css` (zentrale
+Token-Datei, SPEC-00 §1.2), dokumentiert in der Token-Tabelle mit Verwendungszweck.
+
+**Dritte Fundstelle verifiziert (`quadrant-chart.component.css` Zeile ~222,
+`.legend__swatch--diamond`):** kein eigener, vierter Bedeutungsfall — dieser Swatch bildet in der
+Vergleichsmodus-Legende exakt Form und Deckkraft des tatsächlichen Vergleichspunkts
+(`.map-point--compare`) ab (siehe Template `legend__row` „{{comparePerspective}} — Vergleich“, aus
+US-034). Denselben Token hier zu verwenden ist daher keine willkürliche Wiederverwendung, sondern
+stellt sicher, dass Legende und echter Punkt nie durch getrennte Literale auseinanderlaufen können.
+
+**Konsolidierung:** `.map-point--compare` trägt im Markup immer auch die Klasse
+`.map-point--locked` (der Vergleichspunkt ist laut `QuadrantChartComponent`/SPEC-04 §3.1 stets
+nicht-ziehbar) — die beiden zuvor getrennten CSS-Regeln (`.map-point--compare { opacity: 0.72 }`
+und `.map-point--locked:not(.map-point--compare) { opacity: 0.55 }`) wurden daher zu einer
+einzigen Regel `.map-point--locked { opacity: var(--app-map-point-locked-opacity) }`
+zusammengeführt, statt lediglich den Zahlenwert zu vereinheitlichen. Die Form-Unterscheidung des
+Diamanten (`border-radius`, `rotate(45deg)`) in `.map-point--compare` bleibt unverändert.
+
+**Keine ungewollte Nebenwirkung:** Fokus-Ring (`:focus-visible`, `--app-attention`) und
+Hover-/Cursor-Zustände (`cursor: grab`/`grabbing`/`not-allowed`) wurden nicht angefasst; einzige
+geänderte Deklaration ist `opacity`.
+
+**Tests:** neuer Story-Test `frontend/src/app/features/map/us-064-map-opacity-token-vereinheitlichen.spec.ts`
+(vier Fälle: identischer Opacity-Wert für beide Sperr-Gründe, Wert stammt aus dem zentralen Token,
+ein ziehbarer Punkt bleibt unverändert voll deckend, Diamant-Form bleibt erhalten). Bestehende
+`us-034-map-vergleich-ui.spec.ts` und `us-036-map-dragdrop-ui.spec.ts` prüften bereits nur
+Klassenzugehörigkeit (nicht den konkreten Zahlenwert) und liefen unverändert grün — keine Anpassung
+nötig. Gesamte Suite (`ng test`, 454 Tests) sowie `ng lint` grün.

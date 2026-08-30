@@ -1,8 +1,22 @@
-import { ChangeDetectionStrategy, Component, ElementRef, EventEmitter, Input, Output, ViewChild } from '@angular/core';
-import { ButtonDirective } from 'primeng/button';
+import {
+  ChangeDetectionStrategy,
+  Component,
+  ElementRef,
+  EventEmitter,
+  Input,
+  Output,
+  ViewChild,
+} from '@angular/core';
+import { ButtonDirective, ButtonIcon } from 'primeng/button';
 import { MapComparisonEntry, MapComparisonValue, MapPoint, PerspectiveRole } from '../map.service';
-import { ConnectionDiff, ConnectionLineTooltipComponent } from '../connection-line-tooltip/connection-line-tooltip.component';
-import { DragPosition, DraggablePointComponent } from '../draggable-point/draggable-point.component';
+import {
+  ConnectionDiff,
+  ConnectionLineTooltipComponent,
+} from '../connection-line-tooltip/connection-line-tooltip.component';
+import {
+  DragPosition,
+  DraggablePointComponent,
+} from '../draggable-point/draggable-point.component';
 import { MAP_LEGEND_CONNECTION_LABEL, MAP_LEGEND_NOTE, MAP_LEGEND_TITLE } from '../map-messages';
 import { clamp } from '../../../shared/utils/clamp';
 
@@ -89,7 +103,7 @@ interface RenderedConnection {
 @Component({
   selector: 'app-quadrant-chart',
   standalone: true,
-  imports: [ConnectionLineTooltipComponent, DraggablePointComponent, ButtonDirective],
+  imports: [ConnectionLineTooltipComponent, DraggablePointComponent, ButtonDirective, ButtonIcon],
   templateUrl: './quadrant-chart.component.html',
   styleUrl: './quadrant-chart.component.css',
   changeDetection: ChangeDetectionStrategy.OnPush,
@@ -166,6 +180,17 @@ export class QuadrantChartComponent {
     return `translate(${this.panPx.x}px, ${this.panPx.y}px) scale(${this.zoomLevel})`;
   }
 
+  /** US-061 Akzeptanzkriterium 1/5: Gegenskalierung für die einzelnen Punkt-Marker
+   * (`DraggablePointComponent.markerScale`), damit deren visuelle Größe trotz
+   * `surfaceTransform`s `scale(zoomLevel)` auf dem gesamten `.plot-surface`-Container konstant
+   * bleibt — nur die Abstände zwischen Punkten sollen mit dem Zoom wachsen, nicht deren
+   * Durchmesser (SPEC-04 §3.4, Issue #68). Reiner Kehrwert des Zoom-Faktors: bei `zoomLevel === 1`
+   * ergibt sich `1` (keine Änderung ggü. dem Vor-US-061-Verhalten), bei `zoomLevel === 4` (MAX_ZOOM)
+   * `0.25` — der Marker bleibt dadurch bei jedem Zoom-Level exakt gleich groß auf dem Bildschirm. */
+  protected get markerScale(): number {
+    return 1 / this.zoomLevel;
+  }
+
   protected get roleClass(): string {
     return ROLE_CLASS[this.perspective];
   }
@@ -189,7 +214,11 @@ export class QuadrantChartComponent {
 
     return this.comparisonEntries
       .filter((entry) => entry.primary !== null)
-      .map((entry) => ({ stakeholderId: entry.stakeholderId, name: entry.name, ...(entry.primary as MapComparisonValue) }));
+      .map((entry) => ({
+        stakeholderId: entry.stakeholderId,
+        name: entry.name,
+        ...(entry.primary as MapComparisonValue),
+      }));
   }
 
   /** Vergleichspunkte (Diamanten, US-034 Akzeptanzkriterium 2/3): nur im Vergleichsmodus, nur
@@ -201,7 +230,11 @@ export class QuadrantChartComponent {
 
     return this.comparisonEntries
       .filter((entry) => entry.secondary !== null)
-      .map((entry) => ({ stakeholderId: entry.stakeholderId, name: entry.name, ...(entry.secondary as MapComparisonValue) }));
+      .map((entry) => ({
+        stakeholderId: entry.stakeholderId,
+        name: entry.name,
+        ...(entry.secondary as MapComparisonValue),
+      }));
   }
 
   /** Verbindungslinien (US-034 Akzeptanzkriterium 2): nur Stakeholder mit Assessment in **beiden**
@@ -288,7 +321,8 @@ export class QuadrantChartComponent {
   /** Klick/Enter/Space auf eine Verbindungslinie „pinnt" bzw. hebt die Auswahl wieder auf
    * (US-034 Akzeptanzkriterium 5 — auch per Tastatur erreichbar, nicht nur per Hover). */
   protected onConnectionActivate(connection: RenderedConnection): void {
-    this.selectedConnectionId = this.selectedConnectionId === connection.stakeholderId ? null : connection.stakeholderId;
+    this.selectedConnectionId =
+      this.selectedConnectionId === connection.stakeholderId ? null : connection.stakeholderId;
   }
 
   /** US-036 Akzeptanzkriterium 3: `DraggablePointComponent` hat eine Positionsänderung bestätigt
@@ -337,7 +371,10 @@ export class QuadrantChartComponent {
     if (!this.isPanning) {
       return;
     }
-    this.panPx = { x: event.clientX - this.panPointerStart.x, y: event.clientY - this.panPointerStart.y };
+    this.panPx = {
+      x: event.clientX - this.panPointerStart.x,
+      y: event.clientY - this.panPointerStart.y,
+    };
     this.clampPan();
   }
 

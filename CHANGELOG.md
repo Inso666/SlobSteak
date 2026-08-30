@@ -4,6 +4,247 @@ Alle nennenswerten Änderungen an diesem Projekt werden hier je User Story dokum
 
 ## [Unreleased]
 
+### US-064 — Einheitlicher, tokenisierter Opacity-Wert für gesperrte Map-Punkte
+
+- Root Cause (Issue #71, Design-Abgleich Phase 5): „gesperrte/nicht ziehbare" Punkte auf der
+  Stakeholder Map wurden je nach Sperr-Grund mit zwei unterschiedlichen, undokumentierten
+  Opacity-Literalen dargestellt — `0.72` für den Vergleichspunkt (`.map-point--compare`, US-034)
+  und `0.55` für den eigenen Punkt bei Rollen-/Perspektiven-Mismatch (`.map-point--locked`,
+  US-036) —, obwohl SPEC-04 §3.1 beide Fälle gleichrangig als „nicht ziehbar" beschreibt und keine
+  fachliche Unterscheidung vorsieht.
+- Fix: neuer, zentraler Design-Token `--app-map-point-locked-opacity: 0.72` (`frontend/src/styles.css`,
+  SPEC-00 §1.2) ersetzt beide Zahlen-Literale. Da der Vergleichspunkt im Markup immer auch die
+  Klasse `.map-point--locked` trägt (er ist laut `QuadrantChartComponent` stets nicht-ziehbar), sind
+  die zwei zuvor getrennten CSS-Regeln zu einer einzigen Regel `.map-point--locked { opacity:
+  var(--app-map-point-locked-opacity) }` zusammengeführt; die Form-Unterscheidung des Diamanten
+  (`.map-point--compare`, `rotate(45deg)`) bleibt unverändert. Die dritte Fundstelle
+  (`quadrant-chart.component.css`, `.legend__swatch--diamond`) wurde verifiziert: sie bildet in der
+  Vergleichsmodus-Legende exakt Form und Deckkraft des echten Vergleichspunkts ab und verwendet
+  daher denselben Token, statt ein eigenes viertes Literal zu sein.
+- Entscheidung (CLAUDE.md Abschnitt 6): PO-Empfehlung „Vereinheitlichung auf 0.72" übernommen statt
+  eines bewusst beibehaltenen fachlichen Unterschieds — Begründung siehe Story-Datei
+  „Anmerkungen des Agenten".
+- Story-Test: `frontend/src/app/features/map/us-064-map-opacity-token-vereinheitlichen.spec.ts`.
+  Einzeln ausführen: `ng test --include='**/us-064-map-opacity-token-vereinheitlichen.spec.ts'`.
+  Bestehende `us-034-map-vergleich-ui.spec.ts`/`us-036-map-dragdrop-ui.spec.ts` (prüfen nur
+  Klassenzugehörigkeit, keinen konkreten Zahlenwert) unverändert grün. Vollständiger `ng test`-Lauf:
+  454/454 grün, `ng lint` fehlerfrei.
+
+### US-063 — Toolbar-Hinweistext „X von Y Stakeholdern sichtbar" auf der Map ergänzen
+
+- Root Cause (Issue #70): Die Map-Toolbar (`stakeholder-map-page.component.html`) enthielt keinen
+  der in `docs/specs/SPEC-04-Stakeholder-Map.md` §1 vorgesehenen, rechtsbündigen Hinweistext
+  `{{ visibleCount }} von {{ totalCount }} Stakeholdern sichtbar` — Nutzer:innen konnten nicht auf
+  einen Blick erkennen, ob fehlende Punkte an fehlenden Bewertungen liegen oder an einem
+  Anzeigefehler.
+- Fix: `StakeholderMapPageComponent` lädt jetzt zusätzlich einmalig die Gesamtzahl aller
+  nicht-gelöschten Projekt-Stakeholder über den bereits bestehenden
+  `StakeholdersService.listStakeholders(projectId)`-Endpoint (US-025, kein neuer Endpoint) und legt
+  sie in `totalCount` ab; ein neuer `visibleCount`-Getter leitet die Anzahl sichtbarer Punkte aus dem
+  bereits vorhandenen `points`/`comparisonEntries` ab (abhängig vom Vergleichsmodus). Die Toolbar
+  zeigt beides rechtsbündig als `span.info-text.mono` gemäß SPEC-04 §1.
+- Story-Test: `frontend/src/app/features/map/us-063-map-toolbar-sichtbarkeits-hinweis.spec.ts`
+  (alle sieben Akzeptanzkriterien). Einzeln ausführen:
+  `ng test --include='**/us-063-map-toolbar-sichtbarkeits-hinweis.spec.ts'`. Bestehende
+  Map-Story-Tests (`us-032`/`us-034`/`us-036`/`us-062`) um einen `StakeholdersService`-Mock ergänzt,
+  um reale (unmockierte) HTTP-Requests im Testlauf zu vermeiden. Vollständiger `ng test`-Lauf:
+  450/450 grün, `ng lint` fehlerfrei.
+
+### US-062 — Tastatur-Positionierung eigener Map-Punkte für Screenreader-Nutzer:innen zuverlässig ankündigen
+
+- Reproduktion gegen einen isolierten `docker-compose`-Stack (Präzedenzfall US-051): die
+  Pfeiltasten-Bewegung eines eigenen Punkts funktioniert **visuell bereits korrekt** (Button-
+  Position und `.map-point__live`-Statusanzeige aktualisieren sich sofort bei jedem Tastendruck) —
+  der in Issue #69 geschilderte, rein-visuelle Teilaspekt reproduziert sich nicht.
+- Bestätigter, engerer Bug (Issue #69): Das `aria-label` des Punkt-`<button>` war ein reiner
+  `@Input`, der ausschließlich aus dem zuletzt **bestätigten** Stand berechnet wurde und nicht auf
+  `livePosition` reagierte — ein Screenreader kündigte während einer laufenden, unbestätigten
+  Pfeiltasten-Bewegung keine der Positionsänderungen an.
+- Fix: neuer `DraggablePointComponent.displayAriaLabel`-Getter liefert während einer aktiven
+  Bewegung (`livePosition !== null`) einen aus den Live-Werten generierten Text
+  („Wird verschoben: Einfluss X · Interesse Y.“, Präfix zentral in `map-messages.ts`), sonst
+  unverändert das `@Input() ariaLabel`; Template bindet `[attr.aria-label]` jetzt an diesen Getter.
+  Nach Bestätigung (`Enter`/Fokusverlust) oder Verwerfen (`Escape`) kehrt das `aria-label`
+  zuverlässig zum jeweils korrekten Endzustand zurück.
+- Story-Test: `frontend/src/app/features/map/us-062-map-tastatur-positionierung-ankuendigen.spec.ts`
+  (alle sieben Akzeptanzkriterien). Einzeln ausführen:
+  `ng test --include='**/us-062-map-tastatur-positionierung-ankuendigen.spec.ts'`. Ergänzende
+  Komponententests in `draggable-point.component.spec.ts`. Vollständiger `ng test`-Lauf: 445/445
+  grün, `ng lint` fehlerfrei.
+
+### US-061 — Map-Zoom skaliert Positionen statt Punkt-Marker unverhältnismäßig zu vergrößern
+
+- Root Cause (Issue #68): `QuadrantChartComponent.surfaceTransform` wendet `scale(zoomLevel)` auf
+  den gesamten `.plot-surface`-Container an; die Punkt-Marker (`.map-point`, feste Größe
+  `var(--app-space-lg)`) sind Kindelemente dieses Containers und wurden von derselben
+  CSS-`transform: scale()` unerwünscht mitskaliert (nach 5 Zoom-Schritten ca. 20px → ca. 70px
+  Durchmesser), statt dass nur die Abstände zwischen Punkten wachsen (SPEC-04 §3.4).
+- Fix: Gegenskalierung des einzelnen Punkt-Markers gegen den Container-Zoom, per CSS Custom
+  Property statt duplizierter TypeScript-Transform-Logik — `QuadrantChartComponent` reicht einen
+  neuen `markerScale`-Getter (`1 / zoomLevel`) über ein neues `[markerScale]`-Input an
+  `DraggablePointComponent` durch, die es als `--marker-counter-scale` auf ihr
+  `<button class="map-point">`-Element setzt; `.map-point`/`.map-point--compare` hängen
+  `scale(var(--marker-counter-scale, 1))` an ihre bestehende `transform`-Deklaration an. Effekt:
+  Marker-Größe bleibt bei jedem Zoom-Level konstant, nur die Punktabstände wachsen weiter mit dem
+  Zoom.
+- Wichtige Invariante verifiziert: `DraggablePointComponent.updateFromPointer()` liest weiterhin
+  ausschließlich die Bounding-Box von `.plot-surface` (nicht des einzelnen Markers) — die
+  Gegenskalierung verfälscht die Pixel→Prozent-Umrechnung für Maus-Drag nicht (manuell gegen
+  `docker-compose up` mit zwei nah beieinanderliegenden Testpunkten 47/53 und 50/50 verifiziert).
+- Story-Test: `frontend/src/app/features/map/us-061-map-zoom-skalierung.spec.ts` (alle sieben
+  Akzeptanzkriterien). Einzeln ausführen:
+  `ng test --include='**/us-061-map-zoom-skalierung.spec.ts'`. Vollständiger `ng test`-Lauf:
+  430/430 grün, `ng lint` fehlerfrei.
+- Dokumentierte Testbarkeits-Beobachtung: Das Frontend läuft zoneless (ohne `zone.js`) — ein
+  direkter TypeScript-Methodenaufruf auf einer `OnPush`-Komponente markiert deren Ansicht nicht als
+  „dirty“, ein anschließendes `fixture.detectChanges()` aktualisiert dadurch weder DOM noch
+  durchgereichte `@Input`-Bindungen. Der neue Story-Test löst Zoom deshalb über einen echten
+  `.click()` auf den gerenderten Zoom-Button aus (Details siehe Story-Datei „Anmerkungen des
+  Agenten").
+
+### US-068 — „Keine E-Mail hinterlegt“-Hinweis: nur Icon in Attention-Farbe, Text gedämpft
+
+- In der Verteiler-Tabelle ist bei Zeilen ohne hinterlegte E-Mail-Adresse (`.dl-mail-cell--missing`)
+  nur noch das Warn-Icon (`pi pi-exclamation-triangle`) in der Attention-Farbe (`var(--app-attention)`)
+  dargestellt; der begleitende Text „keine E-Mail hinterlegt“ ist jetzt gedämpft
+  (`var(--app-color-text-faint)`) und kursiv (Issue #84, `docs/design/Verteiler.dc.html`).
+- Keine neuen Farb-Tokens — beide Tokens waren bereits bestehende SPEC-00-Tokens. Das
+  `title`-Attribut/Tooltip-Verhalten sowie die SPEC-05-§3.6-Begründung (Icon **und** Text tragen die
+  Information, nicht nur Farbe) bleiben unverändert erhalten.
+- Story-Test: `frontend/src/app/features/distribution/us-068-verteiler-mail-cell-attention-farbe.spec.ts`
+  (AC 1–4).
+
+### US-060 — Zoom-Cluster-Buttons auf der Map sichtbar und auffindbar machen
+
+- Root Cause (Issue #67): die drei Zoom-Cluster-Buttons in `quadrant-chart.component.html`
+  verwendeten `pButton icon="…"` — in PrimeNG v22 besitzt die `[pButton]`-Attribut-Direktive
+  (`ButtonDirective`) jedoch **keinen** `icon`-Input (nur die separate `<p-button>`-Komponente
+  kennt `icon`); das Attribut wirkte nie, es entstand kein Icon-Kindelement. Ohne Icon **und** ohne
+  Label-Text kollabierte der Button auf die gemeldeten 22×14px — nicht wie ursprünglich vermutet
+  eine CSS-Regel in `quadrant-chart.component.css` (dort existierte gar keine button-spezifische
+  Größenregel).
+- Fix: `quadrant-chart.component.ts` importiert zusätzlich `ButtonIcon` (`[pButtonIcon]`); die drei
+  Buttons erhalten je ein Icon-Kind-Element (`<i class="pi pi-plus" pButtonIcon aria-hidden="true">`
+  usw.) statt des wirkungslosen `icon="…"`-Attributs. `ButtonDirective` erkennt das Icon-Kind
+  automatisch und setzt die PrimeNG-Standardklasse `p-button-icon-only` (SPEC-00 §1.3-Referenzgröße)
+  — kein neues Token, keine Verhaltensänderung an `zoomIn()`/`zoomOut()`/`resetView()`.
+- Beobachtung (nicht Teil dieser Story, siehe „Anmerkungen des Agenten" in der Story-Datei): dasselbe
+  wirkungslose `icon="…"`-Attribut auf `[pButton]` findet sich auch in `users-admin.component.html`,
+  `projects-admin.component.html` und `project-membership-manager.component.html` — dort unauffällig,
+  weil zusätzlich ein Text-Label vorhanden ist. Empfehlung: eigenes Folge-Ticket für einen
+  projektweiten Audit aller `pButton icon="…"`-Stellen.
+- Story-Test: `frontend/src/app/features/map/us-060-map-zoom-buttons-sichtbar.spec.ts` (Akzeptanz-
+  kriterien 1-3). Einzeln ausführen: `ng test --include='**/us-060-map-zoom-buttons-sichtbar.spec.ts'`.
+  Vollständiger `ng test`-Lauf: 399/399 grün, `ng lint` fehlerfrei.
+
+### US-065 — Kommunikationsarten-Katalog Admin-UI als kompaktes Listen-Panel statt Einzelkarten
+
+- `CommunicationTypesAdminComponent` (Template, Styles, Komponente) auf das in
+  `docs/design/AdminCatalogs.dc.html` vorgegebene Layout umgestellt: ein gemeinsames, umrandetes
+  `.catalog-panel` mit `.catalog-row`-Zeilen (dünne Trennlinie, `status-tag`/`status-tag--archived`
+  wiederverwendet) statt einer eigenständigen Card je Eintrag.
+- Jede Zeile hat jetzt genau **ein** Bearbeiten-Icon statt vormals zwei permanent sichtbaren
+  Text-Buttons „Umbenennen“/„Aktivieren“/„Deaktivieren“; das Icon öffnet einen kombinierten
+  `p-dialog` mit Namensfeld **und** Aktiv-Toggle (`p-toggleswitch`). Speichern ruft
+  `renameCommunicationType`/`setActive` sequenziell nur für tatsächlich geänderte Werte auf — kein
+  Backend-Contract-Wechsel.
+- Neue Kommunikationsarten werden über eine inline „Kommunikationsart hinzufügen“-Zeile am
+  Panel-Ende angelegt (Eingabefeld + Bestätigen-Aktion in der Zeile selbst) statt über einen
+  separaten Button mit modalem Dialog.
+- Korrigiert bewusst den Layout-/Interaktionsteil von US-038 Akzeptanzkriterium 3 zugunsten von
+  `docs/design/AdminCatalogs.dc.html` als vorrangiger Design-Quelle (Issue #80); die übrigen
+  US-038-Akzeptanzkriterien (1, 2, 4) bleiben unverändert gültig.
+- Entdeckt und im Scope dieser Komponente mitkorrigiert: die `pButton`-Attribut-Direktive rendert
+  in PrimeNG 22.x keinen Icon-Inhalt mehr aus einem statischen `icon="..."`-Attribut — die beiden
+  neuen Icon-only-Buttons dieser Story verwenden daher `<p-button icon="...">` (Komponente statt
+  Direktive); weitere, bereits bestehende `pButton icon="..."`-Stellen im Repo sind vermutlich
+  ebenso betroffen, aber außerhalb dieses Story-Scopes nicht mitkorrigiert (siehe Story-Datei
+  „Anmerkungen des Agenten“).
+- Story-Test:
+  `frontend/src/app/features/admin/us-065-communication-type-katalog-listenpanel.spec.ts`;
+  bestehende Tests (`communication-types-admin.component.spec.ts`,
+  `us-038-communication-type-katalog-ui.spec.ts`) an das neue Markup angepasst, ohne bisher
+  geprüfte fachliche Aussagen zu verlieren.
+
+### US-067 — Kommunikationsart-Spalte im Verteiler als Chip darstellen
+
+- Der Wert der Spalte „Kommunikationsart“ in der Verteilerliste wird nicht mehr als reiner
+  Zellentext, sondern als abgerundete Pille (`<span class="dl-communication-type-chip">`) mit
+  eigenem, vom Zeilenhintergrund abgesetztem Hintergrund dargestellt (Issue #83,
+  `docs/design/Verteiler.dc.html`).
+- Chip-Styling nutzt ausschließlich bestehende SPEC-00-Tokens: `--app-color-surface-hover` als
+  Hintergrund, `--app-radius-full` für die Pillenform — kein neues Token erfunden.
+- Lange Kommunikationsart-Namen bleiben vollständig lesbar (`white-space: normal` +
+  `word-break: break-word`), kein Abschneiden ohne Tooltip.
+- Story-Test: `frontend/src/app/features/distribution/us-067-verteiler-kommunikationsart-chip.spec.ts`
+  (AC 1–4); je ein zusätzlicher Regressionstest in `distribution-list-page.component.spec.ts` und
+  `us-042-verteilerlisten-ui.spec.ts`.
+
+### US-066 — Verteiler-Fußzeile zeigt unfilterte Gesamtzahl der Projekt-Stakeholder
+
+- Fußzeile des Verteiler-Tabs zeigt jetzt „N von M Stakeholdern entsprechen dem Filter · K mit
+  E-Mail-Adresse (J ausgeschlossen)“ statt „N Einträge in der Verteilerliste · M mit E-Mail-Adresse
+  (K ohne E-Mail-Adresse)“ (Issue #82, `docs/design/Verteiler.dc.html`). `N`
+  (`distinctFilteredStakeholderCount`) zählt unterschiedliche Stakeholder im Filterergebnis
+  (Deduplizierung über `stakeholderId`, nicht `rows.length`); `M` (`totalStakeholderCount`) ist die
+  unfilterte Gesamtzahl aller aktiven Projekt-Stakeholder.
+- `DistributionListService.getDistributionList` liefert seit dieser Story `{ rows,
+  totalStakeholderCount }` statt eines reinen `DistributionListRow[]` — `totalStakeholderCount` ist
+  die Länge der ohnehin für die Organisations-Anreicherung (US-042) geladenen, unfilterten
+  Stakeholderliste, **kein** zusätzlicher HTTP-Request.
+- Die Fußzeile (`.dl-foot-row`) wird im Leerzustand (kein Filtertreffer) jetzt vollständig
+  ausgeblendet statt „0 von M Stakeholdern …“ mit deaktivierten Aktions-Buttons zu zeigen.
+- Korrigiert bewusst die in US-042 „Anmerkungen des Agenten“ Punkt 5 dokumentierte Abweichung,
+  nachdem `docs/design/Verteiler.dc.html` als zum Story-Zeitpunkt bereits existierende, aber nicht
+  konsultierte verbindliche Design-Quelle identifiziert wurde (siehe Story-Datei „Anmerkungen des
+  Agenten“).
+- Story-Test: `frontend/src/app/features/distribution/us-066-verteiler-fusszeile-gesamtzahl.spec.ts`
+  (AC 1–5); zusätzlicher Service-Test in `distribution-list.service.spec.ts` belegt mit
+  `HttpTestingController`, dass `totalStakeholderCount` ohne dritten Request ermittelt wird.
+
+### US-059 — StakeholderDetailComponent zuverlässig rendern (Assessment-Bereich, Stammdaten) statt leerem Inhaltsbereich
+
+- `stakeholder-detail.component.ts` injiziert jetzt `ChangeDetectorRef` und ruft
+  `changeDetectorRef.markForCheck()` in `load()`s `next`- und `error`-Zweig sowie im
+  `projectsService.getProject(...).subscribe(...)`-Callback in `ngOnInit` auf — dieselbe
+  Zoneless-Root-Cause wie bereits in US-050/US-051/US-052/US-057/US-058 behoben (Issue #61,
+  zusätzlich bestätigt durch Issue #81). Ohne diesen Fix blieb der Inhaltsbereich (Stammdaten **und**
+  der bereits vollständig umgesetzte Assessment-Bereich aus US-027–US-030) nach Direktnavigation/
+  Klick leer, obwohl die HTTP-Antworten erfolgreich eintrafen — reine Presentation-Layer-Änderung,
+  keine Änderung an `canEdit`/`canDelete`/`canViewAssessments` oder der US-030-Sichtbarkeitsregel.
+  Behebt zugleich, dass die bereits „fertig“ gemeldete Stakeholder Map (US-031–US-036) mangels
+  erfassbarer Assessments praktisch leer blieb.
+- Story-Test: `frontend/src/app/features/stakeholders/us-059-stakeholder-detail-markforcheck.spec.ts`
+  (AC 1–4), verwendet `HttpTestingController`/`flush()` statt synchronem `of(...)`, um das
+  Bug-Muster tatsächlich zu reproduzieren (vor dem Fix verifiziert: 5 von 6 Testfällen schlagen fehl).
+
+### US-048 — PrimeNG-Lizenzschlüssel serverseitig verwalten statt im Frontend-Bundle auszuliefern
+
+- `GET /api/v1/config/primeng-license` (neu, `FrontendConfigController`, unauthentifiziert): liest
+  `PRIMENG_LICENSE_KEY` aus der Server-Umgebung und liefert `{ "primeNgLicenseKey": "<key>" | null
+  }`. Unauthentifiziert bewusst, da PrimeNG-Komponenten bereits vor dem Login (US-009) benötigt
+  werden; gibt ausschließlich diesen einen Wert preis, keine sonstigen Server-/Umgebungsinformationen.
+- `docker-compose.yml`: neue Umgebungsvariable `PRIMENG_LICENSE_KEY` im `api`-Service, Passthrough
+  mit leerem Dev-Default (`${PRIMENG_LICENSE_KEY:-}`), analog zu `JWT_SIGNING_KEY`. Kein produktiver
+  Schlüssel committet.
+- Der bisher als Klartext-Literal in `frontend/src/app/app.config.ts` hinterlegte PrimeNG-
+  Lizenzschlüssel (aus US-047/ADR-0009) ist entfernt. `app.config.ts` exportiert stattdessen
+  `createAppConfig(primeNgLicenseKey: string | null)`; der Wert wird in `main.ts` VOR
+  `bootstrapApplication` per `fetchPrimeNgLicenseKey()` (`frontend/src/app/core/config/
+  primeng-license.ts`) vom neuen Endpoint bezogen. Bewusst vor statt innerhalb des
+  Angular-Bootstraps, da `providePrimeNG`s eigener App-Initializer den `license`-Wert synchron zum
+  Zeitpunkt seiner eigenen Ausführung liest — ein nachträgliches Mutieren nach Abschluss eines
+  parallel laufenden asynchronen App-Initializers käme zu spät (Details siehe Kommentar in
+  `primeng-license.ts`). Rotation des Schlüssels erfordert damit nur noch eine Änderung der
+  Umgebungsvariable + Container-Neustart des `api`-Service, kein Frontend-Rebuild/-Redeploy — lokal
+  gegen `docker-compose up` verifiziert (`api` neu gestartet mit geändertem
+  `PRIMENG_LICENSE_KEY`, `frontend`-Container unangetastet).
+- ADR-0009 um einen Nachtrag ergänzt, der auf diese Story als Umsetzung des dort dokumentierten
+  technischen Follow-ups verweist; die dortige Grundsatzfrage der eigentlichen
+  Lizenzregistrierung bei primeui.dev bleibt unverändert beim Projektverantwortlichen.
+- Story-Tests: `tests/SlobSteak.Api.Tests/UserStories/US048_PrimeNgLizenzschluesselServerseitigTests.cs`
+  (AC 1, 2, 3, 5, 8) und `frontend/src/app/us-048-primeng-license-serverseitig.spec.ts` (AC 7).
+
 ### US-042 — Verteilerlisten-UI: Filter, Tabelle, Copy-E-Mails, CSV-Export
 
 - `DistributionListPageComponent` (`frontend/src/app/features/distribution/`) ersetzt den

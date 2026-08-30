@@ -120,7 +120,7 @@ Ergebnis eines UX-Reviews vom 23.08.2026 (Fokus: Feedback bei Operationen >0,5s,
 | US-045 | Globale Navigation (Shell) inkl. Abmelden-Funktion | Frontend-Shell | US-006, US-009, US-018 | [US-045-globale-navigation-abmelden.md](US-045-globale-navigation-abmelden.md) | fertig (23.08.2026) |
 | US-046 | Admin-Bereich über globale Navigation erreichbar machen | Frontend-Shell | US-016, US-017, US-045 | [US-046-globale-navigation-admin-eintrag.md](US-046-globale-navigation-admin-eintrag.md) | fertig (23.08.2026) |
 | US-047 | Bestehendes Frontend auf das in CLAUDE.md definierte Design-System migrieren | Frontend-Shell | US-009, US-016, US-017, US-018, US-019, US-021, US-022, US-023, US-024, US-025, US-026, US-029, US-043, US-044, US-045, US-046 | [US-047-frontend-design-migration.md](US-047-frontend-design-migration.md) | fertig (24.08.2026) |
-| US-048 | PrimeNG-Lizenzschlüssel serverseitig verwalten statt im Frontend-Bundle auszuliefern | Frontend-Shell | US-047 | [US-048-primeng-lizenzschluessel-serverseitig.md](US-048-primeng-lizenzschluessel-serverseitig.md) | offen |
+| US-048 | PrimeNG-Lizenzschlüssel serverseitig verwalten statt im Frontend-Bundle auszuliefern | Frontend-Shell | US-047 | [US-048-primeng-lizenzschluessel-serverseitig.md](US-048-primeng-lizenzschluessel-serverseitig.md) | fertig (30.08.2026) |
 
 **Hinweis zu US-047:** Zusätzliche Definition-of-Ready-Voraussetzung über das übliche Schema hinaus — das in `CLAUDE.md` zu hinterlegende Design-Konzept (Farben inkl. Akzentfarbe, Typografie, Abstands-/Radius-Skala, Komponentenmuster) muss vollständig vorliegen, bevor diese Story begonnen wird (wird separat vom Projektverantwortlichen ausgearbeitet, siehe Story-Datei Abschnitt 5).
 
@@ -151,12 +151,12 @@ Aus den offenen GitHub-Issues abgeleitete Stories (kein neuer Bug-Report in `doc
 
 | ID | Titel | Bounded Context | Abhängigkeiten | Datei | Status |
 |---|---|---|---|---|---|
-| US-059 | StakeholderDetailComponent zuverlässig rendern (Assessment-Bereich, Stammdaten) statt leerem Inhaltsbereich | StakeholderManagement / StakeholderAssessment | US-026, US-029, US-030 | [US-059-stakeholder-detail-markforcheck.md](US-059-stakeholder-detail-markforcheck.md) | offen |
-| US-060 | Zoom-Cluster-Buttons auf der Map sichtbar und auffindbar machen | StakeholderMap | US-036 | [US-060-map-zoom-buttons-sichtbar.md](US-060-map-zoom-buttons-sichtbar.md) | offen |
-| US-061 | Map-Zoom skaliert Positionen statt Punkt-Marker unverhältnismäßig zu vergrößern | StakeholderMap | US-036, US-060 | [US-061-map-zoom-skalierung.md](US-061-map-zoom-skalierung.md) | offen |
-| US-062 | Tastatur-Positionierung eigener Map-Punkte für Screenreader-Nutzer:innen zuverlässig ankündigen | StakeholderMap | US-036, US-061 | [US-062-map-tastatur-positionierung-ankuendigen.md](US-062-map-tastatur-positionierung-ankuendigen.md) | offen |
-| US-063 | Toolbar-Hinweistext „X von Y Stakeholdern sichtbar“ auf der Map ergänzen | StakeholderMap | US-032, US-062 | [US-063-map-toolbar-sichtbarkeits-hinweis.md](US-063-map-toolbar-sichtbarkeits-hinweis.md) | offen |
-| US-064 | Einheitlicher, tokenisierter Opacity-Wert für gesperrte Map-Punkte | StakeholderMap | US-034, US-036, US-063 | [US-064-map-opacity-token-vereinheitlichen.md](US-064-map-opacity-token-vereinheitlichen.md) | offen |
+| US-059 | StakeholderDetailComponent zuverlässig rendern (Assessment-Bereich, Stammdaten) statt leerem Inhaltsbereich | StakeholderManagement / StakeholderAssessment | US-026, US-029, US-030 | [US-059-stakeholder-detail-markforcheck.md](US-059-stakeholder-detail-markforcheck.md) | fertig (30.08.2026) |
+| US-060 | Zoom-Cluster-Buttons auf der Map sichtbar und auffindbar machen | StakeholderMap | US-036 | [US-060-map-zoom-buttons-sichtbar.md](US-060-map-zoom-buttons-sichtbar.md) | fertig (30.08.2026) |
+| US-061 | Map-Zoom skaliert Positionen statt Punkt-Marker unverhältnismäßig zu vergrößern | StakeholderMap | US-036, US-060 | [US-061-map-zoom-skalierung.md](US-061-map-zoom-skalierung.md) | fertig (30.08.2026) |
+| US-062 | Tastatur-Positionierung eigener Map-Punkte für Screenreader-Nutzer:innen zuverlässig ankündigen | StakeholderMap | US-036, US-061 | [US-062-map-tastatur-positionierung-ankuendigen.md](US-062-map-tastatur-positionierung-ankuendigen.md) | fertig (30.08.2026) |
+| US-063 | Toolbar-Hinweistext „X von Y Stakeholdern sichtbar“ auf der Map ergänzen | StakeholderMap | US-032, US-062 | [US-063-map-toolbar-sichtbarkeits-hinweis.md](US-063-map-toolbar-sichtbarkeits-hinweis.md) | fertig (30.08.2026) |
+| US-064 | Einheitlicher, tokenisierter Opacity-Wert für gesperrte Map-Punkte | StakeholderMap | US-034, US-036, US-063 | [US-064-map-opacity-token-vereinheitlichen.md](US-064-map-opacity-token-vereinheitlichen.md) | fertig (30.08.2026) |
 
 **Hinweis zu US-059:** Kein neues GitHub-Issue angelegt — der vom Projektverantwortlichen gemeldete Endnutzer-Bug wurde als Kommentar an das bereits bestehende, unabhängig von QA gefundene Issue #61 angehängt (identische Root Cause, siehe dortiger Kommentar sowie „Anmerkungen des Product Owners“ in der Story-Datei).
 
@@ -168,10 +168,10 @@ Aus den offenen GitHub-Issues abgeleitete Stories (QA-Design-Abgleich der Phasen
 
 | ID | Titel | Bounded Context | Abhängigkeiten | Datei | Status |
 |---|---|---|---|---|---|
-| US-065 | Kommunikationsarten-Katalog Admin-UI als kompaktes Listen-Panel statt Einzelkarten | CommunicationCatalog | US-038 | [US-065-communication-type-katalog-listenpanel.md](US-065-communication-type-katalog-listenpanel.md) | offen |
-| US-066 | Verteiler-Fußzeile zeigt unfilterte Gesamtzahl der Projekt-Stakeholder | DistributionList | US-042 | [US-066-verteiler-fusszeile-gesamtzahl.md](US-066-verteiler-fusszeile-gesamtzahl.md) | offen |
-| US-067 | Kommunikationsart-Spalte im Verteiler als Chip darstellen | DistributionList | US-066 | [US-067-verteiler-kommunikationsart-chip.md](US-067-verteiler-kommunikationsart-chip.md) | offen |
-| US-068 | „Keine E-Mail hinterlegt“-Hinweis: nur Icon in Attention-Farbe, Text gedämpft | DistributionList | US-067 | [US-068-verteiler-mail-cell-attention-farbe.md](US-068-verteiler-mail-cell-attention-farbe.md) | offen |
+| US-065 | Kommunikationsarten-Katalog Admin-UI als kompaktes Listen-Panel statt Einzelkarten | CommunicationCatalog | US-038 | [US-065-communication-type-katalog-listenpanel.md](US-065-communication-type-katalog-listenpanel.md) | fertig (30.08.2026) |
+| US-066 | Verteiler-Fußzeile zeigt unfilterte Gesamtzahl der Projekt-Stakeholder | DistributionList | US-042 | [US-066-verteiler-fusszeile-gesamtzahl.md](US-066-verteiler-fusszeile-gesamtzahl.md) | fertig (30.08.2026) |
+| US-067 | Kommunikationsart-Spalte im Verteiler als Chip darstellen | DistributionList | US-066 | [US-067-verteiler-kommunikationsart-chip.md](US-067-verteiler-kommunikationsart-chip.md) | fertig (30.08.2026) |
+| US-068 | „Keine E-Mail hinterlegt“-Hinweis: nur Icon in Attention-Farbe, Text gedämpft | DistributionList | US-067 | [US-068-verteiler-mail-cell-attention-farbe.md](US-068-verteiler-mail-cell-attention-farbe.md) | fertig (30.08.2026) |
 
 **Hinweis zu Issue #81:** Kein eigene Story angelegt. Issue #81 („Stakeholder-Detailseite (S4) rendert leer — Kommunikationszuordnungen-Panel aus US-040 nicht erreichbar“) beschreibt exakt dieselbe, bereits in [US-059](US-059-stakeholder-detail-markforcheck.md) (Phase 11, Issue #61) dokumentierte und noch offene Root Cause (fehlendes `markForCheck()` in `StakeholderDetailComponent`, zoneless Change Detection) — diesmal entdeckt beim Design-Abgleich von US-040 statt beim ursprünglichen Map-Smoke-Test. Siehe „Anmerkungen des Product Owners“ (Update 30.08.2026) in der US-059-Story-Datei.
 

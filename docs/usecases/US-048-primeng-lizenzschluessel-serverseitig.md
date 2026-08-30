@@ -54,3 +54,45 @@ Als **Sicherheitsverantwortlicher für SlobSteak** möchte ich, **dass der Prime
 ### Anmerkungen des Agenten (bei Umsetzung zu ergänzen)
 
 - Diese Story wurde als Ergebnis eines Security-Reviews formuliert (Fund: hartcodierter PrimeNG-Lizenzschlüssel in `frontend/src/app/app.config.ts`, eingeführt mit US-047). Der Umsetzungs-Agent trägt hier ein, welchen konkreten Bootstrap-Mechanismus (APP_INITIALIZER vs. Route-Resolver vs. sonstiges) er gewählt hat und warum.
+
+**Status:** fertig am 30.08.2026, PR siehe Branch `feature/US-048-primeng-lizenzschluessel-serverseitig`.
+
+**Gewählter Bootstrap-Mechanismus:** Weder `APP_INITIALIZER`/`provideAppInitializer` noch ein
+Route-Resolver, sondern ein Fetch **vor** `bootstrapApplication` in `main.ts`
+(`fetchPrimeNgLicenseKey()` aus `frontend/src/app/core/config/primeng-license.ts`), dessen Ergebnis
+an eine neue Factory-Funktion `createAppConfig(primeNgLicenseKey: string | null)` in `app.config.ts`
+übergeben wird (ersetzt die bisherige statische `appConfig`-Konstante).
+
+Begründung — ein `provideAppInitializer`-basierter Ansatz (naheliegendster erster Versuch) wurde
+verworfen, nachdem Prüfung von `node_modules/primeng/fesm2022/primeng-config.mjs` zeigte, dass
+`providePrimeNG` selbst intern einen `provideAppInitializer` registriert, dessen Callback den
+`license`-Wert **synchron in dem Moment liest, in dem genau dieser Initializer ausgeführt wird**
+(`registerLicense({ primeui: license })`, vor dem asynchronen `verifyLicense(...).then(...)`). Ein
+Blick in `@angular/core/fesm2022/_debug_node-chunk.mjs`
+(`ApplicationInitStatus.runInitializers()`) bestätigt: Angular ruft alle registrierten
+App-Initializer-Funktionen in einer `for`-Schleife synchron nacheinander **auf**, wartet aber
+zwischen den Aufrufen **nicht** auf den Promise-Abschluss eines vorherigen, asynchronen
+Initializers — erst am Ende werden alle zurückgegebenen Promises gemeinsam per `Promise.all`
+abgewartet. Ein eigener, asynchron per HTTP fetchender App-Initializer, der lediglich versucht, das
+`license`-Feld eines bereits an `providePrimeNG` übergebenen Konfigurationsobjekts nachträglich zu
+mutieren, kommt daher strukturell zu spät: `providePrimeNG`s eigener Initializer hat den (dann noch
+`undefined`) Wert längst gelesen, bevor der Fetch überhaupt abgeschlossen ist — unabhängig von der
+Registrierungsreihenfolge der beiden `provideAppInitializer`-Aufrufe. Der Schlüssel muss deshalb
+bereits **vor** dem Aufruf von `providePrimeNG` (also vor `bootstrapApplication`) vorliegen. Ein
+Route-Resolver scheidet aus demselben Grund aus: Er läuft ebenfalls erst nach `providePrimeNG`s
+eigenem Initializer.
+
+`fetchPrimeNgLicenseKey()` verwendet bewusst die native `fetch`-API statt Angulars `HttpClient`, da
+vor `bootstrapApplication` noch kein Angular-Dependency-Injection-Kontext existiert, in dem
+`HttpClient` injiziert werden könnte. Der Aufruf ist in einer eigenständigen, exportierten Funktion
+gekapselt, damit er im Story-Test per Spy auf `window.fetch` nachweisbar ist (Akzeptanzkriterium 7).
+Ein fehlgeschlagener/nicht erreichbarer Abruf liefert `null` statt zu werfen — blockiert den
+Bootstrap nicht, der in ADR-0009 dokumentierte unlizenzierte Zustand bleibt gültig.
+
+Manuell verifiziert (Akzeptanzkriterium 4, Rotation ohne Frontend-Rebuild): vollständiger
+`docker-compose up --build`-Stack lokal gestartet; `GET /api/v1/config/primeng-license` lieferte
+zunächst `{"primeNgLicenseKey":null}` (keine Variable gesetzt). Anschließend `api`-Container mit
+gesetztem `PRIMENG_LICENSE_KEY` neu gestartet (`docker compose up -d --no-deps api`), `frontend`-
+Container dabei **nicht** angefasst (Erstellungszeitstempel unverändert) — der Endpoint lieferte
+danach sofort den neuen Wert. Ein Browser-Reload des unveränderten `frontend`-Containers würde den
+neuen Wert beim nächsten Bootstrap-Fetch übernehmen, ohne Frontend-Rebuild/-Redeploy.

@@ -38,7 +38,7 @@ describe('CommunicationTypesAdminComponent', () => {
     expect(fixture.componentInstance['communicationTypes']).toEqual(existingTypes);
   });
 
-  it('should not call createCommunicationType when the create form is invalid', () => {
+  it('should not call createCommunicationType when the inline add form is invalid', () => {
     const fixture = TestBed.createComponent(CommunicationTypesAdminComponent);
     fixture.detectChanges();
     const component = fixture.componentInstance;
@@ -48,31 +48,33 @@ describe('CommunicationTypesAdminComponent', () => {
     expect(adminCommunicationTypesServiceSpy.createCommunicationType).not.toHaveBeenCalled();
   });
 
-  it('should create a communication type and reload the list on valid submit', () => {
+  it('should create a communication type via the inline add row and reload the list on valid submit', () => {
     adminCommunicationTypesServiceSpy.createCommunicationType.and.returnValue(of(existingTypes[0]));
     const fixture = TestBed.createComponent(CommunicationTypesAdminComponent);
     fixture.detectChanges();
     const component = fixture.componentInstance;
 
+    component['openInlineAdd']();
     component['createForm'].setValue({ name: 'Statusbericht' });
     component['onCreateType']();
 
     expect(adminCommunicationTypesServiceSpy.createCommunicationType).toHaveBeenCalledWith('Statusbericht');
     expect(adminCommunicationTypesServiceSpy.listCommunicationTypes).toHaveBeenCalledTimes(2);
+    expect(component['isAddingType']).toBeFalse();
   });
 
-  it('should show an inline duplicate-name error on 409 without closing the create dialog', () => {
+  it('should show an inline duplicate-name error on 409 without collapsing the inline add row', () => {
     adminCommunicationTypesServiceSpy.createCommunicationType.and.returnValue(throwError(() => new HttpErrorResponse({ status: 409 })));
     const fixture = TestBed.createComponent(CommunicationTypesAdminComponent);
     fixture.detectChanges();
     const component = fixture.componentInstance;
 
-    component['openCreateDialog']();
+    component['openInlineAdd']();
     component['createForm'].setValue({ name: 'Newsletter' });
     component['onCreateType']();
 
     expect(component['createErrorMessage']).toBe('Diese Bezeichnung wird bereits verwendet.');
-    expect(component['createDialogVisible']()).toBeTrue();
+    expect(component['isAddingType']).toBeTrue();
   });
 
   it('should not call createCommunicationType a second time while a create request is still pending', () => {
@@ -88,76 +90,114 @@ describe('CommunicationTypesAdminComponent', () => {
     expect(adminCommunicationTypesServiceSpy.createCommunicationType).not.toHaveBeenCalled();
   });
 
-  it('should open the rename dialog pre-filled with the current name', () => {
+  it('should open the combined edit dialog pre-filled with the current name and active status', () => {
     const fixture = TestBed.createComponent(CommunicationTypesAdminComponent);
     fixture.detectChanges();
     const component = fixture.componentInstance;
 
-    component['openRenameDialog'](existingTypes[0]);
+    component['openEditDialog'](existingTypes[0]);
 
-    expect(component['renameDialogVisible']()).toBeTrue();
-    expect(component['renameForm'].getRawValue().name).toBe('Newsletter');
+    expect(component['editDialogVisible']()).toBeTrue();
+    expect(component['editForm'].getRawValue()).toEqual({ name: 'Newsletter', active: true });
   });
 
-  it('should rename a communication type and reload the list on valid submit', () => {
+  it('should rename a communication type via the combined edit dialog and reload the list when only the name changed', () => {
     adminCommunicationTypesServiceSpy.renameCommunicationType.and.returnValue(of({ ...existingTypes[0], name: 'Rundbrief' }));
     const fixture = TestBed.createComponent(CommunicationTypesAdminComponent);
     fixture.detectChanges();
     const component = fixture.componentInstance;
 
-    component['openRenameDialog'](existingTypes[0]);
-    component['renameForm'].setValue({ name: 'Rundbrief' });
-    component['onRenameType']();
+    component['openEditDialog'](existingTypes[0]);
+    component['editForm'].setValue({ name: 'Rundbrief', active: true });
+    component['onSubmitEdit']();
 
     expect(adminCommunicationTypesServiceSpy.renameCommunicationType).toHaveBeenCalledWith('type-1', 'Rundbrief');
+    expect(adminCommunicationTypesServiceSpy.setActive).not.toHaveBeenCalled();
     expect(adminCommunicationTypesServiceSpy.listCommunicationTypes).toHaveBeenCalledTimes(2);
   });
 
-  it('should show an inline duplicate-name error on rename 409 without closing the dialog', () => {
-    adminCommunicationTypesServiceSpy.renameCommunicationType.and.returnValue(throwError(() => new HttpErrorResponse({ status: 409 })));
-    const fixture = TestBed.createComponent(CommunicationTypesAdminComponent);
-    fixture.detectChanges();
-    const component = fixture.componentInstance;
-
-    component['openRenameDialog'](existingTypes[0]);
-    component['renameForm'].setValue({ name: 'Pressemitteilung' });
-    component['onRenameType']();
-
-    expect(component['renameErrorMessage']).toBe('Diese Bezeichnung wird bereits verwendet.');
-    expect(component['renameDialogVisible']()).toBeTrue();
-  });
-
-  it('should toggle a communication type from active to inactive via setActive(false)', () => {
+  it('should toggle a communication type from active to inactive via the combined edit dialog when only the active status changed', () => {
     adminCommunicationTypesServiceSpy.setActive.and.returnValue(of({ ...existingTypes[0], isActive: false }));
     const fixture = TestBed.createComponent(CommunicationTypesAdminComponent);
     fixture.detectChanges();
     const component = fixture.componentInstance;
 
-    component['onToggleActive'](existingTypes[0]);
+    component['openEditDialog'](existingTypes[0]);
+    component['editForm'].setValue({ name: 'Newsletter', active: false });
+    component['onSubmitEdit']();
 
     expect(adminCommunicationTypesServiceSpy.setActive).toHaveBeenCalledWith('type-1', false);
+    expect(adminCommunicationTypesServiceSpy.renameCommunicationType).not.toHaveBeenCalled();
   });
 
-  it('should toggle a communication type from inactive to active via setActive(true)', () => {
+  it('should toggle a communication type from inactive to active via the combined edit dialog', () => {
     adminCommunicationTypesServiceSpy.setActive.and.returnValue(of({ ...existingTypes[1], isActive: true }));
     const fixture = TestBed.createComponent(CommunicationTypesAdminComponent);
     fixture.detectChanges();
     const component = fixture.componentInstance;
 
-    component['onToggleActive'](existingTypes[1]);
+    component['openEditDialog'](existingTypes[1]);
+    component['editForm'].setValue({ name: 'Pressemitteilung', active: true });
+    component['onSubmitEdit']();
 
     expect(adminCommunicationTypesServiceSpy.setActive).toHaveBeenCalledWith('type-2', true);
   });
 
-  it('should not call setActive a second time while a toggle request for that row is still pending', () => {
+  it('should rename and toggle sequentially when both name and active status changed in the combined edit dialog', () => {
+    adminCommunicationTypesServiceSpy.renameCommunicationType.and.returnValue(of({ ...existingTypes[0], name: 'Rundbrief' }));
+    adminCommunicationTypesServiceSpy.setActive.and.returnValue(of({ ...existingTypes[0], name: 'Rundbrief', isActive: false }));
     const fixture = TestBed.createComponent(CommunicationTypesAdminComponent);
     fixture.detectChanges();
     const component = fixture.componentInstance;
 
-    component['togglingIds'].add('type-1');
-    component['onToggleActive'](existingTypes[0]);
+    component['openEditDialog'](existingTypes[0]);
+    component['editForm'].setValue({ name: 'Rundbrief', active: false });
+    component['onSubmitEdit']();
 
+    expect(adminCommunicationTypesServiceSpy.renameCommunicationType).toHaveBeenCalledWith('type-1', 'Rundbrief');
+    expect(adminCommunicationTypesServiceSpy.setActive).toHaveBeenCalledWith('type-1', false);
+    expect(component['editDialogVisible']()).toBeFalse();
+  });
+
+  it('should not call setActive when neither name nor active status changed in the combined edit dialog', () => {
+    const fixture = TestBed.createComponent(CommunicationTypesAdminComponent);
+    fixture.detectChanges();
+    const component = fixture.componentInstance;
+
+    component['openEditDialog'](existingTypes[0]);
+    component['editForm'].setValue({ name: 'Newsletter', active: true });
+    component['onSubmitEdit']();
+
+    expect(adminCommunicationTypesServiceSpy.renameCommunicationType).not.toHaveBeenCalled();
     expect(adminCommunicationTypesServiceSpy.setActive).not.toHaveBeenCalled();
+    expect(component['editDialogVisible']()).toBeFalse();
+  });
+
+  it('should show an inline duplicate-name error on rename 409 without closing the combined edit dialog', () => {
+    adminCommunicationTypesServiceSpy.renameCommunicationType.and.returnValue(throwError(() => new HttpErrorResponse({ status: 409 })));
+    const fixture = TestBed.createComponent(CommunicationTypesAdminComponent);
+    fixture.detectChanges();
+    const component = fixture.componentInstance;
+
+    component['openEditDialog'](existingTypes[0]);
+    component['editForm'].setValue({ name: 'Pressemitteilung', active: true });
+    component['onSubmitEdit']();
+
+    expect(component['editErrorMessage']).toBe('Diese Bezeichnung wird bereits verwendet.');
+    expect(component['editDialogVisible']()).toBeTrue();
+  });
+
+  it('should not call onSubmitEdit a second time while a save request is still pending', () => {
+    const fixture = TestBed.createComponent(CommunicationTypesAdminComponent);
+    fixture.detectChanges();
+    const component = fixture.componentInstance;
+
+    component['openEditDialog'](existingTypes[0]);
+    component['editForm'].setValue({ name: 'Rundbrief', active: true });
+    component['isSavingEdit'] = true;
+    component['onSubmitEdit']();
+
+    expect(adminCommunicationTypesServiceSpy.renameCommunicationType).not.toHaveBeenCalled();
   });
 
   it('should show a consistent load-error message when the list fails to load (US-044 Akzeptanzkriterium 4)', () => {
@@ -185,16 +225,16 @@ describe('CommunicationTypesAdminComponent', () => {
       fixture.detectChanges();
 
       expect(fixture.componentInstance['typesState']).toBe('loading');
-      expect(fixture.nativeElement.querySelectorAll('.communication-type-card').length).toBe(0);
+      expect(fixture.nativeElement.querySelectorAll('.catalog-row').length).toBe(0);
 
       const httpTestingController = TestBed.inject(HttpTestingController);
       httpTestingController.expectOne('/api/v1/communication-types').flush(existingTypes);
       fixture.detectChanges();
 
       expect(fixture.componentInstance['typesState']).toBe('content');
-      const cards: NodeListOf<HTMLElement> = fixture.nativeElement.querySelectorAll('.communication-type-card');
-      expect(cards.length).toBe(existingTypes.length);
-      expect(cards[0].textContent).toContain(existingTypes[0].name);
+      const rows: NodeListOf<HTMLElement> = fixture.nativeElement.querySelectorAll('.catalog-row');
+      expect(rows.length).toBe(existingTypes.length);
+      expect(rows[0].textContent).toContain(existingTypes[0].name);
 
       httpTestingController.verify();
     });

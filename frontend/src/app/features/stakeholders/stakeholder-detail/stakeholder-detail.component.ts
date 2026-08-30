@@ -1,4 +1,4 @@
-import { Component, OnInit, inject } from '@angular/core';
+import { ChangeDetectorRef, Component, OnInit, inject } from '@angular/core';
 import { ActivatedRoute, Router, RouterLink } from '@angular/router';
 import { DatePipe } from '@angular/common';
 import { ButtonDirective } from 'primeng/button';
@@ -28,6 +28,13 @@ import { CommunicationAssignmentPanelComponent } from '../communication-assignme
  * serverseitigen 403-Sperre auf `GET .../assessments`. Ein 404 (Stakeholder nicht
  * vorhanden oder soft-gelöscht, Akzeptanzkriterium 5) zeigt eine „Nicht gefunden“-Ansicht statt
  * der Detailinhalte.
+ *
+ * US-059: `changeDetectorRef.markForCheck()` in `load()` (Erfolg/Fehler) sowie im
+ * `projectsService.getProject(...)`-Subscribe ergänzt — dieselbe Root Cause wie in
+ * US-050/US-051/US-052/US-057/US-058: Das Frontend läuft ohne `zone.js` (zoneless), eine reine
+ * Feldzuweisung in einem `subscribe()`-Callback markiert die Komponente sonst nicht automatisch für
+ * die nächste Change-Detection-Runde. Diese Komponente wurde von der „systematischen“
+ * US-058-Bereinigung nicht erfasst (Issue #61, bestätigt zusätzlich durch Issue #81).
  */
 @Component({
   selector: 'app-stakeholder-detail',
@@ -49,6 +56,7 @@ export class StakeholderDetailComponent implements OnInit {
   private readonly router = inject(Router);
   private readonly stakeholdersService = inject(StakeholdersService);
   private readonly projectsService = inject(ProjectsService);
+  private readonly changeDetectorRef = inject(ChangeDetectorRef);
 
   protected projectId = '';
   protected stakeholder: Stakeholder | null = null;
@@ -66,12 +74,19 @@ export class StakeholderDetailComponent implements OnInit {
     }
 
     this.load(stakeholderId);
-    this.projectsService.getProject(this.projectId).subscribe((project) => (this.currentUserRole = project.role));
+    this.projectsService.getProject(this.projectId).subscribe((project) => {
+      this.currentUserRole = project.role;
+      this.changeDetectorRef.markForCheck();
+    });
   }
 
   /** Akzeptanzkriterium 2: Bearbeiten nur für PL/Coreteam/Architect, für User read-only. */
   protected get canEdit(): boolean {
-    return this.currentUserRole === 'PL' || this.currentUserRole === 'Coreteam' || this.currentUserRole === 'Architect';
+    return (
+      this.currentUserRole === 'PL' ||
+      this.currentUserRole === 'Coreteam' ||
+      this.currentUserRole === 'Architect'
+    );
   }
 
   /** Akzeptanzkriterium 4: CTA „Löschen“ nur für PL/Admin(mit PL-Zuweisung) sichtbar. */
@@ -90,7 +105,11 @@ export class StakeholderDetailComponent implements OnInit {
    * die Tabs darunter.
    */
   protected get canViewAssessments(): boolean {
-    return this.currentUserRole === 'PL' || this.currentUserRole === 'Coreteam' || this.currentUserRole === 'Architect';
+    return (
+      this.currentUserRole === 'PL' ||
+      this.currentUserRole === 'Coreteam' ||
+      this.currentUserRole === 'Architect'
+    );
   }
 
   protected onEditClick(): void {
@@ -125,10 +144,12 @@ export class StakeholderDetailComponent implements OnInit {
       next: (stakeholder) => {
         this.stakeholder = stakeholder;
         this.notFound = false;
+        this.changeDetectorRef.markForCheck();
       },
       error: () => {
         this.stakeholder = null;
         this.notFound = true;
+        this.changeDetectorRef.markForCheck();
       },
     });
   }

@@ -54,6 +54,20 @@ export interface DistributionListRow {
 }
 
 /**
+ * Ergebnis von {@link DistributionListService.getDistributionList} (US-066): neben den
+ * angereicherten, gefilterten Zeilen enthält es zusätzlich `totalStakeholderCount` — die
+ * unfilterte Gesamtzahl aller aktiven Stakeholder des Projekts, für die Fußzeilen-Formel „N von M
+ * Stakeholdern entsprechen dem Filter“ (Akzeptanzkriterium 1/2). `totalStakeholderCount` stammt
+ * aus derselben, bereits für die Organisations-Anreicherung geladenen `GET
+ * /api/v1/projects/{projectId}/stakeholders`-Antwort (siehe Klassendoku unten) — kein
+ * zusätzlicher HTTP-Request nötig (Akzeptanzkriterium 2).
+ */
+export interface DistributionListResult {
+  rows: DistributionListRow[];
+  totalStakeholderCount: number;
+}
+
+/**
  * Injizierbarer Service für die Verteilerlisten-Query (US-041/US-042, Bounded Context
  * DistributionList). Alle HTTP-Zugriffe laufen ausschließlich über diese Klasse, nie direkt aus
  * einer Komponente (CLAUDE.md Abschnitt 3.1, frontend.md Abschnitt 2).
@@ -64,16 +78,18 @@ export class DistributionListService {
   private readonly stakeholdersService = inject(StakeholdersService);
 
   /**
-   * Lädt die gefilterte Verteilerliste eines Projekts (US-041 Akzeptanzkriterium 1) und reichert
+   * Lädt die gefilterte Verteilerliste eines Projekts (US-041 Akzeptanzkriterium 1), reichert
    * jeden Eintrag um die Organisation des zugehörigen Stakeholders an (siehe
-   * {@link DistributionListRow}). Beide Requests laufen parallel (`forkJoin`); schlägt einer der
-   * beiden fehl, schlägt die gesamte Anfrage fehl — die aufrufende Komponente zeigt in diesem Fall
-   * den bestehenden Fehler-Baustein (SPEC-00 §3) statt einer teilweise befüllten Tabelle.
+   * {@link DistributionListRow}) und liefert zusätzlich die unfilterte Gesamtzahl aller aktiven
+   * Projekt-Stakeholder (siehe {@link DistributionListResult}, US-066). Beide Requests laufen
+   * parallel (`forkJoin`); schlägt einer der beiden fehl, schlägt die gesamte Anfrage fehl — die
+   * aufrufende Komponente zeigt in diesem Fall den bestehenden Fehler-Baustein (SPEC-00 §3) statt
+   * einer teilweise befüllten Tabelle.
    */
   getDistributionList(
     projectId: string,
     filters: DistributionListFilters = {},
-  ): Observable<DistributionListRow[]> {
+  ): Observable<DistributionListResult> {
     let params = new HttpParams();
     if (filters.communicationTypeId) {
       params = params.set('communicationTypeId', filters.communicationTypeId);
@@ -94,24 +110,29 @@ export class DistributionListService {
         { params },
       ),
       // Unfiltered geladen: die Organisation eines Stakeholders ist unabhängig vom aktiven
-      // Verteiler-Filter, ein serverseitig gleich gefilterter Aufruf brächte keinen Vorteil.
+      // Verteiler-Filter, ein serverseitig gleich gefilterter Aufruf brächte keinen Vorteil. Die
+      // Länge dieser ohnehin unfilterten Antwort liefert außerdem direkt `totalStakeholderCount`
+      // (US-066 Akzeptanzkriterium 2) — ohne einen dritten, eigens dafür nötigen Request.
       this.stakeholdersService.listStakeholders(projectId),
     ]).pipe(
       map(([entries, stakeholders]) => {
         const organizationByStakeholderId = new Map(
           stakeholders.map((stakeholder) => [stakeholder.id, stakeholder.organization]),
         );
-        return entries.map((entry): DistributionListRow => ({
-          stakeholderId: entry.stakeholderId,
-          name: entry.name,
-          organization: organizationByStakeholderId.get(entry.stakeholderId) ?? null,
-          hasEmail: entry.hasEmail,
-          email: entry.email,
-          communicationTypeId: entry.communicationTypeId,
-          communicationTypeName: entry.communicationTypeName,
-          frequency: entry.frequency,
-          channel: entry.channel,
-        }));
+        return {
+          rows: entries.map((entry): DistributionListRow => ({
+            stakeholderId: entry.stakeholderId,
+            name: entry.name,
+            organization: organizationByStakeholderId.get(entry.stakeholderId) ?? null,
+            hasEmail: entry.hasEmail,
+            email: entry.email,
+            communicationTypeId: entry.communicationTypeId,
+            communicationTypeName: entry.communicationTypeName,
+            frequency: entry.frequency,
+            channel: entry.channel,
+          })),
+          totalStakeholderCount: stakeholders.length,
+        };
       }),
     );
   }

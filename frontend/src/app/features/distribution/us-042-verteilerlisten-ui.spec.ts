@@ -40,12 +40,18 @@ describe('US-042: Verteilerlisten-UI: Filter, Tabelle, Copy-E-Mails, CSV-Export'
     };
   }
 
+  // US-066: `getDistributionList` liefert seit dieser Story `{ rows, totalStakeholderCount }`
+  // (siehe `distribution-list.service.ts`); die Fußzeilen-Formel selbst ist Gegenstand von
+  // `us-066-verteiler-fusszeile-gesamtzahl.spec.ts`, hier bleibt `totalStakeholderCount` daher ein
+  // unauffälliger Standardwert.
   function configure(rows: DistributionListRow[]): void {
     TestBed.resetTestingModule();
     distributionListServiceSpy = jasmine.createSpyObj('DistributionListService', [
       'getDistributionList',
     ]);
-    distributionListServiceSpy.getDistributionList.and.returnValue(of(rows));
+    distributionListServiceSpy.getDistributionList.and.returnValue(
+      of({ rows, totalStakeholderCount: rows.length }),
+    );
 
     communicationTypesServiceSpy = jasmine.createSpyObj('AdminCommunicationTypesService', [
       'listActiveCommunicationTypes',
@@ -110,6 +116,11 @@ describe('US-042: Verteilerlisten-UI: Filter, Tabelle, Copy-E-Mails, CSV-Export'
     expect(rowText).toContain('ACME GmbH');
     expect(rowText).toContain('max@example.com');
     expect(rowText).toContain('Newsletter');
+    // US-067: Kommunikationsart wird als Chip-Element dargestellt (Detail-Nachweis in
+    // `us-067-verteiler-kommunikationsart-chip.spec.ts`).
+    expect(nativeElement.querySelector('.dl-communication-type-chip')?.textContent?.trim()).toBe(
+      'Newsletter',
+    );
   });
 
   // Akzeptanzkriterium 2: „E-Mails kopieren" kopiert alle E-Mail-Adressen der gefilterten Liste

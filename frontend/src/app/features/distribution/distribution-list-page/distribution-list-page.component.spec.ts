@@ -7,7 +7,11 @@ import {
   AdminCommunicationType,
   AdminCommunicationTypesService,
 } from '../../admin/admin-communication-types.service';
-import { DistributionListRow, DistributionListService } from '../distribution-list.service';
+import {
+  DistributionListResult,
+  DistributionListRow,
+  DistributionListService,
+} from '../distribution-list.service';
 import { DISTRIBUTION_LOAD_ERROR_MESSAGE } from '../distribution-messages';
 import { DistributionListPageComponent } from './distribution-list-page.component';
 
@@ -35,11 +39,17 @@ describe('DistributionListPageComponent', () => {
     };
   }
 
-  function configure(rows: DistributionListRow[]): void {
+  // US-066: `getDistributionList` liefert seit dieser Story `{ rows, totalStakeholderCount }`
+  // (siehe `distribution-list.service.ts`). `totalStakeholderCount` fällt hier standardmäßig auf
+  // `rows.length` zurück, da die meisten Tests dieser Datei die Fußzeilen-Formel nicht prüfen
+  // (dafür siehe `us-066-verteiler-fusszeile-gesamtzahl.spec.ts`).
+  function configure(rows: DistributionListRow[], totalStakeholderCount = rows.length): void {
     distributionListServiceSpy = jasmine.createSpyObj('DistributionListService', [
       'getDistributionList',
     ]);
-    distributionListServiceSpy.getDistributionList.and.returnValue(of(rows));
+    distributionListServiceSpy.getDistributionList.and.returnValue(
+      of({ rows, totalStakeholderCount }),
+    );
 
     communicationTypesServiceSpy = jasmine.createSpyObj('AdminCommunicationTypesService', [
       'listActiveCommunicationTypes',
@@ -106,6 +116,17 @@ describe('DistributionListPageComponent', () => {
     expect(rowText).toContain('Report');
   });
 
+  // US-067: Kommunikationsart wird als abgesetzter Chip dargestellt, nicht als reiner Zellentext
+  // (dedizierter Story-Test mit Token-/Lesbarkeits-Nachweis: `us-067-verteiler-kommunikationsart-chip.spec.ts`).
+  it('renders the communication-type value as a chip element', () => {
+    configure([row({ communicationTypeName: 'Newsletter' })]);
+    const fixture = createComponent();
+
+    const chip = fixture.nativeElement.querySelector('.dl-communication-type-chip');
+    expect(chip).not.toBeNull();
+    expect(chip.textContent.trim()).toBe('Newsletter');
+  });
+
   // Akzeptanzkriterium 4: Zeilen ohne E-Mail bleiben sichtbar, zeigen aber ein Hinweis-Icon + Text.
   it('shows the missing-email icon and text for a row without an email address, without hiding the row', () => {
     configure([row({ hasEmail: false, email: null })]);
@@ -131,7 +152,7 @@ describe('DistributionListPageComponent', () => {
   it('shows skeleton placeholder rows while the request is still pending', () => {
     configure([]);
     distributionListServiceSpy.getDistributionList.and.returnValue(
-      new Subject<DistributionListRow[]>(),
+      new Subject<DistributionListResult>(),
     );
     const fixture = createComponent();
 
@@ -261,7 +282,9 @@ describe('DistributionListPageComponent', () => {
       DISTRIBUTION_LOAD_ERROR_MESSAGE,
     );
 
-    distributionListServiceSpy.getDistributionList.and.returnValue(of([row({})]));
+    distributionListServiceSpy.getDistributionList.and.returnValue(
+      of({ rows: [row({})], totalStakeholderCount: 1 }),
+    );
     const nativeElement: HTMLElement = fixture.nativeElement;
     nativeElement.querySelector<HTMLButtonElement>('.load-error button')?.click();
     fixture.detectChanges();

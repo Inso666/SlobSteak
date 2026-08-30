@@ -5,12 +5,14 @@ import { ActivatedRoute, convertToParamMap, provideRouter, Router } from '@angul
 import { of, throwError } from 'rxjs';
 import { MapComparisonEntry, MapPoint, MapService } from '../map.service';
 import { ProjectOverviewItem, ProjectsService } from '../../projects/projects.service';
+import { Stakeholder, StakeholdersService } from '../../stakeholders/stakeholders.service';
 import { LOAD_ERROR_MESSAGE } from '../../../core/messages/http-error-messages';
 import { StakeholderMapPageComponent } from './stakeholder-map-page.component';
 
 describe('StakeholderMapPageComponent', () => {
   let mapServiceSpy: jasmine.SpyObj<MapService>;
   let projectsServiceSpy: jasmine.SpyObj<ProjectsService>;
+  let stakeholdersServiceSpy: jasmine.SpyObj<StakeholdersService>;
 
   const points: MapPoint[] = [
     { stakeholderId: 'sh-1', name: 'Max Mustermann', influence: 80, interest: 60 },
@@ -21,7 +23,30 @@ describe('StakeholderMapPageComponent', () => {
     { stakeholderId: 'sh-1', name: 'Max Mustermann', primary: { influence: 80, interest: 60 }, secondary: { influence: 30, interest: 20 } },
   ];
 
-  function configure(role: string): void {
+  // US-063: standardmäßig genauso viele Projekt-Stakeholder wie Punkte, damit bestehende Tests
+  // (die keine eigene Aussage über totalCount/visibleCount treffen) unverändert bleiben.
+  const allStakeholders: Stakeholder[] = [points[0], points[1]].map(
+    (point) =>
+      ({
+        id: point.stakeholderId,
+        projectId: 'project-1',
+        type: 'Person',
+        name: point.name,
+        organization: null,
+        position: null,
+        email: null,
+        phone: null,
+        locationDepartment: null,
+        description: null,
+        updatedByName: 'Tester',
+        updatedAt: '2026-08-30T00:00:00Z',
+        similarStakeholderWarning: null,
+        deletedAt: null,
+        deletedByName: null,
+      }) as Stakeholder,
+  );
+
+  function configure(role: string, stakeholders: Stakeholder[] = allStakeholders): void {
     mapServiceSpy = jasmine.createSpyObj('MapService', ['getMapData', 'getComparisonData']);
     mapServiceSpy.getMapData.and.returnValue(of(points));
     mapServiceSpy.getComparisonData.and.returnValue(of(comparisonEntries));
@@ -29,12 +54,16 @@ describe('StakeholderMapPageComponent', () => {
     projectsServiceSpy = jasmine.createSpyObj('ProjectsService', ['listMyProjects', 'getProject']);
     projectsServiceSpy.getProject.and.returnValue(of({ id: 'project-1', name: 'Projekt', role, stakeholderCount: 2 } as ProjectOverviewItem));
 
+    stakeholdersServiceSpy = jasmine.createSpyObj('StakeholdersService', ['listStakeholders']);
+    stakeholdersServiceSpy.listStakeholders.and.returnValue(of(stakeholders));
+
     TestBed.configureTestingModule({
       imports: [StakeholderMapPageComponent],
       providers: [
         provideRouter([]),
         { provide: MapService, useValue: mapServiceSpy },
         { provide: ProjectsService, useValue: projectsServiceSpy },
+        { provide: StakeholdersService, useValue: stakeholdersServiceSpy },
         {
           provide: ActivatedRoute,
           useValue: { parent: { snapshot: { paramMap: convertToParamMap({ id: 'project-1' }) } } },

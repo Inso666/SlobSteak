@@ -1,5 +1,6 @@
 import { ChangeDetectionStrategy, ChangeDetectorRef, Component, ElementRef, EventEmitter, Input, Output, inject } from '@angular/core';
 import { clamp } from '../../../shared/utils/clamp';
+import { MAP_POINT_LIVE_ARIA_LABEL_PREFIX } from '../map-messages';
 
 /** Einfluss-/Interesse-Wertepaar in Prozent (0–100), identisch zur Skala aus `MapPoint`/
  * `MapComparisonValue` (`map.service.ts`). */
@@ -41,6 +42,28 @@ export interface DragPosition {
  * Sprung entsteht. Schlägt der nachfolgende Speichervorgang fehl, macht die aufrufende Seite die
  * Datenquellen-Änderung rückgängig (SPEC-04 §3.7 „Punkt springt zurück“) — diese Komponente selbst
  * kennt den Erfolg/Misserfolg des Speicherns nicht.
+ *
+ * **Marker-Gegenskalierung (US-061):** {@link markerScale} skaliert ausschließlich das eigene
+ * `<button class="map-point">`-Element gegen den Container-Zoom, NICHT {@link surfaceRef} — die
+ * Pixel→Prozent-Umrechnung in {@link updateFromPointer} liest weiterhin unverändert
+ * `surfaceRef.nativeElement.getBoundingClientRect()` und bleibt dadurch von dieser Gegenskalierung
+ * vollständig unberührt (verifiziert gegen echte Maus-Drag-Interaktion nach Zoom, siehe
+ * `us-061-map-zoom-skalierung.spec.ts`).
+ *
+ * **Live-Aria-Label während einer Bewegung (US-062, SPEC-04 §2.3 WCAG 2.1 AA):** {@link ariaLabel}
+ * ist ein reiner `@Input`, den die aufrufende {@link QuadrantChartComponent} ausschließlich aus dem
+ * zuletzt **bestätigten** Stand berechnet (`pointAriaLabel()`) — er reagiert nicht auf
+ * {@link livePosition}. Ohne Gegenmaßnahme liest ein Screenreader beim Fokussieren daher nur den
+ * zuletzt bestätigten Stand vor und kündigt keine der Pfeiltasten-/Maus-Bewegungen an, bis
+ * `Enter`/Fokusverlust die Änderung committet (bestätigter Bug aus Issue #69, siehe Story-Datei
+ * US-062). {@link displayAriaLabel} schließt diese Lücke: Solange {@link isLiveEditing} `true` ist,
+ * liefert er einen aus {@link displayInfluence}/{@link displayInterest} generierten Live-Text
+ * (angelehnt an die bereits vorhandene `.map-point__live`-Formulierung), sonst unverändert das
+ * `@Input` {@link ariaLabel}. Nach Bestätigung/Verwerfen wird `livePosition` wieder `null`, wodurch
+ * der Getter automatisch auf `ariaLabel` zurückfällt — dessen von der aufrufenden Seite neu
+ * berechneter Wert liegt bereits vor dem nächsten Rendern vor (SPEC-04 §2.2, optimistisches
+ * Übernehmen im selben `dragEnd`-Handler-Aufruf), sodass kein veralteter Zwischenstand angezeigt
+ * wird.
  */
 @Component({
   selector: 'app-draggable-point',
@@ -71,6 +94,16 @@ export class DraggablePointComponent {
    * für Maus-Drags liefert (US-036 Akzeptanzkriterium 5). Bei rein per Tastatur bedienten Punkten
    * unbenutzt. */
   @Input({ required: true }) surfaceRef!: ElementRef<HTMLElement>;
+  /** US-061 Akzeptanzkriterium 1/5: Gegenskalierung, mit der die aufrufende
+   * {@link QuadrantChartComponent} den Container-Zoom (`transform: scale(zoomLevel)` auf
+   * `.plot-surface`) für die visuelle Marker-**Größe** neutralisiert — üblicherweise
+   * `1 / zoomLevel`. Als CSS Custom Property (`--marker-counter-scale`, siehe `.css`) statt als
+   * direkt gebundener `[style.transform]` umgesetzt, damit die vorhandenen, formabhängigen
+   * `transform`-Werte aus `.map-point`/`.map-point--compare` (Zentrierung, Diamant-Rotation)
+   * unverändert in derselben CSS-Regel stehen bleiben, statt sie hier dupliziert in TypeScript
+   * nachzubauen. Diese Komponente kennt bewusst nur den fertigen Skalierungsfaktor, nicht den
+   * `zoomLevel` selbst — sie bleibt agnostisch gegenüber Zoom-/Pan-Semantik (siehe Klassendoku). */
+  @Input() markerScale = 1;
 
   /** Klick/Enter ohne aktive Bewegung — Navigation zur Stakeholder-Detailseite (US-032), unverändert
    * für ziehbare wie nicht-ziehbare Punkte. */
@@ -95,6 +128,21 @@ export class DraggablePointComponent {
 
   protected get isLiveEditing(): boolean {
     return this.livePosition !== null;
+  }
+
+  /** Textbaustein „Einfluss X · Interesse Y“ — von der `.map-point__live`-Statusanzeige (Template)
+   * und {@link displayAriaLabel} gemeinsam verwendet, damit die visuelle und die per Screenreader
+   * angekündigte Live-Formulierung nicht unabhängig voneinander gepflegt werden (frontend.md
+   * Abschnitt 3: Wording an einer Stelle halten). */
+  protected get liveValuesText(): string {
+    return `Einfluss ${this.displayInfluence} · Interesse ${this.displayInterest}`;
+  }
+
+  /** US-062 Akzeptanzkriterium 2/3: siehe Klassendoku „Live-Aria-Label während einer Bewegung“. */
+  protected get displayAriaLabel(): string {
+    return this.isLiveEditing
+      ? `${MAP_POINT_LIVE_ARIA_LABEL_PREFIX}: ${this.liveValuesText}.`
+      : this.ariaLabel;
   }
 
   protected onClick(): void {

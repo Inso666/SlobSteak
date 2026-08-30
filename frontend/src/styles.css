@@ -36,6 +36,12 @@
   --app-role-ar: #38bdf8;
   --app-role-ar-bg: rgba(56, 189, 248, 0.16);
 
+  /* Opazitäten (SPEC-00 §1.2, US-064): `--app-map-point-locked-opacity` vereinheitlicht alle
+     "gesperrt/nicht ziehbar"-Zustände der Stakeholder-Map (Vergleichspunkt UND eigener Punkt bei
+     Rollen-/Perspektiven-Mismatch, siehe SPEC-04 §3.1) auf einen einzigen, benannten Wert statt
+     der zuvor uneinheitlichen Zahlen-Literale `0.72`/`0.55` (Issue #71). */
+  --app-map-point-locked-opacity: 0.72;
+
   /* Radien (SPEC-00 §1.2) */
   --app-radius-sm: 6px;
   --app-radius-md: 8px;

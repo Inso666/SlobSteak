@@ -6,7 +6,8 @@
   [class.map-point--dragging]="isLiveEditing"
   [style.left.%]="displayInfluence"
   [style.bottom.%]="displayInterest"
-  [attr.aria-label]="ariaLabel"
+  [style.--marker-counter-scale]="markerScale"
+  [attr.aria-label]="displayAriaLabel"
   (click)="onClick()"
   (pointerdown)="onPointerDown($event)"
   (pointermove)="onPointerMove($event)"
@@ -17,7 +18,12 @@
 ></button>
 
 @if (isLiveEditing) {
-  <span class="map-point__live mono" role="status" [style.left.%]="displayInfluence" [style.bottom.%]="displayInterest">
-    Einfluss {{ displayInfluence }} · Interesse {{ displayInterest }}
+  <span
+    class="map-point__live mono"
+    role="status"
+    [style.left.%]="displayInfluence"
+    [style.bottom.%]="displayInterest"
+  >
+    {{ liveValuesText }}
   </span>
 }
