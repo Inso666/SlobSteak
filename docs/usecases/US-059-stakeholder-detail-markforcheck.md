@@ -45,3 +45,17 @@ Kein neues GitHub-Issue für den vom Projektverantwortlichen gemeldeten Bug ange
 **Update 30.08.2026 (PO-Review der Phase-12-Issues):** [Issue #81](https://github.com/Inso666/SlobSteak/issues/81) („Stakeholder-Detailseite (S4) rendert leer — Kommunikationszuordnungen-Panel aus US-040 nicht erreichbar“) beschreibt exakt dieselbe Root Cause wie Issue #61 in derselben Datei (`stakeholder-detail.component.ts`, fehlendes `ChangeDetectorRef`/`markForCheck()`), diesmal entdeckt beim Design-Abgleich von US-040. Code-Review bestätigt: `markForCheck()` fehlt weiterhin (Story noch „offen“). Issue #81 ist damit kein neuer Befund und erhält bewusst **keine** eigene Story — es bestätigt lediglich zusätzlich, dass diese Story (US-059) mit steigender Priorität behandelt werden sollte, da sie inzwischen nicht nur Assessment und Map, sondern auch die in US-040 bereits „fertig“ gemeldete Kommunikationszuordnungs-UI blockiert. Der Fix dieser Story deckt Issue #81 vollständig mit ab.
 
 ### Anmerkungen des Agenten (bei Umsetzung zu ergänzen)
+
+**Status: fertig (30.08.2026)** — Branch `feature/US-059-stakeholder-detail-markforcheck`, PR siehe Verweis in `CHANGELOG.md`/`BACKLOG.md`.
+
+Umsetzung exakt wie in Abschnitt 4 vorgezeichnet: `ChangeDetectorRef` in `stakeholder-detail.component.ts` injiziert, `changeDetectorRef.markForCheck()` ergänzt in `load()`s `next`- und `error`-Zweig sowie im `projectsService.getProject(...).subscribe(...)`-Callback in `ngOnInit`. Keine Änderung an `canEdit`/`canDelete`/`canViewAssessments` oder an der US-030-Sichtbarkeitsregel — reine Change-Detection-Markierung, wie in den „Wichtigen Invarianten“ gefordert.
+
+Story-Test: `frontend/src/app/features/stakeholders/us-059-stakeholder-detail-markforcheck.spec.ts` — ein Testfall je Akzeptanzkriterium (1–4), in derselben Reihenfolge wie oben gelistet. Alle vier Tests verwenden `HttpTestingController`/`flush()` für `GET /api/v1/stakeholders/{id}` und `GET /api/v1/projects/{id}` (kein synchrones `of(...)`), gefolgt ausschließlich vom regulären `fixture.detectChanges()`-Zyklus ohne zusätzliche simulierte Interaktion — exakt das in Akzeptanzkriterium 5 verlangte Testmuster. Verifiziert: vor dem Fix schlagen 5 von 6 Testfällen fehl (nur der Regressionscheck „Assessment-Bereich bleibt für Rolle User entfernt“ ist trivial grün, da dort ohnehin nichts gerendert werden soll) — der Test deckt den Bug also tatsächlich auf, nicht nur zufällig.
+
+Bestehende Tests (`stakeholder-detail.component.spec.ts`, `us-026-*`, `us-029-*`, `us-030-*`) bleiben unverändert grün — sie verwenden Service-Spies mit synchronem `of(...)`, das den Bug nicht auslöst und daher durch den Fix nicht beeinflusst wird. Vollständiger Workspace-Lauf `ng test`: 397 von 397 grün (391 bestehend + 6 neu). `ng lint`: fehlerfrei. `npx prettier --check`: nach `--write` auf die beiden geänderten Dateien fehlerfrei.
+
+Lokale Verifizierbarkeit — Story-Tests isoliert: `ng test --include='**/us-059*.spec.ts'`.
+
+Manueller Smoke-Check: nicht gegen das laufende `docker-compose`-Gesamtsystem durchgeführt (reine Presentation-Layer-Änderung ohne Backend-Anteil). Empfehlung an den Projektverantwortlichen zum Nachvollziehen: Direktaufruf von `/projects/{projectId}/stakeholders/{stakeholderId}` per URL für eine Rolle PL/Coreteam/Architect — erwartet: Stammdaten und Assessment-Bereich erscheinen sofort ohne weitere Interaktion.
+
+Keine Abweichung von PRD/Story-Vorgaben, keine Eskalation nach CLAUDE.md Abschnitt 6 nötig.
