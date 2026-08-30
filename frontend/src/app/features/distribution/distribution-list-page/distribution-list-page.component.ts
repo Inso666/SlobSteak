@@ -55,6 +55,12 @@ import {
  * {@link DistributionListService} durch einen zusätzlichen Abgleich gegen die bestehende
  * Stakeholderliste ergänzt (siehe dortige Anmerkung sowie „Anmerkungen des Agenten“ in der
  * Story-Datei).
+ *
+ * Die Fußzeile (US-066) zeigt „N von M Stakeholdern entsprechen dem Filter“, wobei `N`
+ * ({@link distinctFilteredStakeholderCount}) unterschiedliche Stakeholder im Filterergebnis zählt
+ * (Deduplizierung über `stakeholderId`, nicht `rows.length`) und `M` ({@link totalStakeholderCount})
+ * dieselbe, ohnehin für die Organisations-Anreicherung geladene unfilterte Stakeholderliste
+ * wiederverwendet (kein zusätzlicher Request, siehe {@link DistributionListService}).
  */
 @Component({
   selector: 'app-distribution-list-page',
@@ -86,6 +92,10 @@ export class DistributionListPageComponent implements OnInit {
 
   protected projectId = '';
   protected rows: DistributionListRow[] = [];
+  /** US-066 Akzeptanzkriterium 2: unfilterte Gesamtzahl aller aktiven Projekt-Stakeholder ("M"),
+   * aus der bereits für die Organisations-Anreicherung geladenen Stakeholderliste (siehe
+   * {@link DistributionListService.getDistributionList}) — kein zusätzlicher Request. */
+  protected totalStakeholderCount = 0;
   protected isLoading = true;
   protected loadError: string | null = null;
   protected communicationTypeOptions: AdminCommunicationType[] = [];
@@ -132,6 +142,15 @@ export class DistributionListPageComponent implements OnInit {
     this.loadDistributionList();
   }
 
+  /** US-066 Akzeptanzkriterium 1: Anzahl **unterschiedlicher** Stakeholder im Filterergebnis ("N")
+   * — ein Stakeholder mit mehreren zum Filter passenden Kommunikationszuordnungen (mehrere Zeilen
+   * mit derselben `stakeholderId`) zählt dabei nur einmal, im Unterschied zu `rows.length`. */
+  protected get distinctFilteredStakeholderCount(): number {
+    return new Set(this.rows.map((row) => row.stakeholderId)).size;
+  }
+
+  /** US-042 Akzeptanzkriterium 4/US-066 Akzeptanzkriterium 3: bezieht sich weiterhin auf die
+   * gefilterten **Zeilen** (nicht auf unterschiedliche Stakeholder) — unverändertes Verhalten. */
   protected get withEmailCount(): number {
     return this.rows.filter((row) => row.hasEmail).length;
   }
@@ -249,13 +268,15 @@ export class DistributionListPageComponent implements OnInit {
         stakeholderType: stakeholderType ?? undefined,
       })
       .subscribe({
-        next: (rows) => {
+        next: ({ rows, totalStakeholderCount }) => {
           this.rows = rows;
+          this.totalStakeholderCount = totalStakeholderCount;
           this.isLoading = false;
           this.changeDetectorRef.markForCheck();
         },
         error: () => {
           this.rows = [];
+          this.totalStakeholderCount = 0;
           this.isLoading = false;
           this.loadError = DISTRIBUTION_LOAD_ERROR_MESSAGE;
           this.changeDetectorRef.markForCheck();
