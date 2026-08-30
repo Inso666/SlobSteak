@@ -4,6 +4,35 @@ Alle nennenswerten Änderungen an diesem Projekt werden hier je User Story dokum
 
 ## [Unreleased]
 
+### US-065 — Kommunikationsarten-Katalog Admin-UI als kompaktes Listen-Panel statt Einzelkarten
+
+- `CommunicationTypesAdminComponent` (Template, Styles, Komponente) auf das in
+  `docs/design/AdminCatalogs.dc.html` vorgegebene Layout umgestellt: ein gemeinsames, umrandetes
+  `.catalog-panel` mit `.catalog-row`-Zeilen (dünne Trennlinie, `status-tag`/`status-tag--archived`
+  wiederverwendet) statt einer eigenständigen Card je Eintrag.
+- Jede Zeile hat jetzt genau **ein** Bearbeiten-Icon statt vormals zwei permanent sichtbaren
+  Text-Buttons „Umbenennen“/„Aktivieren“/„Deaktivieren“; das Icon öffnet einen kombinierten
+  `p-dialog` mit Namensfeld **und** Aktiv-Toggle (`p-toggleswitch`). Speichern ruft
+  `renameCommunicationType`/`setActive` sequenziell nur für tatsächlich geänderte Werte auf — kein
+  Backend-Contract-Wechsel.
+- Neue Kommunikationsarten werden über eine inline „Kommunikationsart hinzufügen“-Zeile am
+  Panel-Ende angelegt (Eingabefeld + Bestätigen-Aktion in der Zeile selbst) statt über einen
+  separaten Button mit modalem Dialog.
+- Korrigiert bewusst den Layout-/Interaktionsteil von US-038 Akzeptanzkriterium 3 zugunsten von
+  `docs/design/AdminCatalogs.dc.html` als vorrangiger Design-Quelle (Issue #80); die übrigen
+  US-038-Akzeptanzkriterien (1, 2, 4) bleiben unverändert gültig.
+- Entdeckt und im Scope dieser Komponente mitkorrigiert: die `pButton`-Attribut-Direktive rendert
+  in PrimeNG 22.x keinen Icon-Inhalt mehr aus einem statischen `icon="..."`-Attribut — die beiden
+  neuen Icon-only-Buttons dieser Story verwenden daher `<p-button icon="...">` (Komponente statt
+  Direktive); weitere, bereits bestehende `pButton icon="..."`-Stellen im Repo sind vermutlich
+  ebenso betroffen, aber außerhalb dieses Story-Scopes nicht mitkorrigiert (siehe Story-Datei
+  „Anmerkungen des Agenten“).
+- Story-Test:
+  `frontend/src/app/features/admin/us-065-communication-type-katalog-listenpanel.spec.ts`;
+  bestehende Tests (`communication-types-admin.component.spec.ts`,
+  `us-038-communication-type-katalog-ui.spec.ts`) an das neue Markup angepasst, ohne bisher
+  geprüfte fachliche Aussagen zu verlieren.
+
 ### US-067 — Kommunikationsart-Spalte im Verteiler als Chip darstellen
 
 - Der Wert der Spalte „Kommunikationsart“ in der Verteilerliste wird nicht mehr als reiner

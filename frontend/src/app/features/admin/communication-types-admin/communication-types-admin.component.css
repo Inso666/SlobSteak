@@ -1,42 +1,36 @@
-/* US-038: Kartenlayout analog zu Nutzer-/Projektverwaltung (US-047 Akzeptanzkriterium 4).
-   Ausschließlich zentrale Tokens, keine hartcodierten Hex-/px-Werte. */
+/* US-065: kompaktes Listen-Panel statt Einzelkarten (docs/design/AdminCatalogs.dc.html) —
+   ein gemeinsames, umrandetes Panel mit dünnen Zeilen-Trennlinien statt einer Karte je Eintrag
+   (US-038 Akzeptanzkriterium 3, Layout-Teil, korrigiert durch US-065). Ausschließlich zentrale
+   SPEC-00-Tokens, keine hartcodierten Hex-/px-Werte. */
 .admin-communication-types {
   padding: var(--app-space-md) 0;
 }
 
-.admin-communication-types__toolbar {
-  display: flex;
-  justify-content: flex-end;
-  margin-bottom: var(--app-space-md);
-}
-
-.communication-type-cards {
-  display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(20rem, 1fr));
-  gap: var(--app-space-lg);
-  margin-bottom: var(--app-space-md);
-}
-
-.communication-type-card {
+.catalog-panel {
   display: flex;
   flex-direction: column;
-  gap: var(--app-space-sm);
-  padding: var(--app-space-lg);
+  padding: 0 var(--app-space-lg);
   background: var(--app-color-surface);
   border: 1px solid var(--app-color-border);
-  border-radius: var(--app-radius-md);
+  border-radius: var(--app-radius-lg);
 }
 
-.communication-type-card__head {
+.catalog-row {
   display: flex;
-  align-items: baseline;
-  justify-content: space-between;
-  gap: var(--app-space-sm);
+  align-items: center;
+  gap: var(--app-space-md);
+  padding: var(--app-space-sm) 0;
+  border-bottom: 1px solid var(--app-color-border);
 }
 
-.communication-type-card__name {
-  font-family: var(--app-font-family-display);
-  font-size: var(--app-font-size-card-title);
+.catalog-row:last-of-type {
+  border-bottom: none;
+}
+
+.catalog-row__name {
+  flex: 1;
+  min-width: 0;
+  font-size: var(--app-font-size-body);
   font-weight: 600;
   color: var(--app-color-text);
 }
@@ -44,15 +38,51 @@
 /* Deaktivierte Einträge bleiben sichtbar, aber klar als deaktiviert markiert (Story „Wichtige
    Invarianten“) — durchgestrichen + gedämpfte Textfarbe, zusätzlich zum Status-Tag (Farbe allein
    ist nie das einzige Signal, SPEC-00 §2). */
-.communication-type-card__name--inactive {
+.catalog-row__name--inactive {
   color: var(--app-color-text-muted);
   text-decoration: line-through;
 }
 
-.communication-type-card__actions {
+.catalog-row__edit {
+  flex: 0 0 auto;
+}
+
+/* Inline „Kommunikationsart hinzufügen“-Zeile am Panel-Ende (US-065 Akzeptanzkriterium 4) —
+   ersetzt den vormals separaten Anlegen-Button außerhalb des Panels mit modalem Dialog. Keine
+   eigene Trennlinie zum letzten Katalog-Eintrag (analog `.add-cat` in der Design-Quelle). */
+.catalog-add-row {
   display: flex;
+  align-items: center;
   gap: var(--app-space-sm);
-  margin-top: var(--app-space-xs);
+  padding: var(--app-space-sm) 0;
+}
+
+.catalog-add-row--trigger {
+  justify-content: flex-start;
+  background: transparent;
+  border: none;
+  color: var(--app-color-text-muted);
+  font-family: var(--app-font-family-body);
+  font-size: var(--app-font-size-body);
+  font-weight: 600;
+  cursor: pointer;
+}
+
+.catalog-add-row--trigger:focus-visible {
+  outline: 2px solid var(--app-attention);
+  outline-offset: 2px;
+}
+
+.catalog-add-row--form {
+  align-items: flex-start;
+}
+
+.catalog-add-row__field {
+  flex: 1;
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+  gap: var(--app-space-xs);
 }
 
 .field {
@@ -66,4 +96,14 @@
 .field label {
   font-size: var(--app-font-size-body);
   color: var(--app-color-text-muted);
+}
+
+.field--toggle {
+  flex-direction: row;
+  align-items: center;
+  gap: var(--app-space-sm);
+}
+
+.field--toggle label {
+  margin: 0;
 }
