@@ -4,6 +4,36 @@ Alle nennenswerten Änderungen an diesem Projekt werden hier je User Story dokum
 
 ## [Unreleased]
 
+### US-061 — Map-Zoom skaliert Positionen statt Punkt-Marker unverhältnismäßig zu vergrößern
+
+- Root Cause (Issue #68): `QuadrantChartComponent.surfaceTransform` wendet `scale(zoomLevel)` auf
+  den gesamten `.plot-surface`-Container an; die Punkt-Marker (`.map-point`, feste Größe
+  `var(--app-space-lg)`) sind Kindelemente dieses Containers und wurden von derselben
+  CSS-`transform: scale()` unerwünscht mitskaliert (nach 5 Zoom-Schritten ca. 20px → ca. 70px
+  Durchmesser), statt dass nur die Abstände zwischen Punkten wachsen (SPEC-04 §3.4).
+- Fix: Gegenskalierung des einzelnen Punkt-Markers gegen den Container-Zoom, per CSS Custom
+  Property statt duplizierter TypeScript-Transform-Logik — `QuadrantChartComponent` reicht einen
+  neuen `markerScale`-Getter (`1 / zoomLevel`) über ein neues `[markerScale]`-Input an
+  `DraggablePointComponent` durch, die es als `--marker-counter-scale` auf ihr
+  `<button class="map-point">`-Element setzt; `.map-point`/`.map-point--compare` hängen
+  `scale(var(--marker-counter-scale, 1))` an ihre bestehende `transform`-Deklaration an. Effekt:
+  Marker-Größe bleibt bei jedem Zoom-Level konstant, nur die Punktabstände wachsen weiter mit dem
+  Zoom.
+- Wichtige Invariante verifiziert: `DraggablePointComponent.updateFromPointer()` liest weiterhin
+  ausschließlich die Bounding-Box von `.plot-surface` (nicht des einzelnen Markers) — die
+  Gegenskalierung verfälscht die Pixel→Prozent-Umrechnung für Maus-Drag nicht (manuell gegen
+  `docker-compose up` mit zwei nah beieinanderliegenden Testpunkten 47/53 und 50/50 verifiziert).
+- Story-Test: `frontend/src/app/features/map/us-061-map-zoom-skalierung.spec.ts` (alle sieben
+  Akzeptanzkriterien). Einzeln ausführen:
+  `ng test --include='**/us-061-map-zoom-skalierung.spec.ts'`. Vollständiger `ng test`-Lauf:
+  430/430 grün, `ng lint` fehlerfrei.
+- Dokumentierte Testbarkeits-Beobachtung: Das Frontend läuft zoneless (ohne `zone.js`) — ein
+  direkter TypeScript-Methodenaufruf auf einer `OnPush`-Komponente markiert deren Ansicht nicht als
+  „dirty“, ein anschließendes `fixture.detectChanges()` aktualisiert dadurch weder DOM noch
+  durchgereichte `@Input`-Bindungen. Der neue Story-Test löst Zoom deshalb über einen echten
+  `.click()` auf den gerenderten Zoom-Button aus (Details siehe Story-Datei „Anmerkungen des
+  Agenten").
+
 ### US-060 — Zoom-Cluster-Buttons auf der Map sichtbar und auffindbar machen
 
 - Root Cause (Issue #67): die drei Zoom-Cluster-Buttons in `quadrant-chart.component.html`

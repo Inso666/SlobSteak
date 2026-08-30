@@ -5,13 +5,23 @@
 
 /* Punktdurchmesser aus der Abstands-Token-Skala abgeleitet (`space.lg`) statt eines frei
    erfundenen px-Werts (SPEC-00 §1.2 Hinweis für Folge-Specs). */
+/* US-061: `--marker-counter-scale` (von `QuadrantChartComponent` via `[markerScale]` gesetzt,
+   üblicherweise `1 / zoomLevel`) hebt den Container-Zoom (`transform: scale(zoomLevel)` auf
+   `.plot-surface`, siehe `quadrant-chart.component.css`) für die visuelle Marker-**Größe** auf,
+   ohne dessen Bounding-Box zu verändern — die Skalierung wirkt hier auf das Kind-Element
+   `.map-point`, `.plot-surface`s eigene, von `DraggablePointComponent.updateFromPointer()`
+   gelesene `getBoundingClientRect()` bleibt dadurch unverändert korrekt (SPEC-04 §3.4). Fallback
+   `1`, falls die Custom Property (z. B. in älteren Snapshot-Tests ohne gesetztes Input) fehlt. Die
+   `scale()`-Funktion greift NACH `translate(-50%, 50%)` im selben Transform-Kontext (also um das
+   bereits zentrierte Element herum) — der Ankerpunkt (Einfluss-/Interesse-Position) bleibt dadurch
+   unverändert an derselben Stelle, nur der Durchmesser ändert sich. */
 .map-point {
   position: absolute;
   width: var(--app-space-lg);
   height: var(--app-space-lg);
   border-radius: var(--app-radius-full);
   border: 2px solid var(--app-color-surface);
-  transform: translate(-50%, 50%);
+  transform: translate(-50%, 50%) scale(var(--marker-counter-scale, 1));
   padding: 0;
   cursor: grab;
 }
@@ -40,7 +50,11 @@
    qualitativen Vorgabe (CLAUDE.md Abschnitt 6), kein neu erfundenes Farb-/Radius-/Abstands-Token. */
 .map-point--compare {
   border-radius: var(--app-radius-sm);
-  transform: translate(-50%, 50%) rotate(45deg);
+  /* US-061: dieselbe Gegenskalierung wie `.map-point` (siehe dortiger Kommentar), zusätzlich zur
+     Diamant-Rotation — beide `transform`-Funktionen müssen in derselben Deklaration stehen, da
+     eine überschreibende `.map-point--compare`-Regel den gesamten `transform`-Wert von `.map-point`
+     ersetzt statt ihn zu ergänzen (CSS-Kaskade, keine Merge-Semantik für Einzelwerte). */
+  transform: translate(-50%, 50%) rotate(45deg) scale(var(--marker-counter-scale, 1));
   opacity: 0.72;
 }
 
