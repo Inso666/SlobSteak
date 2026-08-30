@@ -4,6 +4,18 @@ Alle nennenswerten Änderungen an diesem Projekt werden hier je User Story dokum
 
 ## [Unreleased]
 
+### US-068 — „Keine E-Mail hinterlegt“-Hinweis: nur Icon in Attention-Farbe, Text gedämpft
+
+- In der Verteiler-Tabelle ist bei Zeilen ohne hinterlegte E-Mail-Adresse (`.dl-mail-cell--missing`)
+  nur noch das Warn-Icon (`pi pi-exclamation-triangle`) in der Attention-Farbe (`var(--app-attention)`)
+  dargestellt; der begleitende Text „keine E-Mail hinterlegt“ ist jetzt gedämpft
+  (`var(--app-color-text-faint)`) und kursiv (Issue #84, `docs/design/Verteiler.dc.html`).
+- Keine neuen Farb-Tokens — beide Tokens waren bereits bestehende SPEC-00-Tokens. Das
+  `title`-Attribut/Tooltip-Verhalten sowie die SPEC-05-§3.6-Begründung (Icon **und** Text tragen die
+  Information, nicht nur Farbe) bleiben unverändert erhalten.
+- Story-Test: `frontend/src/app/features/distribution/us-068-verteiler-mail-cell-attention-farbe.spec.ts`
+  (AC 1–4).
+
 ### US-060 — Zoom-Cluster-Buttons auf der Map sichtbar und auffindbar machen
 
 - Root Cause (Issue #67): die drei Zoom-Cluster-Buttons in `quadrant-chart.component.html`
