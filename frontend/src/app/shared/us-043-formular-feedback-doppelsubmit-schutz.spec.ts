@@ -97,8 +97,13 @@ describe('US-043 Einheitliches Verarbeitungs-Feedback & Doppel-Submit-Schutz', (
       TestBed.configureTestingModule({ imports: [EditStakeholderFormComponent], providers: [{ provide: StakeholdersService, useValue: spy }] });
       const fixture = TestBed.createComponent(EditStakeholderFormComponent);
       fixture.componentRef.setInput('stakeholder', stakeholder);
+      fixture.componentRef.setInput('canEdit', true);
       fixture.detectChanges();
       const component = fixture.componentInstance;
+      // US-071 Akzeptanzkriterium 4: „Speichern“ ist erst bei tatsächlicher Änderung aktiv — ein
+      // echter Nutzer ändert also immer zuerst ein Feld, bevor er speichert.
+      component['form'].controls.phone.setValue('+49 30 999');
+      component['form'].controls.phone.markAsDirty();
 
       expect(component['isSubmitting']).toBeFalse();
       component['onSubmit']();
