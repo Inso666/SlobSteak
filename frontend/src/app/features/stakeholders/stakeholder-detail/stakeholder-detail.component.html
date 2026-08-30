@@ -7,57 +7,71 @@
   <section class="stakeholder-detail">
     <a class="back-link" [routerLink]="['/projects', projectId, 'stakeholders']">← Zurück zur Liste</a>
 
-    <header>
-      <h1>{{ stakeholder.name }}</h1>
-      <p class="meta">
-        {{ stakeholder.type }}
-        @if (stakeholder.organization) {
-          · {{ stakeholder.organization }}
+    <header class="detail-head">
+      <div class="head-left">
+        <div class="name-row">
+          @if (canEdit) {
+            <input
+              class="page-title-input"
+              type="text"
+              [formControl]="editForm.nameControl"
+              aria-label="Name"
+            />
+            <select class="type-tag" data-testid="type-badge" [formControl]="editForm.typeControl" aria-label="Typ">
+              <option value="Person">Person</option>
+              <option value="Organization">Organisation</option>
+            </select>
+          } @else {
+            <h1 class="page-title">{{ stakeholder.name }}</h1>
+            <span class="type-tag" data-testid="type-badge">{{ typeLabel }}</span>
+          }
+        </div>
+        @if (canEdit) {
+          <input
+            class="org-line-input"
+            type="text"
+            [formControl]="editForm.organizationControl"
+            placeholder="Organisation / Zugehörigkeit"
+            aria-label="Organisation / Zugehörigkeit"
+          />
+        } @else if (stakeholder.organization) {
+          <span class="org-line">{{ stakeholder.organization }}</span>
         }
-      </p>
-      <p class="last-modified">Zuletzt geändert von {{ stakeholder.updatedByName }} am {{ stakeholder.updatedAt | date: 'dd.MM.yyyy, HH:mm' }}</p>
+        <p class="last-modified">Zuletzt geändert von {{ stakeholder.updatedByName }} am {{ stakeholder.updatedAt | date: 'dd.MM.yyyy, HH:mm' }}</p>
+      </div>
 
       <div class="actions">
-        @if (canEdit && !editing) {
-          <button type="button" pButton [outlined]="true" severity="secondary" (click)="onEditClick()">Bearbeiten</button>
-        }
         @if (canDelete) {
           <button type="button" pButton [outlined]="true" severity="danger" (click)="onDeleteClick()">Löschen</button>
         }
       </div>
     </header>
 
-    @if (editing) {
-      <app-edit-stakeholder-form [stakeholder]="stakeholder" (updated)="onEditUpdated($event)" (cancelled)="onEditCancelled()" />
-    } @else {
-      <dl class="master-data">
-        <dt>Position/Funktion</dt>
-        <dd>{{ stakeholder.position || '–' }}</dd>
-        <dt>E-Mail</dt>
-        <dd>{{ stakeholder.email || '–' }}</dd>
-        <dt>Telefon</dt>
-        <dd>{{ stakeholder.phone || '–' }}</dd>
-        <dt>Standort/Abteilung</dt>
-        <dd>{{ stakeholder.locationDepartment || '–' }}</dd>
-        <dt>Beschreibung</dt>
-        <dd>{{ stakeholder.description || '–' }}</dd>
-      </dl>
-    }
-
     @if (deleting) {
       <app-delete-stakeholder-dialog [stakeholder]="stakeholder" (deleted)="onDeleted()" (cancelled)="onDeleteCancelled()" />
     }
 
-    <section class="communication-slot">
-      <h2>Kommunikationszuordnungen</h2>
-      <app-communication-assignment-panel [stakeholderId]="stakeholder.id" [currentUserRole]="currentUserRole" />
-    </section>
+    <div class="columns">
+      <div class="col-left">
+        <section class="panel">
+          <h2 class="panel-title">Stammdaten</h2>
+          <app-edit-stakeholder-form #editForm [stakeholder]="stakeholder" [canEdit]="canEdit" (updated)="onEditUpdated($event)" />
+        </section>
 
-    @if (canViewAssessments) {
-      <section class="assessment-slot">
-        <h2>Assessment</h2>
-        <app-assessment-tabs [stakeholderId]="stakeholder.id" [currentUserRole]="currentUserRole" />
-      </section>
-    }
+        <section class="panel communication-slot">
+          <h2 class="panel-title">Kommunikationszuordnungen</h2>
+          <app-communication-assignment-panel [stakeholderId]="stakeholder.id" [currentUserRole]="currentUserRole" />
+        </section>
+      </div>
+
+      <div class="col-right">
+        @if (canViewAssessments) {
+          <section class="panel assessment-slot">
+            <h2 class="panel-title">Assessment</h2>
+            <app-assessment-tabs [stakeholderId]="stakeholder.id" [currentUserRole]="currentUserRole" />
+          </section>
+        }
+      </div>
+    </div>
   </section>
 }
