@@ -4,6 +4,33 @@ Alle nennenswerten Änderungen an diesem Projekt werden hier je User Story dokum
 
 ## [Unreleased]
 
+### US-048 — PrimeNG-Lizenzschlüssel serverseitig verwalten statt im Frontend-Bundle auszuliefern
+
+- `GET /api/v1/config/primeng-license` (neu, `FrontendConfigController`, unauthentifiziert): liest
+  `PRIMENG_LICENSE_KEY` aus der Server-Umgebung und liefert `{ "primeNgLicenseKey": "<key>" | null
+  }`. Unauthentifiziert bewusst, da PrimeNG-Komponenten bereits vor dem Login (US-009) benötigt
+  werden; gibt ausschließlich diesen einen Wert preis, keine sonstigen Server-/Umgebungsinformationen.
+- `docker-compose.yml`: neue Umgebungsvariable `PRIMENG_LICENSE_KEY` im `api`-Service, Passthrough
+  mit leerem Dev-Default (`${PRIMENG_LICENSE_KEY:-}`), analog zu `JWT_SIGNING_KEY`. Kein produktiver
+  Schlüssel committet.
+- Der bisher als Klartext-Literal in `frontend/src/app/app.config.ts` hinterlegte PrimeNG-
+  Lizenzschlüssel (aus US-047/ADR-0009) ist entfernt. `app.config.ts` exportiert stattdessen
+  `createAppConfig(primeNgLicenseKey: string | null)`; der Wert wird in `main.ts` VOR
+  `bootstrapApplication` per `fetchPrimeNgLicenseKey()` (`frontend/src/app/core/config/
+  primeng-license.ts`) vom neuen Endpoint bezogen. Bewusst vor statt innerhalb des
+  Angular-Bootstraps, da `providePrimeNG`s eigener App-Initializer den `license`-Wert synchron zum
+  Zeitpunkt seiner eigenen Ausführung liest — ein nachträgliches Mutieren nach Abschluss eines
+  parallel laufenden asynchronen App-Initializers käme zu spät (Details siehe Kommentar in
+  `primeng-license.ts`). Rotation des Schlüssels erfordert damit nur noch eine Änderung der
+  Umgebungsvariable + Container-Neustart des `api`-Service, kein Frontend-Rebuild/-Redeploy — lokal
+  gegen `docker-compose up` verifiziert (`api` neu gestartet mit geändertem
+  `PRIMENG_LICENSE_KEY`, `frontend`-Container unangetastet).
+- ADR-0009 um einen Nachtrag ergänzt, der auf diese Story als Umsetzung des dort dokumentierten
+  technischen Follow-ups verweist; die dortige Grundsatzfrage der eigentlichen
+  Lizenzregistrierung bei primeui.dev bleibt unverändert beim Projektverantwortlichen.
+- Story-Tests: `tests/SlobSteak.Api.Tests/UserStories/US048_PrimeNgLizenzschluesselServerseitigTests.cs`
+  (AC 1, 2, 3, 5, 8) und `frontend/src/app/us-048-primeng-license-serverseitig.spec.ts` (AC 7).
+
 ### US-042 — Verteilerlisten-UI: Filter, Tabelle, Copy-E-Mails, CSV-Export
 
 - `DistributionListPageComponent` (`frontend/src/app/features/distribution/`) ersetzt den

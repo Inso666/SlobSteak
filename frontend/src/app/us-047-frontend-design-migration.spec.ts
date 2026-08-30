@@ -1,7 +1,7 @@
 import { TestBed } from '@angular/core/testing';
 import { ActivatedRoute, convertToParamMap, provideRouter } from '@angular/router';
 import { of } from 'rxjs';
-import { appConfig } from './app.config';
+import { createAppConfig } from './app.config';
 import { StakeholderListComponent } from './features/stakeholders/stakeholder-list/stakeholder-list.component';
 import { Stakeholder, StakeholdersService } from './features/stakeholders/stakeholders.service';
 import { ProjectsService } from './features/projects/projects.service';
@@ -46,11 +46,13 @@ describe('US-047: Bestehendes Frontend auf das Design-System migrieren', () => {
 
   it('Akzeptanzkriterium 1: das zentrale PrimeNG-Custom-Preset ist einmalig an der Composition Root verdrahtet', () => {
     // `providePrimeNG` selbst ist keine öffentlich benannte Klasse, daher wird indirekt über den
-    // Provider-Array-Umfang sichergestellt, dass die Konfiguration Bestandteil von `appConfig` ist
-    // (siehe app.config.ts, wo `SlobSteakPreset` importiert und `providePrimeNG({ theme: { preset:
-    // SlobSteakPreset } })` aufgerufen wird) — ein Rendering-Test dafür liegt in den einzelnen
-    // Component-Specs, die p-Komponenten nutzen und ohne diese Verdrahtung nicht kompilieren würden.
-    expect(appConfig.providers.length).toBeGreaterThan(0);
+    // Provider-Array-Umfang sichergestellt, dass die Konfiguration Bestandteil der von
+    // `createAppConfig` gebauten `ApplicationConfig` ist (siehe app.config.ts, wo `SlobSteakPreset`
+    // importiert und `providePrimeNG({ theme: { preset: SlobSteakPreset } })` aufgerufen wird) — ein
+    // Rendering-Test dafür liegt in den einzelnen Component-Specs, die p-Komponenten nutzen und ohne
+    // diese Verdrahtung nicht kompilieren würden. `createAppConfig` nimmt seit US-048 den
+    // PrimeNG-Lizenzschlüssel als Parameter entgegen statt ihn hartcodiert zu enthalten.
+    expect(createAppConfig(null).providers.length).toBeGreaterThan(0);
   });
 
   it('Akzeptanzkriterium 3: die Akzentfarbe hebt einen fachlich sinnvollen Handlungsbedarf hervor (ähnlicher Stakeholder beim Anlegen)', async () => {
