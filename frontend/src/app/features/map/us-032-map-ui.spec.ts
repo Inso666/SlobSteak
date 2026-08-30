@@ -4,6 +4,7 @@ import { ActivatedRoute, convertToParamMap, provideRouter, Router } from '@angul
 import { of } from 'rxjs';
 import { MapPoint, MapService } from './map.service';
 import { ProjectOverviewItem, ProjectsService } from '../projects/projects.service';
+import { Stakeholder, StakeholdersService } from '../stakeholders/stakeholders.service';
 import { StakeholderMapPageComponent } from './stakeholder-map-page/stakeholder-map-page.component';
 import { ProjectWorkspaceLayoutComponent } from '../workspace/project-workspace-layout/project-workspace-layout.component';
 
@@ -36,12 +37,19 @@ describe('US-032: Map-UI Quadranten-Diagramm mit Perspektiv-Dropdown', () => {
     projectsServiceSpy = jasmine.createSpyObj('ProjectsService', ['listMyProjects', 'getProject']);
     projectsServiceSpy.getProject.and.returnValue(of({ id: 'project-1', name: 'Projekt', role, stakeholderCount: 2 } as ProjectOverviewItem));
 
+    // US-063: `StakeholderMapPageComponent` lädt jetzt zusätzlich die Gesamtzahl der Projekt-
+    // Stakeholder — gemockt statt gegen echtes HTTP, wie in `.claude/agents/frontend.md` Abschnitt 4
+    // gefordert (keine reale Netzwerkanfrage aus einem Komponententest).
+    const stakeholdersServiceSpy = jasmine.createSpyObj<StakeholdersService>('StakeholdersService', ['listStakeholders']);
+    stakeholdersServiceSpy.listStakeholders.and.returnValue(of(mapPoints.map((point) => ({ id: point.stakeholderId }) as Stakeholder)));
+
     TestBed.configureTestingModule({
       imports: [StakeholderMapPageComponent],
       providers: [
         provideRouter([]),
         { provide: MapService, useValue: mapServiceSpy },
         { provide: ProjectsService, useValue: projectsServiceSpy },
+        { provide: StakeholdersService, useValue: stakeholdersServiceSpy },
         {
           provide: ActivatedRoute,
           useValue: { parent: { snapshot: { paramMap: convertToParamMap({ id: 'project-1' }) } } },
