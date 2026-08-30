@@ -182,7 +182,7 @@ Aus einem QA-Design-Abgleich-Gesamtaudit (30.08.2026, Phasen 0–12 gegen sämtl
 | ID | Titel | Bounded Context | Abhängigkeiten | Datei | Status |
 |---|---|---|---|---|---|
 | US-069 | Assessment-Inhalt des standardmäßig aktiven Tabs zuverlässig bei Erstaufruf rendern | StakeholderAssessment | US-029, US-030, US-059 | [US-069-assessment-tabs-markforcheck.md](US-069-assessment-tabs-markforcheck.md) | fertig (30.08.2026) |
-| US-070 | Zeitstempel systemweit im deutschen Format (TT.MM.JJJJ, 24h) statt US-Format darstellen | Frontend-Shell | US-069 | [US-070-zeitstempel-deutsches-format.md](US-070-zeitstempel-deutsches-format.md) | offen |
+| US-070 | Zeitstempel systemweit im deutschen Format (TT.MM.JJJJ, 24h) statt US-Format darstellen | Frontend-Shell | US-069 | [US-070-zeitstempel-deutsches-format.md](US-070-zeitstempel-deutsches-format.md) | fertig (30.08.2026) |
 | US-071 | Stakeholder-Detailseite als Zwei-Spalten-Layout mit direkt editierbaren Stammdaten und Typ-Badge | StakeholderManagement | US-070 | [US-071-stakeholder-detail-zwei-spalten-layout.md](US-071-stakeholder-detail-zwei-spalten-layout.md) | offen |
 | US-072 | Stakeholder-Liste & Admin-Listen als Tabellen mit vollständiger Informationsdichte statt Karten-Raster | StakeholderManagement / IdentityAccess / ProjectManagement | US-071 | [US-072-stakeholder-admin-listen-tabellen.md](US-072-stakeholder-admin-listen-tabellen.md) | offen |
 | US-073 | Einheitliches Marken-Icon (Steak-SVG) app-weit statt abstraktem Drei-Kreise-Symbol | Frontend-Shell | US-072 | [US-073-marken-icon-steak-svg.md](US-073-marken-icon-steak-svg.md) | offen |

@@ -53,7 +53,7 @@
 
         @if (showDeleted) {
           <div class="stakeholder-card__footer">
-            <span class="deleted-badge">Gelöscht am {{ stakeholder.deletedAt | date: 'medium' }} von {{ stakeholder.deletedByName }}</span>
+            <span class="deleted-badge">Gelöscht am {{ stakeholder.deletedAt | date: 'dd.MM.yyyy, HH:mm' }} von {{ stakeholder.deletedByName }}</span>
             <app-processing-button
               type="button"
               [isSubmitting]="restoringStakeholderIds.has(stakeholder.id)"

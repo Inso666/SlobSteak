@@ -17,7 +17,7 @@
       }
     } @else {
       @if (role.status === 'ASSESSED') {
-        <p class="last-modified">Zuletzt geändert von {{ role.updatedByName }} am {{ role.updatedAt | date: 'medium' }}</p>
+        <p class="last-modified">Zuletzt geändert von {{ role.updatedByName }} am {{ role.updatedAt | date: 'dd.MM.yyyy, HH:mm' }}</p>
       }
 
       <form [formGroup]="form" (ngSubmit)="onSave()">
