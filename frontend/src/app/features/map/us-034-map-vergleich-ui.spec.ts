@@ -4,6 +4,7 @@ import { ActivatedRoute, convertToParamMap, provideRouter } from '@angular/route
 import { of } from 'rxjs';
 import { MapComparisonEntry, MapPoint, MapService, PerspectiveRole } from './map.service';
 import { ProjectOverviewItem, ProjectsService } from '../projects/projects.service';
+import { Stakeholder, StakeholdersService } from '../stakeholders/stakeholders.service';
 import { StakeholderMapPageComponent } from './stakeholder-map-page/stakeholder-map-page.component';
 
 /**
@@ -53,12 +54,19 @@ describe('US-034: Vergleichsmodus-UI (zwei Punkte, Verbindungslinie, Legende, Di
     projectsServiceSpy = jasmine.createSpyObj('ProjectsService', ['listMyProjects', 'getProject']);
     projectsServiceSpy.getProject.and.returnValue(of({ id: 'project-1', name: 'Projekt', role: 'PL', stakeholderCount: 3 } as ProjectOverviewItem));
 
+    // US-063: `StakeholderMapPageComponent` lädt jetzt zusätzlich die Gesamtzahl der Projekt-
+    // Stakeholder — gemockt statt gegen echtes HTTP, wie in `.claude/agents/frontend.md` Abschnitt 4
+    // gefordert (keine reale Netzwerkanfrage aus einem Komponententest).
+    const stakeholdersServiceSpy = jasmine.createSpyObj<StakeholdersService>('StakeholdersService', ['listStakeholders']);
+    stakeholdersServiceSpy.listStakeholders.and.returnValue(of(points.map((point) => ({ id: point.stakeholderId }) as Stakeholder)));
+
     TestBed.configureTestingModule({
       imports: [StakeholderMapPageComponent],
       providers: [
         provideRouter([]),
         { provide: MapService, useValue: mapServiceSpy },
         { provide: ProjectsService, useValue: projectsServiceSpy },
+        { provide: StakeholdersService, useValue: stakeholdersServiceSpy },
         {
           provide: ActivatedRoute,
           useValue: { parent: { snapshot: { paramMap: convertToParamMap({ id: 'project-1' }) } } },

@@ -4,6 +4,26 @@ Alle nennenswerten Änderungen an diesem Projekt werden hier je User Story dokum
 
 ## [Unreleased]
 
+### US-063 — Toolbar-Hinweistext „X von Y Stakeholdern sichtbar" auf der Map ergänzen
+
+- Root Cause (Issue #70): Die Map-Toolbar (`stakeholder-map-page.component.html`) enthielt keinen
+  der in `docs/specs/SPEC-04-Stakeholder-Map.md` §1 vorgesehenen, rechtsbündigen Hinweistext
+  `{{ visibleCount }} von {{ totalCount }} Stakeholdern sichtbar` — Nutzer:innen konnten nicht auf
+  einen Blick erkennen, ob fehlende Punkte an fehlenden Bewertungen liegen oder an einem
+  Anzeigefehler.
+- Fix: `StakeholderMapPageComponent` lädt jetzt zusätzlich einmalig die Gesamtzahl aller
+  nicht-gelöschten Projekt-Stakeholder über den bereits bestehenden
+  `StakeholdersService.listStakeholders(projectId)`-Endpoint (US-025, kein neuer Endpoint) und legt
+  sie in `totalCount` ab; ein neuer `visibleCount`-Getter leitet die Anzahl sichtbarer Punkte aus dem
+  bereits vorhandenen `points`/`comparisonEntries` ab (abhängig vom Vergleichsmodus). Die Toolbar
+  zeigt beides rechtsbündig als `span.info-text.mono` gemäß SPEC-04 §1.
+- Story-Test: `frontend/src/app/features/map/us-063-map-toolbar-sichtbarkeits-hinweis.spec.ts`
+  (alle sieben Akzeptanzkriterien). Einzeln ausführen:
+  `ng test --include='**/us-063-map-toolbar-sichtbarkeits-hinweis.spec.ts'`. Bestehende
+  Map-Story-Tests (`us-032`/`us-034`/`us-036`/`us-062`) um einen `StakeholdersService`-Mock ergänzt,
+  um reale (unmockierte) HTTP-Requests im Testlauf zu vermeiden. Vollständiger `ng test`-Lauf:
+  450/450 grün, `ng lint` fehlerfrei.
+
 ### US-062 — Tastatur-Positionierung eigener Map-Punkte für Screenreader-Nutzer:innen zuverlässig ankündigen
 
 - Reproduktion gegen einen isolierten `docker-compose`-Stack (Präzedenzfall US-051): die

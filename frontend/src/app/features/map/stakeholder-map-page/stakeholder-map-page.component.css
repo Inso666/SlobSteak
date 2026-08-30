@@ -17,6 +17,23 @@
   gap: var(--app-space-sm);
 }
 
+/* SPEC-04 §1: rechtsbündiger Trenner vor dem Sichtbarkeits-Hinweistext (US-063). */
+.spacer {
+  flex: 1;
+}
+
+/* SPEC-04 §1 `span.info-text.mono`: gedämpfte Kennzahlenanzeige, mono-Schrift für die Zahlenwerte
+   (SPEC-00 §1.2, dasselbe Token bereits z. B. in `.dl-mail-cell`/`.dl-communication-type-chip`
+   genutzt). */
+.info-text {
+  color: var(--app-color-text-muted);
+  font-size: var(--app-font-size-body);
+}
+
+.mono {
+  font-family: var(--app-font-family-mono);
+}
+
 /* `.load-error` selbst (Farbe/Schriftgröße) ist bereits global in `styles.css` definiert
    (US-044) — hier ausschließlich das zusätzliche Flex-Layout für den „Erneut versuchen"-Button
    dieses Screens, keine erneute Farbdefinition. */
