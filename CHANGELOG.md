@@ -4,6 +4,29 @@ Alle nennenswerten Änderungen an diesem Projekt werden hier je User Story dokum
 
 ## [Unreleased]
 
+### US-060 — Zoom-Cluster-Buttons auf der Map sichtbar und auffindbar machen
+
+- Root Cause (Issue #67): die drei Zoom-Cluster-Buttons in `quadrant-chart.component.html`
+  verwendeten `pButton icon="…"` — in PrimeNG v22 besitzt die `[pButton]`-Attribut-Direktive
+  (`ButtonDirective`) jedoch **keinen** `icon`-Input (nur die separate `<p-button>`-Komponente
+  kennt `icon`); das Attribut wirkte nie, es entstand kein Icon-Kindelement. Ohne Icon **und** ohne
+  Label-Text kollabierte der Button auf die gemeldeten 22×14px — nicht wie ursprünglich vermutet
+  eine CSS-Regel in `quadrant-chart.component.css` (dort existierte gar keine button-spezifische
+  Größenregel).
+- Fix: `quadrant-chart.component.ts` importiert zusätzlich `ButtonIcon` (`[pButtonIcon]`); die drei
+  Buttons erhalten je ein Icon-Kind-Element (`<i class="pi pi-plus" pButtonIcon aria-hidden="true">`
+  usw.) statt des wirkungslosen `icon="…"`-Attributs. `ButtonDirective` erkennt das Icon-Kind
+  automatisch und setzt die PrimeNG-Standardklasse `p-button-icon-only` (SPEC-00 §1.3-Referenzgröße)
+  — kein neues Token, keine Verhaltensänderung an `zoomIn()`/`zoomOut()`/`resetView()`.
+- Beobachtung (nicht Teil dieser Story, siehe „Anmerkungen des Agenten" in der Story-Datei): dasselbe
+  wirkungslose `icon="…"`-Attribut auf `[pButton]` findet sich auch in `users-admin.component.html`,
+  `projects-admin.component.html` und `project-membership-manager.component.html` — dort unauffällig,
+  weil zusätzlich ein Text-Label vorhanden ist. Empfehlung: eigenes Folge-Ticket für einen
+  projektweiten Audit aller `pButton icon="…"`-Stellen.
+- Story-Test: `frontend/src/app/features/map/us-060-map-zoom-buttons-sichtbar.spec.ts` (Akzeptanz-
+  kriterien 1-3). Einzeln ausführen: `ng test --include='**/us-060-map-zoom-buttons-sichtbar.spec.ts'`.
+  Vollständiger `ng test`-Lauf: 399/399 grün, `ng lint` fehlerfrei.
+
 ### US-059 — StakeholderDetailComponent zuverlässig rendern (Assessment-Bereich, Stammdaten) statt leerem Inhaltsbereich
 
 - `stakeholder-detail.component.ts` injiziert jetzt `ChangeDetectorRef` und ruft
