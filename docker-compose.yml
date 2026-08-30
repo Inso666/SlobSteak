@@ -46,6 +46,13 @@ services:
       # lokale Entwicklung gedacht — in echten Deployments zwingend per Umgebungsvariable mit einem
       # eigenen, geheimen Wert (>= 32 Zeichen) überschreiben.
       JWT_SIGNING_KEY: ${JWT_SIGNING_KEY:-dev-only-jwt-signing-key-change-me-3242}
+      # PrimeNG-Lizenzschlüssel (US-048): wird dem Frontend erst zur Laufzeit über
+      # GET /api/v1/config/primeng-license bereitgestellt, nie mehr als Literal im Frontend-Bundle
+      # ausgeliefert. Leerer Dev-Default entspricht dem in ADR-0009 dokumentierten unlizenzierten
+      # Zustand (Community-Banner sichtbar, volle Funktionalität erhalten). Kein produktiver oder
+      # realer Lizenzschlüssel wird hier committet — Rotation erfolgt ausschließlich über diese
+      # Umgebungsvariable, ohne Frontend-Rebuild/-Redeploy.
+      PRIMENG_LICENSE_KEY: ${PRIMENG_LICENSE_KEY:-}
     ports:
       - "5000:8080"
     # US-049 (Akzeptanzkriterium 2): Ohne diesen Healthcheck galt der Service für Compose bereits

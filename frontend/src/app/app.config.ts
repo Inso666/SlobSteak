@@ -22,22 +22,33 @@ export const HTTP_INTERCEPTORS_ORDER = [authInterceptor, httpErrorInterceptor];
  * überschreibt Theme-Variablen lokal (SPEC-00 §4). `provideAnimationsAsync`
  * wird von PrimeNG-Overlay-Komponenten (p-dialog, p-toast, p-select, …) für
  * Ein-/Ausblend-Übergänge benötigt.
+ *
+ * US-048: `appConfig` ist bewusst keine statische Konstante mehr, sondern eine Factory-Funktion, die
+ * den PrimeNG-Lizenzschlüssel als Parameter entgegennimmt. Der Schlüssel wird serverseitig
+ * konfiguriert (`GET /api/v1/config/primeng-license`, siehe `core/config/primeng-license.ts`) und
+ * VOR diesem Aufruf per `fetchPrimeNgLicenseKey()` in `main.ts` bezogen — nicht mehr als
+ * Klartext-Literal in dieser Datei hinterlegt (siehe ADR-0009 Nachtrag). `primeNgLicenseKey` ist
+ * `null`, wenn serverseitig keine `PRIMENG_LICENSE_KEY`-Umgebungsvariable gesetzt ist; `providePrimeNG`
+ * zeigt in diesem Fall unverändert den in ADR-0009 dokumentierten unlizenzierten Zustand
+ * (Community-Banner, volle Funktionalität erhalten).
  */
-export const appConfig: ApplicationConfig = {
-  providers: [
-    provideBrowserGlobalErrorListeners(),
-    provideAnimationsAsync(),
-    provideHttpClient(withInterceptors(HTTP_INTERCEPTORS_ORDER)),
-    provideRouter(routes),
-    providePrimeNG({
-      theme: {
-        preset: SlobSteakPreset,
-        options: {
-          darkModeSelector: false,
-          cssLayer: false,
+export function createAppConfig(primeNgLicenseKey: string | null): ApplicationConfig {
+  return {
+    providers: [
+      provideBrowserGlobalErrorListeners(),
+      provideAnimationsAsync(),
+      provideHttpClient(withInterceptors(HTTP_INTERCEPTORS_ORDER)),
+      provideRouter(routes),
+      providePrimeNG({
+        theme: {
+          preset: SlobSteakPreset,
+          options: {
+            darkModeSelector: false,
+            cssLayer: false,
+          },
         },
-      },
-      license: 'eyJpZCI6ImQxNjhkZTc5LTlmY2YtNDcyYy1hYzQwLWI5YTBkNmZhNjc3MyIsInByb2R1Y3QiOiJwcmltZXVpIiwidGllciI6ImNvbW11bml0eSIsInR5cGUiOiJkZXYiLCJpYXQiOjE3ODc1OTczNjMsImV4cCI6MTgxOTEzMzM2M30.LbIuWWD6GGouJqWrma5Bd_N7HWpHpClq78DyElifXmoOI7rK5yscLsfb2YXImAkQfRoz8InKZvsglruLGosOBA'
-    }),
-  ],
-};
+        license: primeNgLicenseKey ?? undefined,
+      }),
+    ],
+  };
+}

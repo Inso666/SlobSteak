@@ -56,6 +56,30 @@ akzeptiert bereits ein `license`-Feld).
   License vs. Wechsel auf eine andere, nicht lizenzpflichtige Komponentenbibliothek) — das würde
   eine eigene Story/ADR-Revision erfordern und SPEC-00 §1.1 entsprechend anpassen.
 
+## Nachtrag (US-048, 2026-08-30)
+
+Das oben unter „Konsequenzen" beschriebene technische Follow-up — der Lizenzschlüssel stand bis
+dahin als Klartext-Literal im `license`-Feld in `frontend/src/app/app.config.ts` und wurde damit
+Teil des ausgelieferten JS-Bundles und des Git-Verlaufs — wurde durch US-048 umgesetzt:
+
+- Der Schlüssel wird ausschließlich serverseitig über die Umgebungsvariable `PRIMENG_LICENSE_KEY`
+  konfiguriert (`docker-compose.yml`, analog zu `JWT_SIGNING_KEY`) und über den neuen,
+  unauthentifizierten Endpoint `GET /api/v1/config/primeng-license` bereitgestellt.
+- Das Frontend bezieht den Wert vor dem Angular-Bootstrap per HTTP-Request
+  (`frontend/src/app/core/config/primeng-license.ts`, aufgerufen aus `main.ts`) und übergibt ihn an
+  `createAppConfig(...)` in `app.config.ts` — kein Literal mehr im Quellcode.
+- Eine Rotation des Schlüssels erfordert damit nur noch eine Änderung der Umgebungsvariable und
+  einen Container-Neustart, keinen Frontend-Rebuild/-Redeploy mehr.
+
+**Ausdrücklich unverändert:** Die oben unter Punkt 2 der „Entscheidung" dokumentierte
+Grundsatzfrage — die eigentliche Lizenzregistrierung bei primeui.dev (Community- vs. Commercial
+License, Konto-Anlage) — bleibt weiterhin beim Projektverantwortlichen. US-048 ändert nur, **wie**
+ein bereits vorhandener Schlüssel technisch bereitgestellt wird, nicht **ob**/**welcher** Schlüssel
+registriert wird. Bis zur Registrierung eines echten Schlüssels bleibt der in „Konsequenzen"
+beschriebene unlizenzierte Zustand (Community-Banner sichtbar, volle Funktionalität erhalten)
+unverändert bestehen — nun aber technisch korrekt über einen leeren `PRIMENG_LICENSE_KEY`-Dev-Default
+statt über ein im Quellcode hinterlegtes Literal.
+
 ## Alternativen (verworfen)
 
 - **Lizenzbanner per CSS ausblenden:** verworfen — verletzt die Lizenzbedingungen, löst die
