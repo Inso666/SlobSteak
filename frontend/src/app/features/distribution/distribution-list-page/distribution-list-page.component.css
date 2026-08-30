@@ -101,13 +101,25 @@
    tragen die Information; die Attention-Farbe (SPEC-00 §1.2/§4) passt inhaltlich exakt, da eine
    fehlende E-Mail-Adresse ein „braucht Aufmerksamkeit"-Signal für die Kopieraktion ist (siehe
    Anmerkungen des Agenten in der Story-Datei zur Abweichung vom SPEC-05-Pseudocode
-   `var(--yellow-500)`, das kein SPEC-00-Token ist). */
+   `var(--yellow-500)`, das kein SPEC-00-Token ist). US-068/Issue #84: die Attention-Farbe bleibt
+   ausschließlich auf dem Warn-Icon konzentriert, der begleitende Text ist gedämpft/kursiv
+   dargestellt — das ändert nichts an obiger Begründung, Icon **und** Text bleiben Träger der
+   Information, unabhängig von der Textfarbe (WCAG „nicht nur Farbe" ist bereits durch
+   Icon-Präsenz + Klartext erfüllt). */
 .dl-mail-cell--missing {
   display: inline-flex;
   align-items: center;
   gap: var(--app-space-xs);
   font-family: var(--app-font-family-body);
+}
+
+.dl-mail-cell--missing i {
   color: var(--app-attention);
+}
+
+.dl-mail-cell--missing span {
+  color: var(--app-color-text-faint);
+  font-style: italic;
 }
 
 .dl-empty-panel {
