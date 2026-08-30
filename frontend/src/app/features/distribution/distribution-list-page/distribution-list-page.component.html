@@ -1,0 +1,160 @@
+<section class="distribution-list-page" aria-labelledby="dl-page-title">
+  <h1 id="dl-page-title">Verteiler</h1>
+
+  <form [formGroup]="filterForm" class="dl-toolbar" aria-label="Verteiler filtern">
+    <div class="field">
+      <label for="dl-filter-kommunikationsart">Kommunikationsart:</label>
+      <select id="dl-filter-kommunikationsart" formControlName="communicationTypeId">
+        <option [ngValue]="null">{{ filterPlaceholder }}</option>
+        @for (option of communicationTypeOptions; track option.id) {
+          <option [value]="option.id">{{ option.name }}</option>
+        }
+      </select>
+    </div>
+
+    <div class="field">
+      <label for="dl-filter-frequenz">Frequenz:</label>
+      <select id="dl-filter-frequenz" formControlName="frequency">
+        <option [ngValue]="null">{{ filterPlaceholder }}</option>
+        @for (option of frequencyOptions; track option.value) {
+          <option [value]="option.value">{{ option.label }}</option>
+        }
+      </select>
+    </div>
+
+    <div class="field">
+      <label for="dl-filter-kanal">Kanal:</label>
+      <select id="dl-filter-kanal" formControlName="channel">
+        <option [ngValue]="null">{{ filterPlaceholder }}</option>
+        @for (option of channelOptions; track option.value) {
+          <option [value]="option.value">{{ option.label }}</option>
+        }
+      </select>
+    </div>
+
+    <div class="field">
+      <label for="dl-filter-typ">Typ:</label>
+      <select id="dl-filter-typ" formControlName="stakeholderType">
+        <option [ngValue]="null">{{ filterPlaceholder }}</option>
+        @for (option of stakeholderTypeOptions; track option.value) {
+          <option [value]="option.value">{{ option.label }}</option>
+        }
+      </select>
+    </div>
+
+    <button
+      type="button"
+      pButton
+      [text]="true"
+      [disabled]="!hasActiveFilters"
+      (click)="resetFilters()"
+    >
+      Filter zurücksetzen
+    </button>
+  </form>
+
+  @if (loadError) {
+    <p class="load-error" role="alert">
+      {{ loadError }}
+      <button type="button" pButton [outlined]="true" severity="secondary" (click)="onRetry()">
+        Erneut versuchen
+      </button>
+    </p>
+  } @else {
+    <div class="dl-table-wrapper">
+      <table class="dl-table">
+        <caption class="sr-only">
+          Verteilerliste — gefiltert nach Kommunikationsart, Frequenz, Kanal und Typ
+        </caption>
+        <thead>
+          <tr>
+            <th scope="col">Name</th>
+            <th scope="col">Organisation</th>
+            <th scope="col">E-Mail</th>
+            <th scope="col">Kommunikationsart</th>
+            <th scope="col">Frequenz</th>
+            <th scope="col">Kanal</th>
+          </tr>
+        </thead>
+        <tbody>
+          @if (isLoading) {
+            @for (skeletonRow of skeletonRows; track skeletonRow) {
+              <tr>
+                <td><p-skeleton width="70%" height="1rem" /></td>
+                <td><p-skeleton width="60%" height="1rem" /></td>
+                <td><p-skeleton width="80%" height="1rem" /></td>
+                <td><p-skeleton width="60%" height="1rem" /></td>
+                <td><p-skeleton width="50%" height="1rem" /></td>
+                <td><p-skeleton width="40%" height="1rem" /></td>
+              </tr>
+            }
+          } @else if (rows.length === 0) {
+            <tr>
+              <td colspan="6">
+                <div class="dl-empty-panel">
+                  <i class="pi pi-search" aria-hidden="true"></i>
+                  <h2>{{ emptyTitle }}</h2>
+                  <p>{{ emptyText }}</p>
+                </div>
+              </td>
+            </tr>
+          } @else {
+            @for (row of rows; track row.stakeholderId + row.communicationTypeId) {
+              <tr>
+                <td class="dl-name-cell">{{ row.name }}</td>
+                <td>{{ row.organization || '—' }}</td>
+                <td>
+                  @if (row.hasEmail && row.email) {
+                    <span class="dl-mail-cell">{{ row.email }}</span>
+                  } @else {
+                    <span class="dl-mail-cell dl-mail-cell--missing" [title]="missingEmailTooltip">
+                      <i class="pi pi-exclamation-triangle" aria-hidden="true"></i>
+                      <span>{{ missingEmailLabel }}</span>
+                    </span>
+                  }
+                </td>
+                <td>{{ row.communicationTypeName }}</td>
+                <td>{{ frequencyLabel(row.frequency) }}</td>
+                <td>{{ channelLabel(row.channel) }}</td>
+              </tr>
+            }
+          }
+        </tbody>
+      </table>
+    </div>
+
+    <div class="dl-foot-row">
+      <span class="dl-foot-info">
+        {{ rows.length }} {{ rows.length === 1 ? 'Eintrag' : 'Einträge' }} in der Verteilerliste ·
+        {{ withEmailCount }} mit E-Mail-Adresse
+        @if (excludedCount > 0) {
+          <span class="dl-excluded-note">({{ excludedCount }} ohne E-Mail-Adresse)</span>
+        }
+      </span>
+      <div class="dl-foot-actions">
+        <button
+          type="button"
+          pButton
+          [outlined]="true"
+          severity="secondary"
+          [disabled]="withEmailCount === 0 || isLoading"
+          (click)="onCopyEmails()"
+        >
+          <i class="pi pi-copy" aria-hidden="true"></i>
+          E-Mails kopieren
+        </button>
+        <button
+          type="button"
+          pButton
+          [disabled]="rows.length === 0 || isLoading"
+          (click)="onExportCsv()"
+        >
+          <i class="pi pi-download" aria-hidden="true"></i>
+          CSV exportieren
+        </button>
+      </div>
+    </div>
+  }
+</section>
+
+<p-toast position="top-right" />

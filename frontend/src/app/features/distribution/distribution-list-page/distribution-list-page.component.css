@@ -1,0 +1,140 @@
+/* US-042 / SPEC-05: ausschließlich zentrale Tokens (`frontend/src/styles.css`), keine
+   hartcodierten Hex-/px-Werte (SPEC-00 §4). */
+.distribution-list-page {
+  display: flex;
+  flex-direction: column;
+  gap: var(--app-space-lg);
+}
+
+.dl-toolbar {
+  display: flex;
+  align-items: center;
+  gap: var(--app-space-md);
+  flex-wrap: wrap;
+}
+
+.field {
+  display: flex;
+  align-items: center;
+  gap: var(--app-space-sm);
+}
+
+.field label {
+  font-size: var(--app-font-size-body);
+  color: var(--app-color-text-muted);
+}
+
+/* `.load-error` selbst (Farbe/Schriftgröße) ist bereits global in `styles.css` definiert (US-044)
+   — hier ausschließlich das zusätzliche Flex-Layout für den „Erneut versuchen"-Button. */
+.load-error {
+  display: flex;
+  align-items: center;
+  gap: var(--app-space-md);
+}
+
+.dl-table-wrapper {
+  overflow-x: auto;
+  border: 1px solid var(--app-color-border);
+  border-radius: var(--app-radius-md);
+}
+
+.dl-table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: var(--app-font-size-body);
+}
+
+.dl-table th,
+.dl-table td {
+  padding: var(--app-space-sm) var(--app-space-md);
+  text-align: left;
+  border-bottom: 1px solid var(--app-color-border);
+}
+
+.dl-table th {
+  color: var(--app-color-text-muted);
+  font-weight: 600;
+  font-size: var(--app-font-size-meta);
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+}
+
+.dl-table tbody tr:last-child td {
+  border-bottom: none;
+}
+
+.dl-table tbody tr:hover {
+  background: var(--app-color-surface-hover);
+}
+
+.dl-name-cell {
+  font-weight: 600;
+  color: var(--app-color-text);
+}
+
+.dl-mail-cell {
+  font-family: var(--app-font-family-mono);
+  font-size: var(--app-font-size-body);
+}
+
+/* SPEC-05 §3.6: Kennzeichnung fehlender E-Mail-Adresse nie nur farblich — Icon **und** Text
+   tragen die Information; die Attention-Farbe (SPEC-00 §1.2/§4) passt inhaltlich exakt, da eine
+   fehlende E-Mail-Adresse ein „braucht Aufmerksamkeit"-Signal für die Kopieraktion ist (siehe
+   Anmerkungen des Agenten in der Story-Datei zur Abweichung vom SPEC-05-Pseudocode
+   `var(--yellow-500)`, das kein SPEC-00-Token ist). */
+.dl-mail-cell--missing {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--app-space-xs);
+  font-family: var(--app-font-family-body);
+  color: var(--app-attention);
+}
+
+.dl-empty-panel {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: var(--app-space-sm);
+  padding: var(--app-space-xl) var(--app-space-lg);
+  text-align: center;
+  color: var(--app-color-text-muted);
+}
+
+.dl-empty-panel i {
+  font-size: var(--app-font-size-card-title);
+}
+
+.dl-empty-panel h2 {
+  margin: 0;
+  font-size: var(--app-font-size-card-title);
+  color: var(--app-color-text);
+}
+
+.dl-empty-panel p {
+  margin: 0;
+  max-width: 24rem;
+}
+
+.dl-foot-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--app-space-md);
+  flex-wrap: wrap;
+  padding-top: var(--app-space-sm);
+  border-top: 1px solid var(--app-color-border);
+}
+
+.dl-foot-info {
+  font-size: var(--app-font-size-body);
+  color: var(--app-color-text-muted);
+}
+
+.dl-excluded-note {
+  color: var(--app-color-text-faint);
+}
+
+.dl-foot-actions {
+  display: flex;
+  gap: var(--app-space-sm);
+}

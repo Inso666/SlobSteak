@@ -9,7 +9,6 @@ import { LoginPageComponent } from './features/auth/login-page/login-page.compon
 import { ProjectOverviewComponent } from './features/projects/project-overview/project-overview.component';
 import { roleGuard } from './core/guards/role.guard';
 import { AccessDeniedComponent } from './features/workspace/access-denied/access-denied.component';
-import { DistributionPlaceholderComponent } from './features/workspace/distribution-placeholder/distribution-placeholder.component';
 import { ProjectWorkspaceLayoutComponent } from './features/workspace/project-workspace-layout/project-workspace-layout.component';
 import { StakeholderListComponent } from './features/stakeholders/stakeholder-list/stakeholder-list.component';
 import { StakeholderDetailComponent } from './features/stakeholders/stakeholder-detail/stakeholder-detail.component';
@@ -48,6 +47,11 @@ const ALL_PROJECT_ROLES = ['PL', 'Coreteam', 'Architect', 'User'] as const;
  * `MapPlaceholderComponent`-Platzhalter aus US-019 ab) — per `loadComponent` lazy geladen
  * (frontend.md Abschnitt 3), unverändert weiterhin durch `roleGuard(['PL','Coreteam','Architect'])`
  * geschützt.
+ *
+ * US-042: `distribution` rendert seit dieser Story `DistributionListPageComponent` (löst den
+ * bisherigen `DistributionPlaceholderComponent`-Platzhalter aus US-019 ab) — analog zu `map` per
+ * `loadComponent` lazy geladen, unverändert weiterhin durch `roleGuard(['PL','Coreteam'])`
+ * geschützt.
  */
 export const routes: Routes = [
   { path: 'login', component: LoginPageComponent },
@@ -65,7 +69,12 @@ export const routes: Routes = [
         loadComponent: () => import('./features/map/stakeholder-map-page/stakeholder-map-page.component').then((m) => m.StakeholderMapPageComponent),
         canActivate: [roleGuard(['PL', 'Coreteam', 'Architect'])],
       },
-      { path: 'distribution', component: DistributionPlaceholderComponent, canActivate: [roleGuard(['PL', 'Coreteam'])] },
+      {
+        path: 'distribution',
+        loadComponent: () =>
+          import('./features/distribution/distribution-list-page/distribution-list-page.component').then((m) => m.DistributionListPageComponent),
+        canActivate: [roleGuard(['PL', 'Coreteam'])],
+      },
       { path: 'access-denied', component: AccessDeniedComponent },
     ],
   },
