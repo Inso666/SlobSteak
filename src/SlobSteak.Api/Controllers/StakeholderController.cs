@@ -56,7 +56,11 @@ public sealed record SimilarStakeholderWarningResponse(Guid Id, string Name)
 /// <c>updatedAt</c> speisen die künftige „Zuletzt geändert von [Name] am [Datum/Uhrzeit]“-Anzeige
 /// (US-022 Akzeptanzkriterium 4, Stakeholder-Detailseite folgt erst mit US-026). <c>deletedAt</c>/
 /// <c>deletedByName</c> sind bei aktiven Stakeholdern stets <c>null</c> und ausschließlich in der
-/// Papierkorb-Ansicht befüllt (US-024 Akzeptanzkriterium 1).</summary>
+/// Papierkorb-Ansicht befüllt (US-024 Akzeptanzkriterium 1). <c>communicationTypeNames</c> (US-072,
+/// additiv) ist ausschließlich im <see cref="FromListItem"/>-Zweig befüllt (Sichtbarkeitsgrenze aus
+/// US-040, dort serverseitig bereits auf die Rollen <c>PL</c>/<c>Coreteam</c>/<c>Architect</c>
+/// eingeschränkt) — in jedem anderen Zweig (Anlegen/Bearbeiten/Papierkorb) stets ein leeres Array,
+/// da dort nicht relevant.</summary>
 public sealed record StakeholderResponse(
     Guid Id,
     Guid ProjectId,
@@ -72,29 +76,32 @@ public sealed record StakeholderResponse(
     DateTimeOffset UpdatedAt,
     SimilarStakeholderWarningResponse? SimilarStakeholderWarning,
     DateTimeOffset? DeletedAt,
-    string? DeletedByName)
+    string? DeletedByName,
+    IReadOnlyList<string> CommunicationTypeNames)
 {
     public static StakeholderResponse FromCreateResult(CreateStakeholderResult result) =>
-        FromDomain(result.Stakeholder, result.CreatedByName, result.SimilarStakeholderWarning, deletedByName: null);
+        FromDomain(result.Stakeholder, result.CreatedByName, result.SimilarStakeholderWarning, deletedByName: null, communicationTypeNames: Array.Empty<string>());
 
     public static StakeholderResponse FromUpdateResult(UpdateStakeholderDetailsResult result) =>
-        FromDomain(result.Stakeholder, result.UpdatedByName, similarStakeholderWarning: null, deletedByName: null);
+        FromDomain(result.Stakeholder, result.UpdatedByName, similarStakeholderWarning: null, deletedByName: null, communicationTypeNames: Array.Empty<string>());
 
     /// <summary>US-025: Eintrag der Stakeholderliste — derselbe Response-Contract wie Anlegen/
-    /// Bearbeiten (nie ein <c>similarStakeholderWarning</c>, das ist ein reines Anlege-Konzept).</summary>
+    /// Bearbeiten (nie ein <c>similarStakeholderWarning</c>, das ist ein reines Anlege-Konzept).
+    /// US-072: einziger Zweig, der <c>communicationTypeNames</c> aus dem Item übernimmt.</summary>
     public static StakeholderResponse FromListItem(StakeholderListItem item) =>
-        FromDomain(item.Stakeholder, item.UpdatedByName, similarStakeholderWarning: null, deletedByName: null);
+        FromDomain(item.Stakeholder, item.UpdatedByName, similarStakeholderWarning: null, deletedByName: null, item.CommunicationTypeNames);
 
     /// <summary>US-024: Eintrag der Papierkorb-Ansicht — derselbe Response-Contract, zusätzlich mit
     /// aufgelöstem <c>deletedByName</c> (Akzeptanzkriterium 1).</summary>
     public static StakeholderResponse FromDeletedItem(DeletedStakeholderItem item) =>
-        FromDomain(item.Stakeholder, item.UpdatedByName, similarStakeholderWarning: null, item.DeletedByName);
+        FromDomain(item.Stakeholder, item.UpdatedByName, similarStakeholderWarning: null, item.DeletedByName, communicationTypeNames: Array.Empty<string>());
 
     private static StakeholderResponse FromDomain(
         Stakeholder stakeholder,
         string updatedByName,
         SimilarStakeholderWarning? similarStakeholderWarning,
-        string? deletedByName) =>
+        string? deletedByName,
+        IReadOnlyList<string> communicationTypeNames) =>
         new(
             stakeholder.Id,
             stakeholder.ProjectId,
@@ -110,7 +117,8 @@ public sealed record StakeholderResponse(
             stakeholder.UpdatedAt,
             similarStakeholderWarning is null ? null : SimilarStakeholderWarningResponse.FromDomain(similarStakeholderWarning),
             stakeholder.DeletedAt,
-            deletedByName);
+            deletedByName,
+            communicationTypeNames);
 }
 
 /// <summary>Response-DTO für die Lösch-Auswirkung eines Stakeholders (US-023 Akzeptanzkriterium 2).</summary>
@@ -192,15 +200,18 @@ public sealed class StakeholderController : ControllerBase
         [FromQuery] bool deleted,
         CancellationToken cancellationToken)
     {
+        var userIdClaim = User.FindFirst("sub")?.Value;
+        if (!Guid.TryParse(userIdClaim, out var userId))
+        {
+            return Unauthorized();
+        }
+
+        // US-072: einmalig geladen, für beide Zweige (Papierkorb-Rollenprüfung UND Auflösung der
+        // eigenen Rolle für `communicationTypeNames`) genutzt, statt das Projekt zweimal zu laden.
+        var project = await _projectRepository.FindByIdAsync(projectId, cancellationToken);
+
         if (deleted)
         {
-            var userIdClaim = User.FindFirst("sub")?.Value;
-            if (!Guid.TryParse(userIdClaim, out var userId))
-            {
-                return Unauthorized();
-            }
-
-            var project = await _projectRepository.FindByIdAsync(projectId, cancellationToken);
             if (project is null || !ProjectRolePolicy.IsAllowed(project.Memberships, userId, DeletedViewRoles))
             {
                 return StatusCode(StatusCodes.Status403Forbidden, new { error = "FORBIDDEN" });
@@ -210,10 +221,20 @@ public sealed class StakeholderController : ControllerBase
             return Ok(deletedItems.Select(StakeholderResponse.FromDeletedItem));
         }
 
+        // Die eigene Rolle bestimmt, ob `communicationTypeNames` befüllt wird (US-072
+        // Akzeptanzkriterium 6) — der `[RequireProjectRole]`-Aufsatz oben hat bereits sichergestellt,
+        // dass irgendeine der vier Rollen vorliegt; ein `null` hierträte praktisch nur bei einem
+        // parallelen Entzug der Mitgliedschaft zwischen Autorisierung und Ausführung auf.
+        var callerRole = project?.Memberships.FirstOrDefault(m => m.UserId == userId)?.Role;
+        if (callerRole is null)
+        {
+            return StatusCode(StatusCodes.Status403Forbidden, new { error = "FORBIDDEN" });
+        }
+
         StakeholderType? parsedType = Enum.TryParse<StakeholderType>(type, ignoreCase: true, out var typeValue) ? typeValue : null;
 
         var items = await _listStakeholdersService.ListActiveStakeholdersAsync(
-            projectId, search, parsedType, communicationTypeId, cancellationToken);
+            projectId, callerRole.Value, search, parsedType, communicationTypeId, cancellationToken);
         return Ok(items.Select(StakeholderResponse.FromListItem));
     }
 
