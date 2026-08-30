@@ -1,6 +1,7 @@
 import { ChangeDetectorRef, Component, OnInit, inject } from '@angular/core';
 import { ActivatedRoute, Router, RouterLink } from '@angular/router';
 import { DatePipe } from '@angular/common';
+import { ReactiveFormsModule } from '@angular/forms';
 import { ButtonDirective } from 'primeng/button';
 import { Stakeholder, StakeholdersService } from '../stakeholders.service';
 import { ProjectsService } from '../../projects/projects.service';
@@ -35,6 +36,18 @@ import { CommunicationAssignmentPanelComponent } from '../communication-assignme
  * Feldzuweisung in einem `subscribe()`-Callback markiert die Komponente sonst nicht automatisch für
  * die nächste Change-Detection-Runde. Diese Komponente wurde von der „systematischen“
  * US-058-Bereinigung nicht erfasst (Issue #61, bestätigt zusätzlich durch Issue #81).
+ *
+ * US-071 (Issue #102): Zwei-Spalten-Layout (linke Spalte Stammdaten + Kommunikationszuordnungen,
+ * rechte Spalte Assessment) und direkt editierbare Stammdatenfelder statt eines separaten
+ * Lese-/Bearbeiten-Modus — der frühere „Bearbeiten“-Umschalter (`editing`-Flag) entfällt vollständig,
+ * {@link EditStakeholderFormComponent} rendert je nach {@link canEdit} entweder die Eingabefelder
+ * oder reinen Text (Akzeptanzkriterium 2/6). Name und Typ wandern in den Namens-Header (inkl.
+ * separater Typ-Badge-Pille, Akzeptanzkriterium 5) statt als redundante Zweitfelder im
+ * Stammdaten-Panel zu erscheinen (Akzeptanzkriterium 3) — die zugehörigen `FormControl`s bleiben
+ * Teil derselben `FormGroup` in `EditStakeholderFormComponent` und werden über die dort öffentlich
+ * gemachten `nameControl`/`typeControl`/`organizationControl`-Getter direkt im Kopfbereich gebunden
+ * (`[formControl]`, Template-Referenzvariable `#editForm`), damit „Speichern“ ein einziger
+ * gemeinsamer Request über Header- und Panel-Felder hinweg bleibt (Story Abschnitt 4, Invariante 2).
  */
 @Component({
   selector: 'app-stakeholder-detail',
@@ -42,6 +55,7 @@ import { CommunicationAssignmentPanelComponent } from '../communication-assignme
   imports: [
     RouterLink,
     DatePipe,
+    ReactiveFormsModule,
     EditStakeholderFormComponent,
     DeleteStakeholderDialogComponent,
     AssessmentTabsComponent,
@@ -62,7 +76,6 @@ export class StakeholderDetailComponent implements OnInit {
   protected stakeholder: Stakeholder | null = null;
   protected notFound = false;
   protected currentUserRole: string | null = null;
-  protected editing = false;
   protected deleting = false;
 
   ngOnInit(): void {
@@ -94,6 +107,13 @@ export class StakeholderDetailComponent implements OnInit {
     return this.currentUserRole === 'PL';
   }
 
+  /** US-071 Akzeptanzkriterium 5: deutscher Anzeigetext der Typ-Badge-Pille im Namens-Header
+   * (nur für den nicht editierbaren Zustand — im editierbaren Zustand übernimmt das native
+   * `<select>` dieselben zwei Optionswerte, siehe Template). */
+  protected get typeLabel(): string {
+    return this.stakeholder?.type === 'Organization' ? 'Organisation' : 'Person';
+  }
+
   /**
    * US-030 Akzeptanzkriterium 3: Assessment-Bereich (inkl. Tabs) wird für Rolle `User` vollständig
    * aus dem DOM entfernt, nicht nur per CSS versteckt — reine, zusätzliche UX-Schicht über der
@@ -112,23 +132,12 @@ export class StakeholderDetailComponent implements OnInit {
     );
   }
 
-  protected onEditClick(): void {
-    this.editing = true;
-    this.deleting = false;
-  }
-
-  protected onEditCancelled(): void {
-    this.editing = false;
-  }
-
   protected onEditUpdated(updated: Stakeholder): void {
-    this.editing = false;
     this.stakeholder = updated;
   }
 
   protected onDeleteClick(): void {
     this.deleting = true;
-    this.editing = false;
   }
 
   protected onDeleteCancelled(): void {

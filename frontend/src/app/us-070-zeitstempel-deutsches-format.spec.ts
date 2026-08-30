@@ -140,22 +140,15 @@ describe('US-070: Zeitstempel systemweit im deutschen Format darstellen', () => 
       assertGermanFormat(fixture.nativeElement.textContent, knownTimestamp);
     });
 
-    it('edit-stakeholder-form.component.html (stakeholder.updatedAt)', () => {
-      const stakeholdersServiceSpy: jasmine.SpyObj<StakeholdersService> = jasmine.createSpyObj('StakeholdersService', ['createStakeholder', 'updateStakeholder']);
-
-      TestBed.configureTestingModule({
-        imports: [EditStakeholderFormComponent],
-        providers: [
-          { provide: StakeholdersService, useValue: stakeholdersServiceSpy },
-          { provide: LOCALE_ID, useValue: 'de-DE' },
-        ],
-      });
-      const fixture = TestBed.createComponent(EditStakeholderFormComponent);
-      fixture.componentRef.setInput('stakeholder', baseStakeholder);
-      fixture.detectChanges();
-
-      assertGermanFormat(fixture.nativeElement.textContent, knownTimestamp);
-    });
+    // US-071 (Issue #102): `EditStakeholderFormComponent` zeigte die „Zuletzt geändert von/am“-Zeile
+    // bislang redundant zum Namens-Header von `StakeholderDetailComponent` erneut an (eigene
+    // Überschrift „Stakeholder bearbeiten“ + eigene Meta-Zeile). Diese Fundstelle wurde im Zuge des
+    // Zwei-Spalten-Layout-Umbaus konsolidiert — die Zeitstempel-Anzeige existiert seither nur noch
+    // an einer Stelle (Namens-Header), nicht mehr dupliziert im Stammdaten-Panel. Der ursprünglich
+    // hier geprüfte fachliche Sachverhalt (deutsches Zeitformat für „zuletzt geändert“) bleibt durch
+    // den nachfolgenden Testfall „stakeholder-detail.component.html“ vollständig abgedeckt — kein
+    // Verlust einer geprüften Aussage, nur Wegfall einer durch US-071 bewusst entfernten Dopplung
+    // (CLAUDE.md Abschnitt 6).
 
     // Akzeptanzkriterium 4: repräsentativer Nachweis anhand von StakeholderDetailComponent, dass
     // ein bekannter DateTimeOffset-Wert im erwarteten deutschen Format gerendert wird.

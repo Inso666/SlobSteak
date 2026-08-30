@@ -99,8 +99,9 @@ describe('StakeholderDetailComponent', () => {
     expect(fixture.componentInstance['notFound']).toBeFalse();
   });
 
-  // Akzeptanzkriterium 2: Bearbeiten nur für PL/Coreteam/Architect, für User read-only.
-  it('should hide edit for role User and show it for role PL/Coreteam/Architect', () => {
+  // Akzeptanzkriterium 2: Bearbeiten (Stammdatenfelder direkt editierbar) nur für
+  // PL/Coreteam/Architect, für User read-only.
+  it('should mark canEdit false for role User and true for role PL/Coreteam/Architect', () => {
     let fixture = createComponent();
     expect(fixture.componentInstance['canEdit']).toBeFalse();
 
@@ -111,30 +112,68 @@ describe('StakeholderDetailComponent', () => {
     }
   });
 
-  it('should toggle the edit form and apply the updated stakeholder', () => {
+  // US-071 Akzeptanzkriterium 2/3: für canEdit=true sind Name/Typ als editierbare Felder im
+  // Kopfbereich vorhanden, die Stammdaten-Panel-Felder enthalten kein Name-/Typ-Eingabefeld mehr
+  // (keine Dopplung, Issue #102).
+  it('should render editable name/type/organization fields in the header for role PL and no name/type inputs in the Stammdaten panel', () => {
+    configure('PL');
+    const fixture = createComponent();
+
+    expect(fixture.debugElement.query(By.css('input.page-title-input'))).not.toBeNull();
+    expect(fixture.debugElement.query(By.css('select[data-testid="type-badge"]'))).not.toBeNull();
+    expect(fixture.debugElement.query(By.css('input.org-line-input'))).not.toBeNull();
+    expect(fixture.debugElement.query(By.css('#f-position'))).not.toBeNull();
+    expect(fixture.debugElement.query(By.css('.panel input[formControlName="name"]'))).toBeNull();
+    expect(fixture.debugElement.query(By.css('.panel select[formControlName="type"]'))).toBeNull();
+  });
+
+  // US-071 Akzeptanzkriterium 5: Typ-Badge-Pille im Namens-Header, getrennt von der
+  // Fließtext-Meta-Zeile — auch für nicht-editierende Nutzer sichtbar.
+  it('should render a separate type badge next to the name for role without edit rights', () => {
+    const fixture = createComponent();
+
+    const badge = fixture.debugElement.query(By.css('[data-testid="type-badge"]'));
+    expect(badge).not.toBeNull();
+    expect((badge.nativeElement as HTMLElement).textContent).toContain('Person');
+    expect(fixture.debugElement.query(By.css('.page-title-input'))).toBeNull();
+  });
+
+  // US-071 Akzeptanzkriterium 6: für Nutzer ohne Bearbeitungsrecht bleiben die Stammdatenfelder
+  // reiner, nicht editierbarer Text (kein Rückschritt).
+  it('should keep the Stammdaten fields as read-only text for role User', () => {
+    const fixture = createComponent();
+
+    expect(fixture.debugElement.query(By.css('#f-position'))).toBeNull();
+    expect(fixture.debugElement.query(By.css('dl.master-data'))).not.toBeNull();
+    expect(fixture.nativeElement.textContent).toContain('CTO');
+  });
+
+  // US-071 Akzeptanzkriterium 1: Zwei-Spalten-Layout — Stammdaten- und Kommunikations-Panel links,
+  // Assessment-Panel rechts.
+  it('should place the Stammdaten and Kommunikationszuordnungen panels in the left column and Assessment in the right column', () => {
+    configure('PL');
+    const fixture = createComponent();
+
+    const leftPanelTitles = fixture.debugElement
+      .queryAll(By.css('.col-left .panel-title'))
+      .map((el) => (el.nativeElement as HTMLElement).textContent?.trim());
+    const rightPanelTitles = fixture.debugElement
+      .queryAll(By.css('.col-right .panel-title'))
+      .map((el) => (el.nativeElement as HTMLElement).textContent?.trim());
+
+    expect(leftPanelTitles).toEqual(['Stammdaten', 'Kommunikationszuordnungen']);
+    expect(rightPanelTitles).toEqual(['Assessment']);
+  });
+
+  it('should apply the updated stakeholder after the Stammdaten form saved', () => {
     configure('PL');
     const fixture = createComponent();
     const component = fixture.componentInstance;
     const updated: Stakeholder = { ...stakeholder, name: 'Neuer Name' };
 
-    component['onEditClick']();
-    expect(component['editing']).toBeTrue();
-
     component['onEditUpdated'](updated);
-    expect(component['editing']).toBeFalse();
+
     expect(component['stakeholder']).toEqual(updated);
-  });
-
-  it('should cancel editing without changing the stakeholder', () => {
-    configure('PL');
-    const fixture = createComponent();
-    const component = fixture.componentInstance;
-
-    component['onEditClick']();
-    component['onEditCancelled']();
-
-    expect(component['editing']).toBeFalse();
-    expect(component['stakeholder']).toEqual(stakeholder);
   });
 
   // Akzeptanzkriterium 4: CTA „Löschen“ nur für PL/Admin(mit PL-Zuweisung) sichtbar.

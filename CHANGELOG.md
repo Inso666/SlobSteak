@@ -4,6 +4,28 @@ Alle nennenswerten Änderungen an diesem Projekt werden hier je User Story dokum
 
 ## [Unreleased]
 
+### US-071 — Stakeholder-Detailseite als Zwei-Spalten-Layout mit direkt editierbaren Stammdaten und Typ-Badge
+
+- Root Cause (Issue #102, QA-Design-Abgleich-Gesamtaudit vom 30.08.2026): Die Stakeholder-Detailseite
+  war einspaltig statt im spezifizierten Zwei-Spalten-Layout (Stammdaten/Kommunikation links,
+  Assessment rechts), Stammdaten waren reiner Lesetext mit „Bearbeiten"-Button, der ein separates,
+  redundantes Formular öffnete (das Name/Typ/Organisation erneut abfragte, obwohl bereits im
+  Kopfbereich sichtbar), und der Namens-Header zeigte keine separate Typ-Badge-Pille.
+- Fix: `stakeholder-detail.component.html`/`.css` auf Zwei-Spalten-Grid umgebaut (`.col-left`:
+  Stammdaten- + Kommunikationszuordnungen-Panel, `.col-right`: Assessment-Panel; Responsive-Fallback
+  auf einspaltig unterhalb 960px, analog `MOBILE_NAV_QUERY`). `edit-stakeholder-form.component.ts`
+  rendert die Stammdatenfelder (Position, E-Mail, Telefon, Standort/Abteilung, Beschreibung) für
+  Nutzer mit Bearbeitungsrecht jetzt immer direkt als Eingabefelder (kein Lese-/Bearbeiten-Modus mehr)
+  bzw. für Nutzer ohne Bearbeitungsrecht weiterhin als reinen Text. Name/Typ/Organisation wanderten in
+  den Namens-Header (dort editierbar über `[formControl]`-Bindung an dieselbe `FormGroup`, damit
+  „Speichern" ein einziger gemeinsamer `PATCH`-Request bleibt); neue geteilte `.type-tag`-Utility-
+  Klasse (`frontend/src/styles.css`) für die Typ-Badge-Pille im Header. „Speichern"/„Abbrechen" sind
+  gemäß US-043-Muster nur bei tatsächlicher Formular-Änderung aktiv.
+- Story-Test: `frontend/src/app/features/stakeholders/us-071-stakeholder-detail-zwei-spalten-layout.spec.ts`.
+  Einzeln ausführen: `ng test --include='**/us-071*.spec.ts'`. Vollständiger `ng test`-Lauf: 477/477
+  grün, `ng lint` fehlerfrei, `ng build` erfolgreich. Manueller Smoke-Test gegen `docker-compose up`
+  durchgeführt (siehe Story-Datei „Anmerkungen des Agenten" für Screenshot und Details).
+
 ### US-070 — Zeitstempel systemweit im deutschen Format (TT.MM.JJJJ, 24h) statt US-Format darstellen
 
 - Root Cause (Issue #104, QA-Design-Abgleich-Gesamtaudit vom 30.08.2026): Ohne registrierte Angular-

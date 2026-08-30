@@ -1,63 +1,46 @@
-<section class="edit-stakeholder">
-  <h3>Stakeholder bearbeiten</h3>
-  <p class="last-modified">Zuletzt geändert von {{ stakeholder.updatedByName }} am {{ stakeholder.updatedAt | date: 'dd.MM.yyyy, HH:mm' }}</p>
-
+@if (canEdit) {
   <form [formGroup]="form" (ngSubmit)="onSubmit()">
-    <div class="field">
-      <label for="edit-name">Name</label>
-      <input pInputText id="edit-name" formControlName="name" class="w-full" />
-    </div>
-
-    <div class="field">
-      <label for="edit-type">Typ</label>
-      <select id="edit-type" formControlName="type">
-        <option value="Person">Person</option>
-        <option value="Organization">Organisation</option>
-      </select>
-    </div>
-
-    <div class="field">
-      <label for="edit-organization">Organisation</label>
-      <input pInputText id="edit-organization" formControlName="organization" class="w-full" />
-    </div>
-
-    @if (!isOrganization) {
-      <div class="field">
-        <label for="edit-position">Position/Funktion</label>
-        <input pInputText id="edit-position" formControlName="position" class="w-full" />
-      </div>
-    }
-
-    <div class="field">
-      <label for="edit-email">E-Mail</label>
-      <input
-        pInputText
-        id="edit-email"
-        type="email"
-        formControlName="email"
-        class="w-full"
-        [class.ng-invalid]="form.controls.email.invalid && form.controls.email.dirty"
-        [attr.aria-invalid]="form.controls.email.invalid && form.controls.email.dirty"
-        [attr.aria-describedby]="form.controls.email.invalid && form.controls.email.dirty ? 'edit-email-error' : null"
-      />
-      @if (form.controls.email.invalid && form.controls.email.dirty) {
-        <p-message id="edit-email-error" severity="error" styleClass="w-full" role="alert">Ungültiges E-Mail-Format.</p-message>
+    <div class="field-grid">
+      @if (!isOrganizationType) {
+        <div class="field">
+          <label for="f-position">Position/Funktion</label>
+          <input pInputText id="f-position" formControlName="position" class="w-full" />
+        </div>
       }
-    </div>
 
-    <div class="field">
-      <label for="edit-phone">Telefon</label>
-      <input pInputText id="edit-phone" formControlName="phone" class="w-full" />
-    </div>
+      <div class="field">
+        <label for="f-email">E-Mail</label>
+        <input
+          pInputText
+          id="f-email"
+          type="email"
+          formControlName="email"
+          class="w-full"
+          [class.ng-invalid]="form.controls.email.invalid && form.controls.email.dirty"
+          [attr.aria-invalid]="form.controls.email.invalid && form.controls.email.dirty"
+          [attr.aria-describedby]="form.controls.email.invalid && form.controls.email.dirty ? 'f-email-error' : null"
+        />
+        @if (form.controls.email.invalid && form.controls.email.dirty) {
+          <p-message id="f-email-error" severity="error" styleClass="w-full" role="alert">
+            <i class="pi pi-exclamation-triangle"></i> Ungültiges E-Mail-Format.
+          </p-message>
+        }
+      </div>
 
-    <div class="field">
-      <label for="edit-locationDepartment">Standort/Abteilung</label>
-      <input pInputText id="edit-locationDepartment" formControlName="locationDepartment" class="w-full" />
-    </div>
+      <div class="field">
+        <label for="f-phone">Telefon</label>
+        <input pInputText id="f-phone" formControlName="phone" class="w-full" />
+      </div>
 
-    <div class="field">
-      <label for="edit-description">Beschreibung</label>
-      <textarea pTextarea id="edit-description" formControlName="description" class="w-full" rows="3"></textarea>
+      <div class="field field-full">
+        <label for="f-location">Standort/Abteilung</label>
+        <input pInputText id="f-location" formControlName="locationDepartment" class="w-full" />
+      </div>
+
+      <div class="field field-full">
+        <label for="f-description">Beschreibung</label>
+        <textarea pTextarea id="f-description" formControlName="description" class="w-full" rows="3"></textarea>
+      </div>
     </div>
 
     @if (errorMessage) {
@@ -65,8 +48,27 @@
     }
 
     <div class="actions">
-      <app-processing-button type="submit" [disabled]="form.invalid" [isSubmitting]="isSubmitting" label="Speichern" submittingLabel="Wird gespeichert…" />
-      <button type="button" pButton [outlined]="true" severity="secondary" [disabled]="isSubmitting" (click)="onCancel()">Abbrechen</button>
+      <app-processing-button
+        type="submit"
+        [disabled]="form.invalid || form.pristine"
+        [isSubmitting]="isSubmitting"
+        label="Speichern"
+        submittingLabel="Wird gespeichert…"
+      />
+      <button type="button" pButton [outlined]="true" severity="secondary" [disabled]="form.pristine || isSubmitting" (click)="onCancel()">Abbrechen</button>
     </div>
   </form>
-</section>
+} @else {
+  <dl class="master-data">
+    <dt>Position/Funktion</dt>
+    <dd>{{ stakeholder.position || '–' }}</dd>
+    <dt>E-Mail</dt>
+    <dd>{{ stakeholder.email || '–' }}</dd>
+    <dt>Telefon</dt>
+    <dd>{{ stakeholder.phone || '–' }}</dd>
+    <dt>Standort/Abteilung</dt>
+    <dd>{{ stakeholder.locationDepartment || '–' }}</dd>
+    <dt>Beschreibung</dt>
+    <dd>{{ stakeholder.description || '–' }}</dd>
+  </dl>
+}

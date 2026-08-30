@@ -1,5 +1,5 @@
-/* US-047: ausschließlich zentrale Tokens (frontend/src/styles.css), keine hartcodierten
-   Hex-/px-Werte. */
+/* US-047, erweitert um US-071: ausschließlich zentrale Tokens (frontend/src/styles.css), keine
+   hartcodierten Hex-/px-Werte. */
 .not-found {
   padding: var(--app-space-lg);
   color: var(--app-color-text-muted);
@@ -20,17 +20,55 @@
   text-decoration: underline;
 }
 
-header {
+/* US-071 Akzeptanzkriterium 3/5: Namens-Header mit editierbarem Namen, separater Typ-Badge-Pille
+   und (im Bearbeiten-Zustand) editierbarem Organisations-Feld — getrennt von der bisherigen
+   Fließtext-Meta-Zeile („Zuletzt geändert von/am“). */
+.detail-head {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: var(--app-space-lg);
   margin-bottom: var(--app-space-lg);
 }
 
-header h1 {
-  margin-bottom: var(--app-space-xs);
+.head-left {
+  display: flex;
+  flex-direction: column;
+  gap: var(--app-space-xs);
 }
 
-.meta {
-  color: var(--app-color-text-muted);
+.name-row {
+  display: flex;
+  align-items: center;
+  gap: var(--app-space-sm);
+}
+
+.page-title {
   margin: 0;
+}
+
+.page-title-input {
+  font-family: var(--app-font-family-display);
+  font-size: var(--app-font-size-display);
+  font-weight: 600;
+  color: var(--app-color-text);
+  background: var(--app-color-surface);
+  border: 1px solid var(--app-color-border);
+  border-radius: var(--app-radius-md);
+  padding: var(--app-space-xs) var(--app-space-sm);
+}
+
+.org-line {
+  color: var(--app-color-text-muted);
+}
+
+.org-line-input {
+  color: var(--app-color-text);
+  background: var(--app-color-surface);
+  border: 1px solid var(--app-color-border);
+  border-radius: var(--app-radius-md);
+  padding: var(--app-space-xs) var(--app-space-sm);
+  max-width: 20rem;
 }
 
 .last-modified {
@@ -43,46 +81,59 @@ header h1 {
 .actions {
   display: flex;
   gap: var(--app-space-sm);
-  margin-top: var(--app-space-md);
 }
 
-.master-data {
-  display: grid;
-  grid-template-columns: 10rem 1fr;
-  row-gap: var(--app-space-sm);
-  margin-bottom: var(--app-space-lg);
+/* US-071 Akzeptanzkriterium 1: Zwei-Spalten-Layout — linke Spalte (Stammdaten +
+   Kommunikationszuordnungen), rechte Spalte (Assessment). Responsive Fallback auf einspaltig
+   unterhalb 960px, derselbe Breakpoint wie die mobile Sidebar-Navigation
+   (`MOBILE_NAV_QUERY`, `app-navigation.component.ts`) — konsistent mit anderen Screens dieses
+   Repos statt eines neu erfundenen Breakpoints. */
+.columns {
+  display: flex;
+  gap: var(--app-space-lg);
+  align-items: flex-start;
 }
 
-.master-data dt {
+.col-left {
+  flex: 0 0 38.75rem; /* 620px, siehe docs/design Artboard Detail.dc.html */
+  display: flex;
+  flex-direction: column;
+  gap: var(--app-space-lg);
+  min-width: 0;
+}
+
+.col-right {
+  flex: 1 1 auto;
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+  gap: var(--app-space-lg);
+}
+
+.panel {
+  background: var(--app-color-surface);
+  border: 1px solid var(--app-color-border);
+  border-radius: var(--app-radius-lg);
+  padding: var(--app-space-lg);
+  display: flex;
+  flex-direction: column;
+  gap: var(--app-space-md);
+}
+
+.panel-title {
+  font-family: var(--app-font-family-display);
+  font-size: var(--app-font-size-card-title);
   font-weight: 600;
-  color: var(--app-color-text-muted);
-}
-
-.master-data dd {
   margin: 0;
-  color: var(--app-color-text);
 }
 
-.communication-slot {
-  margin-top: var(--app-space-lg);
-  padding: var(--app-space-md);
-  background: var(--app-color-surface);
-  border: 1px solid var(--app-color-border);
-  border-radius: var(--app-radius-md);
-}
+@media (max-width: 959px) {
+  .columns {
+    flex-direction: column;
+  }
 
-.communication-slot h2 {
-  margin-top: 0;
-}
-
-.assessment-slot {
-  margin-top: var(--app-space-lg);
-  padding: var(--app-space-md);
-  background: var(--app-color-surface);
-  border: 1px solid var(--app-color-border);
-  border-radius: var(--app-radius-md);
-}
-
-.assessment-slot h2 {
-  margin-top: 0;
+  .col-left {
+    flex: 1 1 auto;
+    width: 100%;
+  }
 }

@@ -1,39 +1,56 @@
-/* US-047 / SPEC-00 §2: ausschließlich zentrale Tokens, keine hartcodierten Hex-/px-Werte. */
-.edit-stakeholder {
-  padding: var(--app-space-md);
-  margin: var(--app-space-sm) 0;
-  background: var(--app-color-surface);
-  border: 1px solid var(--app-color-border);
-  border-radius: var(--app-radius-md);
-}
-
-.last-modified {
-  color: var(--app-color-text-muted);
-  font-size: var(--app-font-size-meta);
-  font-family: var(--app-font-family-mono);
-}
+/* US-047 / SPEC-00 §2, erweitert um US-071: ausschließlich zentrale Tokens, keine hartcodierten
+   Hex-/px-Werte. */
 
 form {
   display: flex;
   flex-direction: column;
-  gap: var(--app-space-xs);
-  max-width: 24rem;
+  gap: var(--app-space-md);
+}
+
+/* US-071: Zwei-Spalten-Mini-Grid innerhalb des Stammdaten-Panels (Akzeptanzkriterium 1/2),
+   `.field-full` spannt beide Spalten (Standort/Abteilung, Beschreibung), analog zum
+   `docs/design`-Artboard `Detail.dc.html`. */
+.field-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: var(--app-space-md);
+}
+
+.field-full {
+  grid-column: 1 / -1;
 }
 
 .field {
   display: flex;
   flex-direction: column;
   gap: var(--app-space-xs);
-  margin-bottom: var(--app-space-sm);
 }
 
 .field label {
   font-size: var(--app-font-size-body);
   color: var(--app-color-text-muted);
+  font-weight: 600;
 }
 
 .actions {
   display: flex;
   gap: var(--app-space-sm);
-  margin-top: var(--app-space-sm);
+}
+
+/* US-071 Akzeptanzkriterium 6: reiner, nicht editierbarer Text für Nutzer ohne Bearbeitungsrecht
+   (unverändert übernommen aus dem bisherigen `<dl>`-Markup der Stakeholder-Detailseite). */
+.master-data {
+  display: grid;
+  grid-template-columns: 10rem 1fr;
+  row-gap: var(--app-space-sm);
+}
+
+.master-data dt {
+  font-weight: 600;
+  color: var(--app-color-text-muted);
+}
+
+.master-data dd {
+  margin: 0;
+  color: var(--app-color-text);
 }
