@@ -4,6 +4,24 @@ Alle nennenswerten Änderungen an diesem Projekt werden hier je User Story dokum
 
 ## [Unreleased]
 
+### US-069 — Assessment-Inhalt des standardmäßig aktiven Tabs zuverlässig bei Erstaufruf rendern
+
+- Root Cause (Issue #103, Design-Abgleich-Gesamtaudit vom 30.08.2026): `AssessmentTabsComponent.loadAssessments()`
+  mutierte `this.roles` (von dem der `activeRole`-Getter abhängt) direkt im `.subscribe()`-Callback
+  von `AssessmentsService.getAssessments(...)`, ohne `ChangeDetectorRef.markForCheck()` aufzurufen.
+  Da das Frontend zoneless läuft (kein `zone.js`), blieb der Tab-Inhalt (Slider, „Zuletzt geändert
+  von/am", Notizfeld) nach frischem Seitenaufruf leer, bis manuell ein anderer Tab an- und wieder
+  zurückgeklickt wurde — dasselbe Bug-Muster wie bereits in US-050/US-051/US-052/US-057/US-058/US-059
+  an anderen Stellen behoben, hier aber eine bislang nicht erfasste Komponente.
+- Fix: `ChangeDetectorRef` injiziert, `markForCheck()` im `next`-Callback von `loadAssessments()`
+  ergänzt (`frontend/src/app/features/assessments/assessment-tabs/assessment-tabs.component.ts`) —
+  keine Änderung an der fachlichen Logik von `activeRole`, `syncFormWithActiveTab()` oder der
+  US-030-Sichtbarkeitsregel.
+- Story-Test: `frontend/src/app/features/assessments/assessment-tabs/us-069-assessment-tabs-markforcheck.spec.ts`
+  (via `HttpTestingController`/`flush()`, kein synchrones `of(...)`, analog US-058/US-059). Einzeln
+  ausführen: `ng test --include='**/us-069*.spec.ts'`. Vollständiger `ng test`-Lauf: 458/458 grün,
+  `ng lint` fehlerfrei, `ng build` erfolgreich.
+
 ### US-064 — Einheitlicher, tokenisierter Opacity-Wert für gesperrte Map-Punkte
 
 - Root Cause (Issue #71, Design-Abgleich Phase 5): „gesperrte/nicht ziehbare" Punkte auf der

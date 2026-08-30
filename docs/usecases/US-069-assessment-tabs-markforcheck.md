@@ -1,4 +1,5 @@
 **ID:** US-069
+**Status:** fertig am 30.08.2026, [PR #107](https://github.com/Inso666/SlobSteak/pull/107)
 **Titel:** Assessment-Inhalt des standardmäßig aktiven Tabs zuverlässig bei Erstaufruf rendern
 **Bounded Context / Domain:** StakeholderAssessment (Frontend, Presentation-Schicht)
 **Abhängigkeiten:** US-029, US-030, US-059
@@ -41,3 +42,13 @@ Als **Nutzer mit einer perspektiv-tragenden Projekt-Rolle (PL, Coreteam, Archite
 Höchste Priorität dieser Phase — funktionaler Blocker (Kern-Akzeptanzkriterium von US-029/US-030 bei Erstaufruf faktisch nicht erfüllt), betrifft denselben Root-Cause-Typ wie US-059, aber eine andere Komponente. Bewusst als erste Story dieser Phase eingeplant, da nachfolgende Stories (insbesondere US-070/US-071) denselben Bereich der Stakeholder-Detailseite berühren und ein funktional korrekter Ausgangszustand deren manuellen Smoke-Test erleichtert.
 
 ### Anmerkungen des Agenten (bei Umsetzung zu ergänzen)
+
+Fix exakt wie im Story-Dokument beschrieben umgesetzt: `ChangeDetectorRef` in `AssessmentTabsComponent` injiziert, `markForCheck()` im `next`-Callback von `loadAssessments()` ergänzt — keine Änderung an `activeRole`, `syncFormWithActiveTab()` oder der US-030-Sichtbarkeitsregel. Story-Test `frontend/src/app/features/assessments/assessment-tabs/us-069-assessment-tabs-markforcheck.spec.ts` reproduziert den Bug über `HttpTestingController` + `flush()` (kein synchrones `of(...)`) und deckt alle vier Akzeptanzkriterien 1–4 ab; Akzeptanzkriterium 5 (bestehende Tests bleiben grün) und 7 (`ng test` bleibt grün) sind durch den vollständigen Testlauf (458/458 grün) belegt, Akzeptanzkriterium 6 durch diesen Story-Test selbst.
+
+Keine fachliche Abweichung vom PRD oder von der Story-Vorgabe — reiner Presentation-Layer-Bugfix, keine Backend-Berührung.
+
+Lokale Verifizierbarkeit: `npx ng test` (458/458 grün, inkl. isoliert `--include='**/us-069*.spec.ts'`, 4/4 grün), `npx ng lint` (fehlerfrei), `npx ng build` (erfolgreich; die einzige Warnung ist ein vorbestehender Bundle-Budget-Hinweis, unabhängig von dieser Story). Docker-Compose-Smoke-Test bewusst ausgelassen, da laut Aufgabenstellung für diesen rein internen Bugfix ohne visuelle Änderung nicht zwingend nötig — die Fehlerreproduktion und -behebung ist durch den asynchronen `HttpTestingController`-Test bereits eindeutig nachgewiesen (naiver synchroner Test hätte den Bug nicht aufgedeckt, siehe Kommentar im Story-Test).
+
+**So probierst du es aus (manuell, gegen `docker-compose up`):** Als Nutzer mit Rolle PL/Coreteam/Architect anmelden, zu einem Projekt navigieren, einen Stakeholder öffnen, für die eigene Rolle ein Assessment abspeichern. Seite neu laden (Direktnavigation/F5) → der Assessment-Bereich zeigt auf der standardmäßig aktiven Rollen-Sicht sofort die gespeicherten Slider-Werte, „Zuletzt geändert von/am“ und Notizen, ohne zuerst einen anderen Tab anklicken zu müssen.
+
+**Story-Tests isoliert ausführen:** `ng test --include='**/us-069*.spec.ts'`

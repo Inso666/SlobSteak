@@ -1,4 +1,4 @@
-import { Component, Input, OnInit, inject } from '@angular/core';
+import { ChangeDetectorRef, Component, Input, OnInit, inject } from '@angular/core';
 import { DatePipe } from '@angular/common';
 import { FormBuilder, ReactiveFormsModule } from '@angular/forms';
 import { HttpErrorResponse } from '@angular/common/http';
@@ -26,6 +26,12 @@ const PERSPECTIVE_BEARING_ROLES = ['PL', 'Coreteam', 'Architect'] as const;
  * (US-030 Akzeptanzkriterium 3): die aufrufende {@link StakeholderDetailComponent} entfernt diese
  * Komponente für Rolle `User` per `@if` vollständig aus dem DOM, statt sie nur per CSS zu
  * verstecken.
+ *
+ * US-069: `changeDetectorRef.markForCheck()` in `loadAssessments()` ergänzt — dieselbe Root Cause
+ * wie in US-050/US-051/US-052/US-057/US-058/US-059: Das Frontend läuft ohne `zone.js` (zoneless),
+ * eine reine Feldzuweisung von `this.roles` in einem `subscribe()`-Callback markiert die Komponente
+ * sonst nicht automatisch für die nächste Change-Detection-Runde. Diese Komponente war nicht Teil
+ * der in US-058 dokumentierten, systematisch durchsuchten Fundstellen (Issue #103).
  */
 @Component({
   selector: 'app-assessment-tabs',
@@ -40,6 +46,7 @@ export class AssessmentTabsComponent implements OnInit {
 
   private readonly assessmentsService = inject(AssessmentsService);
   private readonly formBuilder = inject(FormBuilder);
+  private readonly changeDetectorRef = inject(ChangeDetectorRef);
 
   protected readonly roleTabs = PERSPECTIVE_BEARING_ROLES;
   protected activeTab: string = PERSPECTIVE_BEARING_ROLES[0];
@@ -139,6 +146,9 @@ export class AssessmentTabsComponent implements OnInit {
     this.assessmentsService.getAssessments(this.stakeholderId).subscribe((roles) => {
       this.roles = roles;
       this.syncFormWithActiveTab();
+      // US-069: Anwendung läuft zoneless — die reine Feldzuweisung oben markiert die Komponente
+      // nicht automatisch für die nächste Change-Detection-Runde (analog US-058/US-059).
+      this.changeDetectorRef.markForCheck();
     });
   }
 
