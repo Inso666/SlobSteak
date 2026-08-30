@@ -44,10 +44,11 @@
 }
 
 /* Vergleichspunkt (Diamant, US-034 Akzeptanzkriterium 2/3): dieselbe `.map-point--<rolle>`-
-   Farbregel wird wiederverwendet (siehe Template), hier nur Form/Deckkraft zusätzlich. Die
-   „reduzierte Deckkraft" aus SPEC-04 §1 nennt keinen konkreten Zahlenwert (auch kein Token in
-   SPEC-00 §1.2 dafür vorgesehen) — `0.72` ist eine dokumentierte, spec-konforme Auslegung dieser
-   qualitativen Vorgabe (CLAUDE.md Abschnitt 6), kein neu erfundenes Farb-/Radius-/Abstands-Token. */
+   Farbregel wird wiederverwendet (siehe Template), hier nur die Form (Diamant statt Kreis) — die
+   Deckkraft kommt ausschließlich über `.map-point--locked` (siehe unten). Der Vergleichspunkt ist
+   laut Template/`QuadrantChartComponent` immer nicht-ziehbar (SPEC-04 §3.1) und trägt daher stets
+   auch diese Klasse; eine zusätzliche, eigene Opacity-Regel hier würde denselben Wert duplizieren
+   (US-064, Issue #71 — vorher `0.72` hier dupliziert, siehe Story „Anmerkungen des Agenten"). */
 .map-point--compare {
   border-radius: var(--app-radius-sm);
   /* US-061: dieselbe Gegenskalierung wie `.map-point` (siehe dortiger Kommentar), zusätzlich zur
@@ -55,20 +56,19 @@
      eine überschreibende `.map-point--compare`-Regel den gesamten `transform`-Wert von `.map-point`
      ersetzt statt ihn zu ergänzen (CSS-Kaskade, keine Merge-Semantik für Einzelwerte). */
   transform: translate(-50%, 50%) rotate(45deg) scale(var(--marker-counter-scale, 1));
-  opacity: 0.72;
 }
 
-/* US-036 Akzeptanzkriterium 2: nicht-ziehbare Punkte (Vergleichs-Diamant IMMER, eigener Punkt bei
-   Rollen-/Perspektiven-Mismatch, SPEC-04 §3.1/Story-Edge-Case „Coreteam betrachtet Architect")
-   erhalten einen gesperrten Cursor; für eigene (nicht-Vergleichs-)Punkte zusätzlich reduzierte
-   Deckkraft — der Vergleichspunkt trägt bereits über `.map-point--compare` eine eigene, die Form
-   unterscheidende Deckkraft und wird hier nicht zusätzlich abgedunkelt. */
+/* US-036 Akzeptanzkriterium 2 / US-064: nicht-ziehbare Punkte (Vergleichs-Diamant IMMER, eigener
+   Punkt bei Rollen-/Perspektiven-Mismatch, SPEC-04 §3.1/Story-Edge-Case „Coreteam betrachtet
+   Architect") erhalten einheitlich einen gesperrten Cursor UND dieselbe, tokenisierte reduzierte
+   Deckkraft (`--app-map-point-locked-opacity`, SPEC-00 §1.2) — unabhängig vom Sperrgrund, damit
+   Nutzer:innen keinen fachlichen Unterschied aus einer Deckkraft-Differenz herauslesen, die es
+   nicht gibt (Issue #71). Vorher zwei unterschiedliche Zahlen-Literale (`0.72` auf
+   `.map-point--compare`, `0.55` hier über eine `:not(.map-point--compare)`-Ausnahme) — jetzt ein
+   einziger Wert an einer Stelle. */
 .map-point--locked {
   cursor: not-allowed;
-}
-
-.map-point--locked:not(.map-point--compare) {
-  opacity: 0.55;
+  opacity: var(--app-map-point-locked-opacity);
 }
 
 /* US-036 Akzeptanzkriterium 3: Cursor-Feedback während eines aktiven Drags (SPEC-04 §3.1). */

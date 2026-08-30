@@ -4,6 +4,32 @@ Alle nennenswerten Änderungen an diesem Projekt werden hier je User Story dokum
 
 ## [Unreleased]
 
+### US-064 — Einheitlicher, tokenisierter Opacity-Wert für gesperrte Map-Punkte
+
+- Root Cause (Issue #71, Design-Abgleich Phase 5): „gesperrte/nicht ziehbare" Punkte auf der
+  Stakeholder Map wurden je nach Sperr-Grund mit zwei unterschiedlichen, undokumentierten
+  Opacity-Literalen dargestellt — `0.72` für den Vergleichspunkt (`.map-point--compare`, US-034)
+  und `0.55` für den eigenen Punkt bei Rollen-/Perspektiven-Mismatch (`.map-point--locked`,
+  US-036) —, obwohl SPEC-04 §3.1 beide Fälle gleichrangig als „nicht ziehbar" beschreibt und keine
+  fachliche Unterscheidung vorsieht.
+- Fix: neuer, zentraler Design-Token `--app-map-point-locked-opacity: 0.72` (`frontend/src/styles.css`,
+  SPEC-00 §1.2) ersetzt beide Zahlen-Literale. Da der Vergleichspunkt im Markup immer auch die
+  Klasse `.map-point--locked` trägt (er ist laut `QuadrantChartComponent` stets nicht-ziehbar), sind
+  die zwei zuvor getrennten CSS-Regeln zu einer einzigen Regel `.map-point--locked { opacity:
+  var(--app-map-point-locked-opacity) }` zusammengeführt; die Form-Unterscheidung des Diamanten
+  (`.map-point--compare`, `rotate(45deg)`) bleibt unverändert. Die dritte Fundstelle
+  (`quadrant-chart.component.css`, `.legend__swatch--diamond`) wurde verifiziert: sie bildet in der
+  Vergleichsmodus-Legende exakt Form und Deckkraft des echten Vergleichspunkts ab und verwendet
+  daher denselben Token, statt ein eigenes viertes Literal zu sein.
+- Entscheidung (CLAUDE.md Abschnitt 6): PO-Empfehlung „Vereinheitlichung auf 0.72" übernommen statt
+  eines bewusst beibehaltenen fachlichen Unterschieds — Begründung siehe Story-Datei
+  „Anmerkungen des Agenten".
+- Story-Test: `frontend/src/app/features/map/us-064-map-opacity-token-vereinheitlichen.spec.ts`.
+  Einzeln ausführen: `ng test --include='**/us-064-map-opacity-token-vereinheitlichen.spec.ts'`.
+  Bestehende `us-034-map-vergleich-ui.spec.ts`/`us-036-map-dragdrop-ui.spec.ts` (prüfen nur
+  Klassenzugehörigkeit, keinen konkreten Zahlenwert) unverändert grün. Vollständiger `ng test`-Lauf:
+  454/454 grün, `ng lint` fehlerfrei.
+
 ### US-063 — Toolbar-Hinweistext „X von Y Stakeholdern sichtbar" auf der Map ergänzen
 
 - Root Cause (Issue #70): Die Map-Toolbar (`stakeholder-map-page.component.html`) enthielt keinen

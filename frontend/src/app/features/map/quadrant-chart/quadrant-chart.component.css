@@ -216,10 +216,16 @@
   border-radius: var(--app-radius-full);
 }
 
+/* US-064: dieselbe reduzierte Deckkraft wie der tatsächliche Vergleichspunkt
+   (`.map-point--locked`/`.map-point--compare` in `draggable-point.component.css`) — dieser Swatch
+   bildet exakt dessen Erscheinungsbild in der Legende ab, kein eigener, vierter Bedeutungsfall
+   (bei Story-Umsetzung verifiziert: Legende zeigt Form+Deckkraft des Vergleichs-Diamanten, siehe
+   Template `legend__row` „Vergleich"). Denselben Token verwenden statt eines eigenen Zahlen-
+   Literals, damit Legende und echter Punkt nie auseinanderlaufen können. */
 .legend__swatch--diamond {
   border-radius: var(--app-radius-sm);
   transform: rotate(45deg);
-  opacity: 0.72;
+  opacity: var(--app-map-point-locked-opacity);
 }
 
 .legend__swatch--line {

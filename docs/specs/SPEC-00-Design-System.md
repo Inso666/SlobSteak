@@ -42,6 +42,7 @@ Diese Tabelle ist die **einzige Quelle der Wahrheit** für Farben, Typografie un
 | `14px/20px` (Gap in `.row`) | `space.md` / `space.lg` | PrimeFlex `gap-3`/`gap-5` | horizontaler Abstand zwischen Bedienelementen |
 | `16px` (Grid-Gap Rollen/Swatches) | `space.md` | PrimeFlex `gap-4` | Grid-Abstände (Rollen-Karten, Swatches) |
 | `36px` (Section-Gap) | `space.xl` | PrimeFlex `gap-6` | Abstand zwischen Abschnitten |
+| `0.72` (Deckkraft, US-064) | `opacity.map-point-locked` | Custom-Token `--app-map-point-locked-opacity` | Einheitliche reduzierte Deckkraft für „gesperrt/nicht ziehbar"-Punkte auf der Stakeholder-Map (Vergleichspunkt UND eigener Punkt bei Rollen-/Perspektiven-Mismatch, SPEC-04 §3.1) sowie deren Legenden-Swatch — unabhängig vom Sperrgrund identisch, da kein fachlicher Unterschied zwischen den Sperr-Gründen kommuniziert wird (Issue #71) |
 
 > Hinweis für Folge-Specs: Wird in einer Feature-Spec ein Farb-/Radius-/Abstandswert benötigt, der hier nicht gelistet ist, ist das ein Hinweis auf eine fehlende Design-Entscheidung — nicht auf einen frei wählbaren Wert. Rückfrage an UX/UI statt Erfindung eines neuen Tokens.
 
