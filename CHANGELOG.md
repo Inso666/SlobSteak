@@ -4,6 +4,20 @@ Alle nennenswerten Änderungen an diesem Projekt werden hier je User Story dokum
 
 ## [Unreleased]
 
+### US-067 — Kommunikationsart-Spalte im Verteiler als Chip darstellen
+
+- Der Wert der Spalte „Kommunikationsart“ in der Verteilerliste wird nicht mehr als reiner
+  Zellentext, sondern als abgerundete Pille (`<span class="dl-communication-type-chip">`) mit
+  eigenem, vom Zeilenhintergrund abgesetztem Hintergrund dargestellt (Issue #83,
+  `docs/design/Verteiler.dc.html`).
+- Chip-Styling nutzt ausschließlich bestehende SPEC-00-Tokens: `--app-color-surface-hover` als
+  Hintergrund, `--app-radius-full` für die Pillenform — kein neues Token erfunden.
+- Lange Kommunikationsart-Namen bleiben vollständig lesbar (`white-space: normal` +
+  `word-break: break-word`), kein Abschneiden ohne Tooltip.
+- Story-Test: `frontend/src/app/features/distribution/us-067-verteiler-kommunikationsart-chip.spec.ts`
+  (AC 1–4); je ein zusätzlicher Regressionstest in `distribution-list-page.component.spec.ts` und
+  `us-042-verteilerlisten-ui.spec.ts`.
+
 ### US-066 — Verteiler-Fußzeile zeigt unfilterte Gesamtzahl der Projekt-Stakeholder
 
 - Fußzeile des Verteiler-Tabs zeigt jetzt „N von M Stakeholdern entsprechen dem Filter · K mit
