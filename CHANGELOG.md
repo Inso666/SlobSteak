@@ -4,6 +4,28 @@ Alle nennenswerten Änderungen an diesem Projekt werden hier je User Story dokum
 
 ## [Unreleased]
 
+### US-062 — Tastatur-Positionierung eigener Map-Punkte für Screenreader-Nutzer:innen zuverlässig ankündigen
+
+- Reproduktion gegen einen isolierten `docker-compose`-Stack (Präzedenzfall US-051): die
+  Pfeiltasten-Bewegung eines eigenen Punkts funktioniert **visuell bereits korrekt** (Button-
+  Position und `.map-point__live`-Statusanzeige aktualisieren sich sofort bei jedem Tastendruck) —
+  der in Issue #69 geschilderte, rein-visuelle Teilaspekt reproduziert sich nicht.
+- Bestätigter, engerer Bug (Issue #69): Das `aria-label` des Punkt-`<button>` war ein reiner
+  `@Input`, der ausschließlich aus dem zuletzt **bestätigten** Stand berechnet wurde und nicht auf
+  `livePosition` reagierte — ein Screenreader kündigte während einer laufenden, unbestätigten
+  Pfeiltasten-Bewegung keine der Positionsänderungen an.
+- Fix: neuer `DraggablePointComponent.displayAriaLabel`-Getter liefert während einer aktiven
+  Bewegung (`livePosition !== null`) einen aus den Live-Werten generierten Text
+  („Wird verschoben: Einfluss X · Interesse Y.“, Präfix zentral in `map-messages.ts`), sonst
+  unverändert das `@Input() ariaLabel`; Template bindet `[attr.aria-label]` jetzt an diesen Getter.
+  Nach Bestätigung (`Enter`/Fokusverlust) oder Verwerfen (`Escape`) kehrt das `aria-label`
+  zuverlässig zum jeweils korrekten Endzustand zurück.
+- Story-Test: `frontend/src/app/features/map/us-062-map-tastatur-positionierung-ankuendigen.spec.ts`
+  (alle sieben Akzeptanzkriterien). Einzeln ausführen:
+  `ng test --include='**/us-062-map-tastatur-positionierung-ankuendigen.spec.ts'`. Ergänzende
+  Komponententests in `draggable-point.component.spec.ts`. Vollständiger `ng test`-Lauf: 445/445
+  grün, `ng lint` fehlerfrei.
+
 ### US-061 — Map-Zoom skaliert Positionen statt Punkt-Marker unverhältnismäßig zu vergrößern
 
 - Root Cause (Issue #68): `QuadrantChartComponent.surfaceTransform` wendet `scale(zoomLevel)` auf

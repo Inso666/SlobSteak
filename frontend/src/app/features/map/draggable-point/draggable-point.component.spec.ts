@@ -201,4 +201,92 @@ describe('DraggablePointComponent', () => {
       expect(dragEndValue).toEqual({ influence: 29, interest: 40 });
     });
   });
+
+  // US-062: das `aria-label` des Punkt-`<button>` muss während einer unbestätigten Bewegung die
+  // Live-Werte widerspiegeln (nicht nur den zuletzt bestätigten `@Input`-Stand aus `ariaLabel`),
+  // damit ein Screenreader jede Pfeiltasten-Bewegung ankündigt, und nach Bestätigung/Verwerfen
+  // zuverlässig zum korrekten Endzustand zurückkehren.
+  describe('live aria-label announcement during an active move (US-062, SPEC-04 §2.3 WCAG 2.1 AA)', () => {
+    function button(fixture: ReturnType<typeof createComponent>): HTMLButtonElement {
+      return fixture.nativeElement.querySelector('.map-point');
+    }
+
+    it('keeps the confirmed aria-label while the point is not being moved', () => {
+      const fixture = createComponent(true);
+      expect(button(fixture).getAttribute('aria-label')).toBe('Max Mustermann — Einfluss 30, Interesse 40.');
+    });
+
+    it('updates the aria-label to the live values after every single arrow-key press', () => {
+      const fixture = createComponent(true);
+      const instance = fixture.componentInstance as unknown as { onKeydown(e: KeyboardEvent): void };
+
+      instance.onKeydown(keyboardEvent('ArrowRight'));
+      fixture.detectChanges();
+      expect(button(fixture).getAttribute('aria-label')).toBe('Wird verschoben: Einfluss 31 · Interesse 40.');
+
+      instance.onKeydown(keyboardEvent('ArrowUp'));
+      fixture.detectChanges();
+      expect(button(fixture).getAttribute('aria-label')).toBe('Wird verschoben: Einfluss 31 · Interesse 41.');
+
+      instance.onKeydown(keyboardEvent('ArrowDown', true));
+      fixture.detectChanges();
+      expect(button(fixture).getAttribute('aria-label')).toBe('Wird verschoben: Einfluss 31 · Interesse 31.');
+    });
+
+    it('returns the aria-label to the newly confirmed (@Input) state after Enter commits the move', () => {
+      const fixture = createComponent(true);
+      const instance = fixture.componentInstance as unknown as { onKeydown(e: KeyboardEvent): void };
+
+      instance.onKeydown(keyboardEvent('ArrowRight'));
+      instance.onKeydown(keyboardEvent('Enter'));
+      // Die aufrufende Seite übernimmt die neuen Werte optimistisch synchron in denselben
+      // dragEnd-Handler-Aufruf (SPEC-04 §2.2) — hier durch direktes Aktualisieren der @Inputs
+      // nachgebildet, bevor die nächste Change-Detection läuft.
+      fixture.componentInstance.influence = 31;
+      fixture.componentInstance.ariaLabel = 'Max Mustermann — Einfluss 31, Interesse 40.';
+      fixture.detectChanges();
+
+      expect(button(fixture).getAttribute('aria-label')).toBe('Max Mustermann — Einfluss 31, Interesse 40.');
+    });
+
+    it('returns the aria-label to the original (unchanged) @Input state after Escape discards the move', () => {
+      const fixture = createComponent(true);
+      const instance = fixture.componentInstance as unknown as { onKeydown(e: KeyboardEvent): void };
+
+      instance.onKeydown(keyboardEvent('ArrowRight'));
+      instance.onKeydown(keyboardEvent('ArrowUp'));
+      fixture.detectChanges();
+      expect(button(fixture).getAttribute('aria-label')).toContain('Wird verschoben');
+
+      instance.onKeydown(keyboardEvent('Escape'));
+      fixture.detectChanges();
+
+      expect(button(fixture).getAttribute('aria-label')).toBe('Max Mustermann — Einfluss 30, Interesse 40.');
+    });
+
+    it('returns the aria-label to the confirmed state after blur commits the move', () => {
+      const fixture = createComponent(true);
+      const instance = fixture.componentInstance as unknown as { onKeydown(e: KeyboardEvent): void; onBlur(): void };
+
+      instance.onKeydown(keyboardEvent('ArrowLeft'));
+      instance.onBlur();
+      fixture.componentInstance.influence = 29;
+      fixture.componentInstance.ariaLabel = 'Max Mustermann — Einfluss 29, Interesse 40.';
+      fixture.detectChanges();
+
+      expect(button(fixture).getAttribute('aria-label')).toBe('Max Mustermann — Einfluss 29, Interesse 40.');
+    });
+
+    it('also announces live values during an active mouse drag, using the same wording as the visual .map-point__live status', () => {
+      const fixture = createComponent(true);
+      const instance = fixture.componentInstance as unknown as { onPointerDown(e: PointerEvent): void };
+
+      // 200x200-Fläche: x=150 -> 75% Einfluss; y=50 -> 75% Interesse (siehe Pointer-Drag-Tests oben).
+      instance.onPointerDown(pointerEvent(150, 50));
+      fixture.detectChanges();
+
+      expect(button(fixture).getAttribute('aria-label')).toBe('Wird verschoben: Einfluss 75 · Interesse 75.');
+      expect(fixture.nativeElement.querySelector('.map-point__live').textContent.trim()).toBe('Einfluss 75 · Interesse 75');
+    });
+  });
 });

@@ -30,3 +30,10 @@ export const MAP_LEGEND_NOTE =
 /** Fehlermeldung nach fehlgeschlagenem Drag-Speichervorgang, kein 409-Konflikt (US-036,
  * SPEC-04 §3.7 „Allgemeiner Ladefehler“-Muster analog auf den Speicherfall übertragen). */
 export const MAP_DRAG_SAVE_ERROR_MESSAGE = 'Position konnte nicht gespeichert werden. Der Punkt wurde auf die zuletzt gespeicherte Position zurückgesetzt.';
+
+/** Aria-Label-Präfix für Screenreader während einer laufenden, unbestätigten Bewegung (Maus-Drag
+ * oder Tastatur-Pfeiltasten) eines Punkts (US-062, SPEC-04 §2.3 WCAG 2.1 AA) — ergänzt in
+ * `DraggablePointComponent.displayAriaLabel` um die aktuellen Einfluss-/Interesse-Live-Werte,
+ * damit ein Screenreader jede Pfeiltasten-Bewegung ankündigt, statt nur den zuletzt bestätigten
+ * Stand vorzulesen. */
+export const MAP_POINT_LIVE_ARIA_LABEL_PREFIX = 'Wird verschoben';
