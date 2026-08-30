@@ -116,6 +116,17 @@ describe('DistributionListPageComponent', () => {
     expect(rowText).toContain('Report');
   });
 
+  // US-067: Kommunikationsart wird als abgesetzter Chip dargestellt, nicht als reiner Zellentext
+  // (dedizierter Story-Test mit Token-/Lesbarkeits-Nachweis: `us-067-verteiler-kommunikationsart-chip.spec.ts`).
+  it('renders the communication-type value as a chip element', () => {
+    configure([row({ communicationTypeName: 'Newsletter' })]);
+    const fixture = createComponent();
+
+    const chip = fixture.nativeElement.querySelector('.dl-communication-type-chip');
+    expect(chip).not.toBeNull();
+    expect(chip.textContent.trim()).toBe('Newsletter');
+  });
+
   // Akzeptanzkriterium 4: Zeilen ohne E-Mail bleiben sichtbar, zeigen aber ein Hinweis-Icon + Text.
   it('shows the missing-email icon and text for a row without an email address, without hiding the row', () => {
     configure([row({ hasEmail: false, email: null })]);
