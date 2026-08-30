@@ -4,6 +4,22 @@ Alle nennenswerten Änderungen an diesem Projekt werden hier je User Story dokum
 
 ## [Unreleased]
 
+### US-059 — StakeholderDetailComponent zuverlässig rendern (Assessment-Bereich, Stammdaten) statt leerem Inhaltsbereich
+
+- `stakeholder-detail.component.ts` injiziert jetzt `ChangeDetectorRef` und ruft
+  `changeDetectorRef.markForCheck()` in `load()`s `next`- und `error`-Zweig sowie im
+  `projectsService.getProject(...).subscribe(...)`-Callback in `ngOnInit` auf — dieselbe
+  Zoneless-Root-Cause wie bereits in US-050/US-051/US-052/US-057/US-058 behoben (Issue #61,
+  zusätzlich bestätigt durch Issue #81). Ohne diesen Fix blieb der Inhaltsbereich (Stammdaten **und**
+  der bereits vollständig umgesetzte Assessment-Bereich aus US-027–US-030) nach Direktnavigation/
+  Klick leer, obwohl die HTTP-Antworten erfolgreich eintrafen — reine Presentation-Layer-Änderung,
+  keine Änderung an `canEdit`/`canDelete`/`canViewAssessments` oder der US-030-Sichtbarkeitsregel.
+  Behebt zugleich, dass die bereits „fertig“ gemeldete Stakeholder Map (US-031–US-036) mangels
+  erfassbarer Assessments praktisch leer blieb.
+- Story-Test: `frontend/src/app/features/stakeholders/us-059-stakeholder-detail-markforcheck.spec.ts`
+  (AC 1–4), verwendet `HttpTestingController`/`flush()` statt synchronem `of(...)`, um das
+  Bug-Muster tatsächlich zu reproduzieren (vor dem Fix verifiziert: 5 von 6 Testfällen schlagen fehl).
+
 ### US-048 — PrimeNG-Lizenzschlüssel serverseitig verwalten statt im Frontend-Bundle auszuliefern
 
 - `GET /api/v1/config/primeng-license` (neu, `FrontendConfigController`, unauthentifiziert): liest
