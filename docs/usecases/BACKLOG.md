@@ -168,7 +168,7 @@ Aus den offenen GitHub-Issues abgeleitete Stories (QA-Design-Abgleich der Phasen
 
 | ID | Titel | Bounded Context | Abhängigkeiten | Datei | Status |
 |---|---|---|---|---|---|
-| US-065 | Kommunikationsarten-Katalog Admin-UI als kompaktes Listen-Panel statt Einzelkarten | CommunicationCatalog | US-038 | [US-065-communication-type-katalog-listenpanel.md](US-065-communication-type-katalog-listenpanel.md) | offen |
+| US-065 | Kommunikationsarten-Katalog Admin-UI als kompaktes Listen-Panel statt Einzelkarten | CommunicationCatalog | US-038 | [US-065-communication-type-katalog-listenpanel.md](US-065-communication-type-katalog-listenpanel.md) | fertig (30.08.2026) |
 | US-066 | Verteiler-Fußzeile zeigt unfilterte Gesamtzahl der Projekt-Stakeholder | DistributionList | US-042 | [US-066-verteiler-fusszeile-gesamtzahl.md](US-066-verteiler-fusszeile-gesamtzahl.md) | offen |
 | US-067 | Kommunikationsart-Spalte im Verteiler als Chip darstellen | DistributionList | US-066 | [US-067-verteiler-kommunikationsart-chip.md](US-067-verteiler-kommunikationsart-chip.md) | offen |
 | US-068 | „Keine E-Mail hinterlegt“-Hinweis: nur Icon in Attention-Farbe, Text gedämpft | DistributionList | US-067 | [US-068-verteiler-mail-cell-attention-farbe.md](US-068-verteiler-mail-cell-attention-farbe.md) | offen |
