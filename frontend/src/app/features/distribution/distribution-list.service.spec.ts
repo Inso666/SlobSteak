@@ -49,7 +49,7 @@ describe('DistributionListService.getDistributionList', () => {
 
   it('enriches each distribution-list entry with the organization of the matching stakeholder', () => {
     let result: unknown;
-    service.getDistributionList('project-1').subscribe((rows) => (result = rows));
+    service.getDistributionList('project-1').subscribe((value) => (result = value.rows));
 
     const entries: DistributionListWireEntry[] = [
       {
@@ -87,7 +87,7 @@ describe('DistributionListService.getDistributionList', () => {
 
   it('falls back to null organization when no matching stakeholder is found in the join', () => {
     let result: unknown;
-    service.getDistributionList('project-1').subscribe((rows) => (result = rows));
+    service.getDistributionList('project-1').subscribe((value) => (result = value.rows));
 
     const entries: DistributionListWireEntry[] = [
       {
@@ -107,6 +107,25 @@ describe('DistributionListService.getDistributionList', () => {
     httpMock.expectOne('/api/v1/projects/project-1/stakeholders').flush([]);
 
     expect((result as { organization: string | null }[])[0].organization).toBeNull();
+  });
+
+  // US-066 Akzeptanzkriterium 2: `totalStakeholderCount` entspricht der Länge der ohnehin für die
+  // Organisations-Anreicherung geladenen, unfilterten Stakeholderliste — `httpMock.verify()` in
+  // `afterEach` belegt zusätzlich, dass dafür kein dritter, eigens dafür nötiger Request erfolgt.
+  it('derives totalStakeholderCount from the already-loaded, unfiltered stakeholder list without an additional request', () => {
+    let result: { totalStakeholderCount: number } | undefined;
+    service.getDistributionList('project-1').subscribe((value) => (result = value));
+
+    httpMock.expectOne('/api/v1/projects/project-1/distribution-list').flush([]);
+    httpMock
+      .expectOne('/api/v1/projects/project-1/stakeholders')
+      .flush([
+        stakeholder({ id: 'sh-1' }),
+        stakeholder({ id: 'sh-2' }),
+        stakeholder({ id: 'sh-3' }),
+      ]);
+
+    expect(result?.totalStakeholderCount).toBe(3);
   });
 
   it('sends every set filter as its own query parameter and omits unset ones', () => {

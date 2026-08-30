@@ -7,7 +7,11 @@ import {
   AdminCommunicationType,
   AdminCommunicationTypesService,
 } from '../../admin/admin-communication-types.service';
-import { DistributionListRow, DistributionListService } from '../distribution-list.service';
+import {
+  DistributionListResult,
+  DistributionListRow,
+  DistributionListService,
+} from '../distribution-list.service';
 import { DISTRIBUTION_LOAD_ERROR_MESSAGE } from '../distribution-messages';
 import { DistributionListPageComponent } from './distribution-list-page.component';
 
@@ -35,11 +39,17 @@ describe('DistributionListPageComponent', () => {
     };
   }
 
-  function configure(rows: DistributionListRow[]): void {
+  // US-066: `getDistributionList` liefert seit dieser Story `{ rows, totalStakeholderCount }`
+  // (siehe `distribution-list.service.ts`). `totalStakeholderCount` fällt hier standardmäßig auf
+  // `rows.length` zurück, da die meisten Tests dieser Datei die Fußzeilen-Formel nicht prüfen
+  // (dafür siehe `us-066-verteiler-fusszeile-gesamtzahl.spec.ts`).
+  function configure(rows: DistributionListRow[], totalStakeholderCount = rows.length): void {
     distributionListServiceSpy = jasmine.createSpyObj('DistributionListService', [
       'getDistributionList',
     ]);
-    distributionListServiceSpy.getDistributionList.and.returnValue(of(rows));
+    distributionListServiceSpy.getDistributionList.and.returnValue(
+      of({ rows, totalStakeholderCount }),
+    );
 
     communicationTypesServiceSpy = jasmine.createSpyObj('AdminCommunicationTypesService', [
       'listActiveCommunicationTypes',
@@ -131,7 +141,7 @@ describe('DistributionListPageComponent', () => {
   it('shows skeleton placeholder rows while the request is still pending', () => {
     configure([]);
     distributionListServiceSpy.getDistributionList.and.returnValue(
-      new Subject<DistributionListRow[]>(),
+      new Subject<DistributionListResult>(),
     );
     const fixture = createComponent();
 
@@ -261,7 +271,9 @@ describe('DistributionListPageComponent', () => {
       DISTRIBUTION_LOAD_ERROR_MESSAGE,
     );
 
-    distributionListServiceSpy.getDistributionList.and.returnValue(of([row({})]));
+    distributionListServiceSpy.getDistributionList.and.returnValue(
+      of({ rows: [row({})], totalStakeholderCount: 1 }),
+    );
     const nativeElement: HTMLElement = fixture.nativeElement;
     nativeElement.querySelector<HTMLButtonElement>('.load-error button')?.click();
     fixture.detectChanges();
