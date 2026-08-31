@@ -113,16 +113,16 @@ describe('ProjectsAdminComponent', () => {
 
       expect(fixture.componentInstance['projectsState']).toBe('loading');
       expect(fixture.nativeElement.querySelector('.empty-state')).toBeNull();
-      expect(fixture.nativeElement.querySelectorAll('.project-card').length).toBe(0);
+      expect(fixture.nativeElement.querySelectorAll('.ap-row').length).toBe(0);
 
       const httpTestingController = TestBed.inject(HttpTestingController);
       httpTestingController.expectOne('/api/v1/admin/projects').flush(existingProjects);
       fixture.detectChanges();
 
       expect(fixture.componentInstance['projectsState']).toBe('content');
-      const cards: NodeListOf<HTMLElement> = fixture.nativeElement.querySelectorAll('.project-card');
-      expect(cards.length).toBe(existingProjects.length);
-      expect(cards[0].textContent).toContain(existingProjects[0].name);
+      const rows: NodeListOf<HTMLElement> = fixture.nativeElement.querySelectorAll('.ap-row');
+      expect(rows.length).toBe(existingProjects.length);
+      expect(rows[0].textContent).toContain(existingProjects[0].name);
 
       httpTestingController.verify();
     });

@@ -26,6 +26,12 @@ import { ViewStateComponent } from '../../../shared/view-state/view-state.compon
  * dauerhaft sichtbar unterhalb der Liste (Akzeptanzkriterium 2, SPEC-07 §1.4) — Formularfelder,
  * Validierung und Verhalten bleiben aus US-014/US-017 unverändert, nur die Präsentation ändert
  * sich.
+ *
+ * US-072 (Issue #100): die Liste rendert seit dieser Story als Tabelle (Spalten Name, Status,
+ * Mitglieder, Aktionslink) statt als Karten-Raster; „Mitglieder verwalten“ blendet
+ * {@link ProjectMembershipManagerComponent} weiterhin unverändert als zusätzliche, eingeschobene
+ * Tabellenzeile für das ausgewählte Projekt ein/aus (dieselbe Funktionalität wie zuvor die
+ * eingebettete Karten-Sektion, nur die Darstellung ändert sich).
  */
 @Component({
   selector: 'app-projects-admin',

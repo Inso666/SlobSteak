@@ -1,6 +1,7 @@
 import { ChangeDetectorRef, Component, OnInit, inject, signal } from '@angular/core';
 import { HttpErrorResponse } from '@angular/common/http';
 import { FormBuilder, ReactiveFormsModule, Validators } from '@angular/forms';
+import { DatePipe } from '@angular/common';
 import { ButtonDirective } from 'primeng/button';
 import { Dialog } from 'primeng/dialog';
 import { InputText } from 'primeng/inputtext';
@@ -24,11 +25,17 @@ import { ViewStateComponent } from '../../../shared/view-state/view-state.compon
  * dauerhaft sichtbar unterhalb der Liste (Akzeptanzkriterium 2, SPEC-07 §1.3) — Formularfelder,
  * Validierung und Verhalten bleiben aus US-012/US-016 unverändert, nur die Präsentation ändert
  * sich.
+ *
+ * US-072 (Issue #100): die Liste rendert seit dieser Story als Tabelle (Spalten Name, E-Mail,
+ * Status, Erstellt am, Aktionslink „Passwort zurücksetzen“) statt als Karten-Raster
+ * (`docs/design/Admin.dc.html`) — das bewusst unveränderte `p-dialog`-Anlegen-Muster aus dieser
+ * Story bleibt bestehen (siehe PO-Entscheidung in der Story-Datei, keine Rückkehr zum permanenten
+ * Formular-Panel aus dem Wireframe).
  */
 @Component({
   selector: 'app-users-admin',
   standalone: true,
-  imports: [ReactiveFormsModule, ProcessingButtonComponent, ViewStateComponent, ButtonDirective, Dialog, InputText, Message, Password],
+  imports: [ReactiveFormsModule, DatePipe, ProcessingButtonComponent, ViewStateComponent, ButtonDirective, Dialog, InputText, Message, Password],
   templateUrl: './users-admin.component.html',
   styleUrl: './users-admin.component.css',
 })

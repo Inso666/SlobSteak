@@ -1,5 +1,6 @@
-/* US-047 Akzeptanzkriterium 4: Kartenlayout statt roher <table> für die Nutzerliste, analog zum
-   Stakeholder-Liste-Muster. Ausschließlich zentrale Tokens, keine hartcodierten Hex-/px-Werte. */
+/* US-072 (Issue #100): Tabellen-Umbau statt Karten-Raster, analog zum etablierten `.dl-table`-/
+   `.sh-table`-Muster (US-042/US-072). Ausschließlich zentrale Tokens, keine hartcodierten
+   Hex-/px-Werte. */
 .admin-users {
   padding: var(--app-space-md) 0;
 }
@@ -16,43 +17,60 @@
   margin-bottom: var(--app-space-md);
 }
 
-.user-cards {
-  display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(18rem, 1fr));
-  gap: var(--app-space-lg);
-  margin-bottom: var(--app-space-md);
-}
-
-.user-card {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  gap: var(--app-space-md);
-  padding: var(--app-space-lg);
-  background: var(--app-color-surface);
+.au-table-wrapper {
+  overflow-x: auto;
   border: 1px solid var(--app-color-border);
   border-radius: var(--app-radius-md);
 }
 
-.user-card__data {
-  display: flex;
-  flex-direction: column;
-  gap: var(--app-space-xs);
-  min-width: 0;
+.au-table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: var(--app-font-size-body);
 }
 
-.user-card__name {
-  font-family: var(--app-font-family-display);
-  font-size: var(--app-font-size-card-title);
+.au-table th,
+.au-table td {
+  padding: var(--app-space-sm) var(--app-space-md);
+  text-align: left;
+  border-bottom: 1px solid var(--app-color-border);
+}
+
+.au-table th {
+  color: var(--app-color-text-muted);
+  font-weight: 600;
+  font-size: var(--app-font-size-meta);
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+}
+
+.au-table tbody tr:last-child td {
+  border-bottom: none;
+}
+
+.au-table tbody tr:hover td {
+  background: var(--app-color-surface-hover);
+}
+
+.au-name-cell {
   font-weight: 600;
   color: var(--app-color-text);
 }
 
-.user-card__email {
+.au-mail-cell {
+  font-family: var(--app-font-family-mono);
   font-size: var(--app-font-size-body);
   color: var(--app-color-text-muted);
-  overflow: hidden;
-  text-overflow: ellipsis;
+}
+
+.au-meta {
+  color: var(--app-color-text-faint);
+  font-size: var(--app-font-size-meta);
+  font-family: var(--app-font-family-mono);
+}
+
+.au-actions {
+  text-align: right;
 }
 
 .field {

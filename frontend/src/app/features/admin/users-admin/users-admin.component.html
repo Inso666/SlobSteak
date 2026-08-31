@@ -8,22 +8,44 @@
   </div>
 
   <app-view-state [state]="usersState" emptyMessage="Keine Nutzer angelegt." [skeletonCount]="3">
-    <div class="user-cards" role="list">
-      @for (user of users; track user.id) {
-        <article class="user-card" role="listitem">
-          <div class="user-card__data">
-            <span class="user-card__name">{{ user.name }}</span>
-            <span class="user-card__email">{{ user.email }}</span>
-          </div>
-          <app-processing-button
-            type="button"
-            [isSubmitting]="resettingUserIds.has(user.id)"
-            label="Passwort zurücksetzen"
-            submittingLabel="Wird zurückgesetzt…"
-            (click)="onResetPassword(user)"
-          />
-        </article>
-      }
+    <div class="au-table-wrapper">
+      <table class="au-table">
+        <caption class="sr-only">Admin-Nutzerverwaltung</caption>
+        <thead>
+          <tr>
+            <th scope="col">Name</th>
+            <th scope="col">E-Mail</th>
+            <th scope="col">Status</th>
+            <th scope="col">Erstellt am</th>
+            <th scope="col"></th>
+          </tr>
+        </thead>
+        <tbody>
+          @for (user of users; track user.id) {
+            <tr class="au-row">
+              <td class="au-name-cell">{{ user.name }}</td>
+              <td class="au-mail-cell">{{ user.email }}</td>
+              <td>
+                @if (user.mustChangePassword) {
+                  <span class="status-tag">Muss Passwort ändern</span>
+                } @else {
+                  <span class="au-meta">Aktiv</span>
+                }
+              </td>
+              <td class="au-meta">{{ user.createdAt | date: 'dd.MM.yyyy' }}</td>
+              <td class="au-actions">
+                <app-processing-button
+                  type="button"
+                  [isSubmitting]="resettingUserIds.has(user.id)"
+                  label="Passwort zurücksetzen"
+                  submittingLabel="Wird zurückgesetzt…"
+                  (click)="onResetPassword(user)"
+                />
+              </td>
+            </tr>
+          }
+        </tbody>
+      </table>
     </div>
   </app-view-state>
 

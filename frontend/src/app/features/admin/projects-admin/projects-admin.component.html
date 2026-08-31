@@ -8,30 +8,39 @@
   </div>
 
   <app-view-state [state]="projectsState" emptyMessage="Es existieren noch keine Projekte." [skeletonCount]="3">
-    <div class="project-cards" role="list">
-      @for (project of projects; track project.id) {
-        <article class="project-card" role="listitem">
-          <div class="project-card__head">
-            <span class="project-card__name">{{ project.name }}</span>
-            <span class="status-tag" [class.status-tag--archived]="project.status !== 'Active'">{{ project.status }}</span>
-          </div>
-
-          <dl class="project-card__data">
-            <dt>Mitglieder</dt>
-            <dd>{{ project.memberCount }}</dd>
-          </dl>
-
-          <div class="project-card__footer">
-            <button type="button" pButton [outlined]="true" severity="secondary" (click)="onSelectProject(project)">
-              {{ selectedProjectId === project.id ? 'Mitglieder ausblenden' : 'Mitglieder verwalten' }}
-            </button>
-          </div>
-
-          @if (selectedProjectId === project.id) {
-            <app-project-membership-manager [projectId]="project.id" />
+    <div class="ap-table-wrapper">
+      <table class="ap-table">
+        <caption class="sr-only">Admin-Projektliste</caption>
+        <thead>
+          <tr>
+            <th scope="col">Name</th>
+            <th scope="col">Status</th>
+            <th scope="col">Mitglieder</th>
+            <th scope="col"></th>
+          </tr>
+        </thead>
+        <tbody>
+          @for (project of projects; track project.id) {
+            <tr class="ap-row">
+              <td class="ap-name-cell">{{ project.name }}</td>
+              <td><span class="status-tag" [class.status-tag--archived]="project.status !== 'Active'">{{ project.status }}</span></td>
+              <td class="ap-meta">{{ project.memberCount }}</td>
+              <td class="ap-actions">
+                <button type="button" pButton [outlined]="true" severity="secondary" (click)="onSelectProject(project)">
+                  {{ selectedProjectId === project.id ? 'Mitglieder ausblenden' : 'Mitglieder verwalten' }}
+                </button>
+              </td>
+            </tr>
+            @if (selectedProjectId === project.id) {
+              <tr class="ap-membership-row">
+                <td colspan="4">
+                  <app-project-membership-manager [projectId]="project.id" />
+                </td>
+              </tr>
+            }
           }
-        </article>
-      }
+        </tbody>
+      </table>
     </div>
   </app-view-state>
 
