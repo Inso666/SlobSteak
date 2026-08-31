@@ -1,12 +1,12 @@
-<section class="stakeholder-list">
-  <h1>Stakeholder</h1>
+<section class="stakeholder-list" aria-labelledby="sh-list-title">
+  <h1 id="sh-list-title">Stakeholder</h1>
 
   @if (loadError) {
     <p class="load-error" role="alert">{{ loadError }}</p>
   }
 
-  @if (!showDeleted) {
-    <form [formGroup]="filterForm" class="filters">
+  <div class="sh-toolbar">
+    <form [formGroup]="filterForm" class="sh-filters">
       <div class="field">
         <label for="search">Suche</label>
         <input pInputText id="search" formControlName="search" placeholder="Name oder Organisation" />
@@ -21,67 +21,140 @@
         </select>
       </div>
     </form>
-  }
 
-  @if (showDeletedToggle) {
-    <label class="deleted-toggle">
-      <input type="checkbox" [checked]="showDeleted" (change)="onToggleDeleted($any($event.target).checked)" />
-      Gelöschte anzeigen
-    </label>
-  }
+    <div class="sh-toolbar__spacer"></div>
 
-  <div class="stakeholder-cards" role="list">
-    @for (stakeholder of stakeholders; track stakeholder.id) {
-      <article class="stakeholder-card" [class.deleted]="showDeleted" role="listitem">
-        <div class="stakeholder-card__head">
-          @if (showDeleted) {
-            <span class="stakeholder-card__name">{{ stakeholder.name }}</span>
-          } @else {
-            <a class="stakeholder-card__name" [routerLink]="[stakeholder.id]">{{ stakeholder.name }}</a>
-          }
-          <span class="stakeholder-card__type">{{ stakeholder.type }}</span>
-        </div>
-
-        <dl class="stakeholder-card__data">
-          <dt>Organisation</dt>
-          <dd>{{ stakeholder.organization || '–' }}</dd>
-          <dt>Position</dt>
-          <dd>{{ stakeholder.position || '–' }}</dd>
-          <dt>Kontakt</dt>
-          <dd>{{ stakeholder.email }} {{ stakeholder.phone }}</dd>
-        </dl>
-
-        @if (showDeleted) {
-          <div class="stakeholder-card__footer">
-            <span class="deleted-badge">Gelöscht am {{ stakeholder.deletedAt | date: 'dd.MM.yyyy, HH:mm' }} von {{ stakeholder.deletedByName }}</span>
-            <app-processing-button
-              type="button"
-              [isSubmitting]="restoringStakeholderIds.has(stakeholder.id)"
-              label="Wiederherstellen"
-              submittingLabel="Wird wiederhergestellt…"
-              (click)="onRestore(stakeholder)"
-            />
-          </div>
-        } @else {
-          <div class="stakeholder-card__footer">
-            <button type="button" pButton [outlined]="true" severity="secondary" (click)="onEdit(stakeholder)">Bearbeiten</button>
-            <button type="button" pButton [outlined]="true" severity="danger" (click)="onDeleteClick(stakeholder)">Löschen</button>
-          </div>
-        }
-
-        @if (!showDeleted && editingStakeholder?.id === stakeholder.id) {
-          <app-edit-stakeholder-form [stakeholder]="stakeholder" (updated)="onEditUpdated()" (cancelled)="onEditCancelled()" />
-        }
-        @if (!showDeleted && deletingStakeholder?.id === stakeholder.id) {
-          <app-delete-stakeholder-dialog [stakeholder]="stakeholder" (deleted)="onDeleted()" (cancelled)="onDeleteCancelled()" />
-        }
-      </article>
-    } @empty {
-      <p class="empty-state">{{ showDeleted ? 'Keine gelöschten Stakeholder gefunden.' : 'Keine Stakeholder gefunden.' }}</p>
+    @if (showDeletedToggle) {
+      <label class="deleted-toggle">
+        <input type="checkbox" [checked]="showDeleted" (change)="onToggleDeleted($any($event.target).checked)" />
+        Gelöschte anzeigen
+      </label>
     }
+
+    <button type="button" pButton icon="pi pi-plus" (click)="openCreateDialog()">Stakeholder anlegen</button>
   </div>
 
-  @if (!showDeleted) {
-    <app-create-stakeholder-form [projectId]="projectId" (created)="onCreated()" />
+  <div class="sh-table-wrapper">
+    <table class="sh-table">
+      <caption class="sr-only">Stakeholder-Liste — gefiltert nach Name/Organisation und Typ</caption>
+      <thead>
+        <tr>
+          <th scope="col">Name</th>
+          <th scope="col">Organisation</th>
+          @if (canViewPerspectiveColumns) {
+            <th scope="col">Kommunikation</th>
+            <th scope="col">Meine Bewertung</th>
+          }
+          <th scope="col">Aktualisiert</th>
+        </tr>
+      </thead>
+      <tbody>
+        @for (stakeholder of stakeholders; track stakeholder.id) {
+          <tr
+            class="sh-row"
+            tabindex="0"
+            (click)="onRowClick(stakeholder)"
+            (keydown.enter)="onRowClick(stakeholder)"
+          >
+            <td>
+              <div class="sh-name-cell">
+                <span class="sh-type-icon" aria-hidden="true"><i class="pi" [class]="typeIcon(stakeholder)"></i></span>
+                {{ stakeholder.name }}
+              </div>
+            </td>
+            <td class="sh-org-cell">{{ stakeholder.organization || '–' }}</td>
+            @if (canViewPerspectiveColumns) {
+              <td>
+                <div class="sh-chips">
+                  @for (name of stakeholder.communicationTypeNames ?? []; track name) {
+                    <span class="sh-chip">{{ name }}</span>
+                  } @empty {
+                    <span class="sh-none">–</span>
+                  }
+                </div>
+              </td>
+              <td>
+                @if (assessmentFor(stakeholder); as assessment) {
+                  <div class="sh-assess-cell">
+                    <span class="sh-assess-cell__values">E {{ assessment.influence }} · I {{ assessment.interest }}</span>
+                    <span class="role-badge" [class]="ownRoleBadgeClass">{{ currentUserRole }}</span>
+                  </div>
+                } @else {
+                  <span class="sh-none">– noch nicht bewertet</span>
+                }
+              </td>
+            }
+            <td class="sh-meta">{{ relativeTime(stakeholder.updatedAt) }}</td>
+          </tr>
+        } @empty {
+          <tr class="sh-empty-row">
+            <td [attr.colspan]="canViewPerspectiveColumns ? 5 : 3">Keine Stakeholder gefunden.</td>
+          </tr>
+        }
+      </tbody>
+    </table>
+    <p class="sh-row-count">
+      {{ totalStakeholderCount }} Stakeholder insgesamt
+      @if (isFiltered) {
+        · {{ stakeholders.length }} angezeigt (gefiltert)
+      }
+    </p>
+  </div>
+
+  @if (showDeleted) {
+    <section class="sh-trash-section" aria-labelledby="sh-trash-heading">
+      <div id="sh-trash-heading" class="sh-trash-title">
+        <i class="pi pi-trash" aria-hidden="true"></i>
+        Papierkorb — nur für Rolle PL sichtbar
+      </div>
+
+      @if (deletedLoadError) {
+        <p class="load-error" role="alert">{{ deletedLoadError }}</p>
+      }
+
+      <div class="sh-trash-panel">
+        <table class="sh-table">
+          <caption class="sr-only">Gelöschte Stakeholder</caption>
+          <tbody>
+            @for (stakeholder of deletedStakeholders; track stakeholder.id) {
+              <tr>
+                <td class="sh-trash-name">
+                  <div class="sh-name-cell">
+                    <span class="sh-type-icon" aria-hidden="true"><i class="pi" [class]="typeIcon(stakeholder)"></i></span>
+                    {{ stakeholder.name }}
+                  </div>
+                </td>
+                <td class="sh-org-cell">{{ stakeholder.organization || '–' }} (ehem.)</td>
+                <td>
+                  <span class="status-tag status-tag--deleted">
+                    Gelöscht am {{ stakeholder.deletedAt | date: 'dd.MM.yyyy, HH:mm' }} von {{ stakeholder.deletedByName }}
+                  </span>
+                </td>
+                <td class="sh-trash-actions">
+                  <app-processing-button
+                    type="button"
+                    [isSubmitting]="restoringStakeholderIds.has(stakeholder.id)"
+                    label="Wiederherstellen"
+                    submittingLabel="Wird wiederhergestellt…"
+                    (click)="onRestore(stakeholder)"
+                  />
+                </td>
+              </tr>
+            } @empty {
+              <tr>
+                <td class="sh-empty-row">Papierkorb ist leer.</td>
+              </tr>
+            }
+          </tbody>
+        </table>
+      </div>
+    </section>
   }
+
+  <p-dialog header="Stakeholder anlegen" [(visible)]="createDialogVisible" [modal]="true" [style]="{ width: '32rem', 'max-width': 'calc(100vw - 2rem)' }">
+    <app-create-stakeholder-form [projectId]="projectId" (created)="onCreated()" />
+    <ng-template #footer>
+      <button type="button" pButton [text]="true" (click)="closeCreateDialog()">Schließen</button>
+    </ng-template>
+  </p-dialog>
 </section>

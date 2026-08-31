@@ -1,40 +1,51 @@
-import { ChangeDetectorRef, Component, OnInit, inject } from '@angular/core';
-import { ActivatedRoute, RouterLink } from '@angular/router';
+import { ChangeDetectorRef, Component, OnInit, inject, signal } from '@angular/core';
+import { ActivatedRoute, Router } from '@angular/router';
 import { FormBuilder, ReactiveFormsModule } from '@angular/forms';
 import { DatePipe } from '@angular/common';
 import { ButtonDirective } from 'primeng/button';
+import { Dialog } from 'primeng/dialog';
 import { InputText } from 'primeng/inputtext';
 import { debounceTime } from 'rxjs';
 import { Stakeholder, StakeholdersService } from '../stakeholders.service';
 import { ProjectsService } from '../../projects/projects.service';
+import { MapService, MapPoint, PerspectiveRole } from '../../map/map.service';
 import { CreateStakeholderFormComponent } from '../create-stakeholder-form/create-stakeholder-form.component';
-import { EditStakeholderFormComponent } from '../edit-stakeholder-form/edit-stakeholder-form.component';
-import { DeleteStakeholderDialogComponent } from '../delete-stakeholder-dialog/delete-stakeholder-dialog.component';
 import { LOAD_ERROR_MESSAGE } from '../../../core/messages/http-error-messages';
 import { ProcessingButtonComponent } from '../../../shared/processing-button/processing-button.component';
 
+/** Projektrollen, die eine eigene Perspektive im Assessment tragen und damit die Spalten
+ * „Kommunikation“/„Meine Bewertung“ sehen dürfen (US-072 Akzeptanzkriterium 1/6, identische
+ * Grenze wie US-040/US-030). */
+const PERSPECTIVE_ROLES: readonly string[] = ['PL', 'Coreteam', 'Architect'];
+
 /**
  * Stakeholder-Liste mit Suche/Filter (US-025, Standard-Landingtab „Stakeholder-Liste“ der
- * Projekt-Workspace-Shell aus US-019 — ersetzt dort {@link CreateStakeholderFormComponent} als
- * primäre Ansicht). Lädt serverseitig gefiltert über `GET /api/v1/projects/{projectId}/
- * stakeholders?search=&type=` (Akzeptanzkriterium 1/2); für alle vier Projektrollen inkl. `User`
- * erreichbar (Akzeptanzkriterium 4) — die Response enthält serverseitig ohnehin keine Einfluss-/
- * Interesse-Werte (Akzeptanzkriterium 3). Enthält das Anlage-Formular sowie je Zeile die
- * Bearbeiten-/Löschen-Aktionen aus US-022/US-023, die nach jeder Änderung die Liste neu laden.
+ * Projekt-Workspace-Shell aus US-019). Lädt serverseitig gefiltert über `GET /api/v1/projects/
+ * {projectId}/stakeholders?search=&type=` (Akzeptanzkriterium 1/2).
  *
- * Der Filter-Dropdown „Kommunikationsart“ aus Akzeptanzkriterium 1 ist noch nicht mit echten
- * Optionen befüllt — ein Endpoint zum Auflisten des Kommunikationsarten-Katalogs entsteht erst mit
- * US-037; die Backend-Query (`communicationTypeId`) unterstützt den Filter bereits, sobald diese
- * Story eine Datenquelle für die Optionen liefert (siehe Anmerkungen der Story-Datei).
+ * US-072 (Issue #100): Tabellen-Umbau statt Karten-Raster (`docs/design/StakeholderList.dc.html`).
+ * Spalten Name (inkl. Typ-Icon), Organisation, Kommunikation (Chips), Meine Bewertung, Aktualisiert
+ * (relative Zeit) — die beiden mittleren Spalten entfallen für Rolle `User` vollständig
+ * ({@link canViewPerspectiveColumns}), da weder Kommunikationszuordnungen noch eine eigene
+ * Bewertung für diese Rolle existieren (US-040/US-030). „Meine Bewertung“ joint client-seitig die
+ * bereits bestehende, rollenkorrekte Map-Query-API (US-031, `MapService.getMapData`) über
+ * `stakeholderId` — kein neuer Backend-Contract. Zeilen sind klickbar und navigieren zur
+ * Detailseite (Akzeptanzkriterium 2); Bearbeiten/Löschen sind seit US-071/dieser Story
+ * ausschließlich über die Detailseite erreichbar, die zugehörigen Formular-/Dialog-Komponenten
+ * werden hier daher nicht mehr eingebunden. „Gelöschte anzeigen“ ist ein Toggle, der den
+ * Papierkorb-Bereich zusätzlich unterhalb der weiterhin sichtbaren aktiven Liste einblendet
+ * (Akzeptanzkriterium 4) — beide Listen werden unabhängig voneinander geladen. „Stakeholder
+ * anlegen“ öffnet {@link CreateStakeholderFormComponent} als `p-dialog` über einen
+ * Toolbar-Button (Akzeptanzkriterium 5, Muster aus US-038/US-065/US-056).
  *
- * US-024 (Papierkorb-Ansicht): der Umschalter „Gelöschte anzeigen“ ist ausschließlich für Rolle
- * `PL` sichtbar (Akzeptanzkriterium 3) und ersetzt bei Aktivierung den Listeninhalt vollständig
- * durch `GET .../stakeholders?deleted=true` (Akzeptanzkriterium 1) — kein Vermischen von aktiven
- * und gelöschten Zeilen, das entspricht dem Backend-Contract, der stets ausschließlich das eine
- * oder das andere liefert. Anlage-Formular sowie Bearbeiten-/Löschen-Aktionen sind in diesem
- * Modus ausgeblendet; stattdessen zeigt jede Zeile einen Badge und einen „Wiederherstellen“-Button
- * (Akzeptanzkriterium 3/4), der nach Erfolg die (weiterhin gefilterte) Papierkorb-Ansicht neu lädt,
- * ohne die Seite komplett neu zu laden.
+ * `totalStakeholderCount` für die geforderte Zeilenzahl-Anzeige „N Stakeholder insgesamt · M
+ * angezeigt (gefiltert)“ stammt, solange kein Filter aktiv ist, direkt aus der ohnehin geladenen
+ * (dann bereits vollständigen) Liste — nur bei aktivem Such-/Typ-Filter wird zusätzlich einmalig
+ * ungefiltert nachgeladen ({@link refreshTotalCountOnly}), da der bestehende Listen-Endpunkt sonst
+ * ausschließlich die bereits gefilterte Menge liefert, ohne eigenes Gesamt-Feld. So entsteht im
+ * unfiltrierten Regelfall (Initial-Laden, nach Anlegen/Wiederherstellen) kein zweiter, mit
+ * identischen Parametern doppelter HTTP-Request (siehe Anmerkungen des Agenten in der
+ * Story-Datei).
  *
  * US-058: `changeDetectorRef.markForCheck()` in jedem `subscribe()`-Callback ergänzt — dieselbe
  * Root Cause wie in US-050/US-051/US-057: Das Frontend läuft ohne `zone.js`, eine reine
@@ -44,17 +55,7 @@ import { ProcessingButtonComponent } from '../../../shared/processing-button/pro
 @Component({
   selector: 'app-stakeholder-list',
   standalone: true,
-  imports: [
-    ReactiveFormsModule,
-    RouterLink,
-    DatePipe,
-    CreateStakeholderFormComponent,
-    EditStakeholderFormComponent,
-    DeleteStakeholderDialogComponent,
-    ProcessingButtonComponent,
-    ButtonDirective,
-    InputText,
-  ],
+  imports: [ReactiveFormsModule, DatePipe, CreateStakeholderFormComponent, ProcessingButtonComponent, ButtonDirective, Dialog, InputText],
   templateUrl: './stakeholder-list.component.html',
   styleUrl: './stakeholder-list.component.css',
 })
@@ -62,18 +63,27 @@ export class StakeholderListComponent implements OnInit {
   private readonly formBuilder = inject(FormBuilder);
   private readonly stakeholdersService = inject(StakeholdersService);
   private readonly projectsService = inject(ProjectsService);
+  private readonly mapService = inject(MapService);
   private readonly route = inject(ActivatedRoute);
+  private readonly router = inject(Router);
   private readonly changeDetectorRef = inject(ChangeDetectorRef);
 
   protected projectId = '';
   protected currentUserRole: string | null = null;
   protected stakeholders: Stakeholder[] = [];
-  protected editingStakeholder: Stakeholder | null = null;
-  protected deletingStakeholder: Stakeholder | null = null;
+  protected deletedStakeholders: Stakeholder[] = [];
   protected showDeleted = false;
   protected loadError: string | null = null;
+  protected deletedLoadError: string | null = null;
+  /** Ungefiltert geladene Gesamtzahl aktiver Stakeholder (siehe Klassendoku). */
+  protected totalStakeholderCount = 0;
   /** US-043 Akzeptanzkriterium 1/2/3/4: IDs der Stakeholder, deren Wiederherstellung gerade läuft. */
   protected readonly restoringStakeholderIds = new Set<string>();
+  /** „Meine Bewertung“ je Stakeholder, aus der Map-Query-API (US-031) client-seitig gejoint —
+   * `undefined`, solange die Rolle keine Perspektive trägt oder noch nicht geladen wurde. */
+  protected assessmentByStakeholderId = new Map<string, MapPoint>();
+  /** US-056: `p-dialog` erfordert ein `WritableSignal` für `[(visible)]`. */
+  protected readonly createDialogVisible = signal(false);
 
   protected readonly filterForm = this.formBuilder.nonNullable.group({
     search: [''],
@@ -86,51 +96,107 @@ export class StakeholderListComponent implements OnInit {
 
     this.projectsService.getProject(this.projectId).subscribe((project) => {
       this.currentUserRole = project.role;
+      this.changeDetectorRef.markForCheck();
+      this.loadAssessments();
     });
     this.filterForm.valueChanges.pipe(debounceTime(300)).subscribe(() => this.loadStakeholders());
   }
 
-  /** Umschalter „Gelöschte anzeigen“ ist ausschließlich für Rolle `PL` sichtbar (Akzeptanzkriterium 3). */
+  /** Umschalter „Gelöschte anzeigen“ ist ausschließlich für Rolle `PL` sichtbar (US-024
+   * Akzeptanzkriterium 3). */
   protected get showDeletedToggle(): boolean {
     return this.currentUserRole === 'PL';
   }
 
+  /** US-072 Akzeptanzkriterium 1/6: Spalten „Kommunikation“/„Meine Bewertung“ existieren nur für
+   * die drei perspektiv-tragenden Rollen. */
+  protected get canViewPerspectiveColumns(): boolean {
+    return PERSPECTIVE_ROLES.includes(this.currentUserRole ?? '');
+  }
+
+  /** US-072 Akzeptanzkriterium 3: „N Stakeholder insgesamt · M angezeigt (gefiltert)“, das
+   * „(gefiltert)“-Suffix erscheint nur, wenn tatsächlich gefiltert wird. */
+  protected get isFiltered(): boolean {
+    const { search, type } = this.filterForm.getRawValue();
+    return !!search || !!type;
+  }
+
+  /** US-047/SPEC-00 §1.3-analog: Rollen-Badge-Klasse für die eigene Rolle unter „Meine Bewertung“. */
+  protected get ownRoleBadgeClass(): string {
+    switch (this.currentUserRole) {
+      case 'PL':
+        return 'role-badge--pl';
+      case 'Coreteam':
+        return 'role-badge--coreteam';
+      case 'Architect':
+        return 'role-badge--architect';
+      default:
+        return '';
+    }
+  }
+
+  protected typeIcon(stakeholder: Stakeholder): string {
+    return stakeholder.type === 'Organization' ? 'pi-building' : 'pi-user';
+  }
+
+  protected assessmentFor(stakeholder: Stakeholder): MapPoint | undefined {
+    return this.assessmentByStakeholderId.get(stakeholder.id);
+  }
+
+  /** Formatiert einen ISO-Zeitstempel als deutsche relative Zeitangabe (Akzeptanzkriterium 1,
+   * „vor 2 Std.“/„vor 1 Tag“/… analog zu `docs/design/StakeholderList.dc.html`). */
+  protected relativeTime(iso: string): string {
+    const diffMs = Date.now() - new Date(iso).getTime();
+    const minutes = Math.floor(diffMs / 60_000);
+    if (minutes < 1) {
+      return 'gerade eben';
+    }
+    if (minutes < 60) {
+      return `vor ${minutes} Min.`;
+    }
+    const hours = Math.floor(minutes / 60);
+    if (hours < 24) {
+      return `vor ${hours} Std.`;
+    }
+    const days = Math.floor(hours / 24);
+    if (days === 1) {
+      return 'vor 1 Tag';
+    }
+    if (days < 7) {
+      return `vor ${days} Tagen`;
+    }
+    const weeks = Math.floor(days / 7);
+    if (weeks === 1) {
+      return 'vor 1 Woche';
+    }
+    if (weeks < 5) {
+      return `vor ${weeks} Wochen`;
+    }
+    const months = Math.floor(days / 30);
+    return months <= 1 ? 'vor 1 Monat' : `vor ${months} Monaten`;
+  }
+
+  protected onRowClick(stakeholder: Stakeholder): void {
+    this.router.navigate([stakeholder.id], { relativeTo: this.route });
+  }
+
   protected onToggleDeleted(showDeleted: boolean): void {
     this.showDeleted = showDeleted;
-    this.editingStakeholder = null;
-    this.deletingStakeholder = null;
-    this.loadStakeholders();
+    if (showDeleted) {
+      this.loadDeletedStakeholders();
+    }
+  }
+
+  protected openCreateDialog(): void {
+    this.createDialogVisible.set(true);
+  }
+
+  protected closeCreateDialog(): void {
+    this.createDialogVisible.set(false);
   }
 
   protected onCreated(): void {
-    this.loadStakeholders();
-  }
-
-  protected onEdit(stakeholder: Stakeholder): void {
-    this.editingStakeholder = stakeholder;
-    this.deletingStakeholder = null;
-  }
-
-  protected onEditCancelled(): void {
-    this.editingStakeholder = null;
-  }
-
-  protected onEditUpdated(): void {
-    this.editingStakeholder = null;
-    this.loadStakeholders();
-  }
-
-  protected onDeleteClick(stakeholder: Stakeholder): void {
-    this.deletingStakeholder = stakeholder;
-    this.editingStakeholder = null;
-  }
-
-  protected onDeleteCancelled(): void {
-    this.deletingStakeholder = null;
-  }
-
-  protected onDeleted(): void {
-    this.deletingStakeholder = null;
+    this.createDialogVisible.set(false);
     this.loadStakeholders();
   }
 
@@ -146,6 +212,7 @@ export class StakeholderListComponent implements OnInit {
     this.stakeholdersService.restoreStakeholder(stakeholder.id).subscribe({
       next: () => {
         this.restoringStakeholderIds.delete(stakeholder.id);
+        this.loadDeletedStakeholders();
         this.loadStakeholders();
         this.changeDetectorRef.markForCheck();
       },
@@ -157,36 +224,83 @@ export class StakeholderListComponent implements OnInit {
   }
 
   /** US-044 Akzeptanzkriterium 4: konsistente Fehlermeldung statt stumm leerer Liste bei
-   * fehlgeschlagenem Laden. */
+   * fehlgeschlagenem Laden. Ist kein Filter aktiv, liefert diese Antwort bereits die vollständige
+   * aktive Menge — `totalStakeholderCount` wird dann direkt daraus übernommen, ohne separaten
+   * Request (siehe Klassendoku); nur bei aktivem Filter wird die Gesamtzahl zusätzlich einmalig
+   * ungefiltert nachgeladen. */
   private loadStakeholders(): void {
     if (!this.projectId) {
       return;
     }
 
     this.loadError = null;
-
-    if (this.showDeleted) {
-      this.stakeholdersService.listStakeholders(this.projectId, { deleted: true }).subscribe({
-        next: (stakeholders) => {
-          this.stakeholders = stakeholders;
-          this.changeDetectorRef.markForCheck();
-        },
-        error: () => {
-          this.loadError = LOAD_ERROR_MESSAGE;
-          this.changeDetectorRef.markForCheck();
-        },
-      });
-      return;
-    }
-
     const { search, type } = this.filterForm.getRawValue();
+    const filtered = this.isFiltered;
     this.stakeholdersService.listStakeholders(this.projectId, { search: search || undefined, type: type || undefined }).subscribe({
       next: (stakeholders) => {
         this.stakeholders = stakeholders;
+        if (filtered) {
+          this.refreshTotalCountOnly();
+        } else {
+          this.totalStakeholderCount = stakeholders.length;
+        }
         this.changeDetectorRef.markForCheck();
       },
       error: () => {
         this.loadError = LOAD_ERROR_MESSAGE;
+        this.changeDetectorRef.markForCheck();
+      },
+    });
+  }
+
+  /** Lädt die ungefilterte Gesamtzahl aktiver Stakeholder ausschließlich für die
+   * Zeilenzahl-Anzeige nach — nur aufgerufen, während tatsächlich gefiltert wird (siehe
+   * {@link loadStakeholders}), damit im unfiltrierten Regelfall kein zweiter, identischer Request
+   * entsteht. */
+  private refreshTotalCountOnly(): void {
+    this.stakeholdersService.listStakeholders(this.projectId, {}).subscribe({
+      next: (stakeholders) => {
+        this.totalStakeholderCount = stakeholders.length;
+        this.changeDetectorRef.markForCheck();
+      },
+      error: () => {
+        this.changeDetectorRef.markForCheck();
+      },
+    });
+  }
+
+  private loadDeletedStakeholders(): void {
+    if (!this.projectId) {
+      return;
+    }
+
+    this.deletedLoadError = null;
+    this.stakeholdersService.listStakeholders(this.projectId, { deleted: true }).subscribe({
+      next: (stakeholders) => {
+        this.deletedStakeholders = stakeholders;
+        this.changeDetectorRef.markForCheck();
+      },
+      error: () => {
+        this.deletedLoadError = LOAD_ERROR_MESSAGE;
+        this.changeDetectorRef.markForCheck();
+      },
+    });
+  }
+
+  /** US-072 Akzeptanzkriterium 1 („Meine Bewertung“): nur für perspektiv-tragende Rollen
+   * überhaupt aufgerufen — Rolle `User` löst keinen Map-Request aus (US-030/US-031
+   * Sichtbarkeitsgrenze, kein neuer Endpunkt-Aufruf für eine Rolle ohne eigene Perspektive). */
+  private loadAssessments(): void {
+    if (!this.projectId || !this.canViewPerspectiveColumns) {
+      return;
+    }
+
+    this.mapService.getMapData(this.projectId, this.currentUserRole as PerspectiveRole).subscribe({
+      next: (points) => {
+        this.assessmentByStakeholderId = new Map(points.map((point) => [point.stakeholderId, point]));
+        this.changeDetectorRef.markForCheck();
+      },
+      error: () => {
         this.changeDetectorRef.markForCheck();
       },
     });
