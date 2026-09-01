@@ -4,6 +4,39 @@ Alle nennenswerten Änderungen an diesem Projekt werden hier je User Story dokum
 
 ## [Unreleased]
 
+### US-074 — Projektübersicht: Sidebar-Icons/Nutzerkarte, Toolbar (Tabs/Suche/Sortierung) und Karten-Grundlayout gemäß Main.dc.html
+
+- Root Cause (Issue #99, QA-Design-Abgleich-Gesamtaudit vom 30.08.2026): Sidebar zeigte weder
+  Nav-Item-Icons noch eine Nutzerkarte; die Toolbar der Projektübersicht existierte nur für
+  Systemadmins (Tabs ohne Zähler, kein Suchfeld, keine Sortierung); Projektkarten zeigten reinen
+  Fließtext statt Rollen-Badge/Mono-Kennzahl/Archiviert-Tag.
+- Backend additiv: `ProjectOverviewItem`/`ProjectOverviewResponse` um `Status`/`CreatedAt`
+  erweitert (beide bereits auf dem `Project`-Aggregate vorhanden, keine EF-Core-Migration nötig) —
+  Basis für die „Archiviert“-Kennzeichnung bzw. das Sortierkriterium „Neu zuerst“.
+- Backend zusätzlich (siehe Story „Anmerkungen des Agenten“): `IJwtTokenGenerator`/
+  `JwtTokenGenerator`/`LoginService` betten optional einen `name`-Claim (Anzeigename) ins
+  Session-Token ein, damit die neue Sidebar-Nutzerkarte ohne zusätzlichen Backend-Request
+  auskommt — der ursprüngliche Login-Endpoint/-Contract bleibt unverändert.
+- Frontend Sidebar (`AppNavigationComponent`): jeder Nav-Eintrag (inkl. „Admin“) zeigt ein
+  PrimeIcons-Icon (`pi-th-large`/`pi-shield`); neue Nutzerkarte (Avatar-Initialen + angemeldeter
+  Name, aus `TokenStorageService.getClaims()?.name`) zwischen Navigation und „Abmelden“.
+- Frontend Projektübersicht (`ProjectOverviewComponent`): Toolbar mit Tabs
+  „Meine Projekte (N)“/„Alle Projekte (N)“ (Live-Zähler, für alle Rollen sichtbar — „Alle
+  Projekte“ weiterhin nur Systemadmin), client-seitigem Suchfeld „Projekte durchsuchen…“ und
+  Sortier-Dropdown „Name (A–Z)“/„Neu zuerst“ (natives `<select>`, konsistent mit dem bereits
+  etablierten Muster auf der Stakeholder-Map, siehe SPEC-04-Abweichung). Projektkarten zeigen
+  farbcodierte Rollen-Badge-Pille (`.role-badge--pl/coreteam/architect`, Rolle „User“ ohne Badge),
+  Stakeholder-Zahl in Mono-Schrift, archivierte Projekte gedimmt (`--app-map-point-locked-opacity`
+  wiederverwendet, siehe Anmerkungen) mit „Archiviert“-Tag; bestehende Admin-„Alle
+  Projekte“-Darstellung (Status/Mitgliederzahl) bleibt erhalten.
+- PO-Entscheidung (Story Abschnitt 2): Rollen-Bewertungsfortschritt (Progress-Ringe) und
+  „unbewertet“-Banner bewusst nicht Teil dieser Story — ausgelagert nach
+  [US-076](docs/usecases/US-076-projektkarten-bewertungsfortschritt.md), da beide ein neues
+  aggregiertes Backend-Read-Modell sowie `Project.UpdatedAt` (EF-Core-Migration) voraussetzen.
+- Story-Test Backend: `US074_ProjektuebersichtSidebarToolbarCardsTests.cs`. Story-Test Frontend:
+  `us-074-projektuebersicht-sidebar-toolbar-cards.spec.ts` (deckt Sidebar und
+  Toolbar/Karten gemeinsam ab, 10 Akzeptanzkriterien).
+
 ### US-073 — Einheitliches Marken-Icon (Steak-SVG) app-weit statt abstraktem Drei-Kreise-Symbol
 
 - Root Cause (Issue #98, QA-Design-Abgleich-Gesamtaudit vom 30.08.2026): alle 12 Artboards in
