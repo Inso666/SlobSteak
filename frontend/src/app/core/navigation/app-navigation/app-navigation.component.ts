@@ -5,6 +5,7 @@ import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { NavigationEnd, Router, RouterLink, RouterLinkActive } from '@angular/router';
 import { filter } from 'rxjs';
 import { Drawer } from 'primeng/drawer';
+import { BrandMarkComponent } from '../../../shared/brand-mark/brand-mark.component';
 import { TokenStorageService } from '../../../features/auth/token-storage.service';
 import { APP_NAV_ADMIN_LINK, APP_NAV_LINKS, APP_NAV_LOGOUT_LABEL } from './nav-items';
 
@@ -41,7 +42,7 @@ const LOGIN_ROUTE = '/login';
 @Component({
   selector: 'app-navigation',
   standalone: true,
-  imports: [RouterLink, RouterLinkActive, NgTemplateOutlet, Drawer],
+  imports: [RouterLink, RouterLinkActive, NgTemplateOutlet, Drawer, BrandMarkComponent],
   templateUrl: './app-navigation.component.html',
   styleUrl: './app-navigation.component.css',
   changeDetection: ChangeDetectionStrategy.OnPush,

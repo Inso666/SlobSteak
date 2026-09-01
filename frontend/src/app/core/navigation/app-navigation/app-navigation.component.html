@@ -1,6 +1,11 @@
 @if (isVisible()) {
   <ng-template #sidebarContent>
-    <span class="app-navigation__brand">SlobSteak</span>
+    <!-- US-073 Akzeptanzkriterium 2: Marken-Icon (BrandMarkComponent, alleinige SVG-Quelle)
+         zusätzlich zum bestehenden Schriftzug in der Brand-Zeile. -->
+    <div class="app-navigation__brand-row">
+      <app-brand-mark />
+      <span class="app-navigation__brand">SlobSteak</span>
+    </div>
 
     <nav aria-label="Hauptnavigation">
       <ul class="app-navigation__links">
