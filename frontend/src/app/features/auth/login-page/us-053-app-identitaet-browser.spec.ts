@@ -48,20 +48,25 @@ describe('US-053: App-Identität im Browser (Tab-Titel, Favicon, Marken-Icon)', 
     expect(brandMarkComponents.length).toBe(1);
   });
 
-  it('Akzeptanzkriterium 4: das Icon-Design verwendet ausschließlich in SPEC-00 definierte Farb-Tokens, keine neu erfundene Farbe', () => {
+  it('Akzeptanzkriterium 4 (seit US-073 überholt): das Icon-Design verwendet eine dokumentierte, keine frei erfundene Farbe', () => {
+    // US-073 (Issue #98, QA-Design-Abgleich vom 30.08.2026): das hier ursprünglich geprüfte
+    // Drei-Kreise-Icon (SPEC-00-Rollenfarben) wurde durch die in
+    // `docs/design/S2-Projektuebersicht-Wireframe.html` (12 Artboards, übereinstimmend) vorgegebene
+    // Steak-Grafik ersetzt — deren Farbverlauf ist bewusst eine dokumentierte Marken-/
+    // Illustrationsfarbe statt eines SPEC-00-Tokens (US-073 „Wichtige Invarianten“). Die
+    // ursprüngliche Kernaussage von Akzeptanzkriterium 4 — keine frei erfundene Farbe, sondern eine
+    // aus einer verbindlichen Quelle abgeleitete — bleibt geprüft, nur die Quelle wechselt von
+    // SPEC-00 zu docs/design. Keine bisher geprüfte fachliche Aussage geht verloren (CLAUDE.md
+    // Abschnitt 3).
     const fixture = TestBed.createComponent(BrandMarkComponent);
     fixture.detectChanges();
 
     const svg: SVGElement = fixture.nativeElement.querySelector('svg');
-    // SPEC-00 §1.2: color.background (#10151F) sowie die drei bereits definierten Rollenfarben
-    // color.role-pl/ct/ar (#8B7CF6/#2DD4BF/#38BDF8) — dieselbe Farbsprache wie das ebenfalls in
-    // SPEC-00 §1.3 spezifizierte Perspektiven-Radar.
-    const specTokenColors = ['#10151f', '#8b7cf6', '#2dd4bf', '#38bdf8'];
-    const usedFills = Array.from(svg.querySelectorAll('rect, circle')).map((el) => el.getAttribute('fill')?.toLowerCase() ?? '');
+    const documentedBrandGradient = ['#c96a45', '#a8502f', '#6f2f1c'];
+    const gradientStops = Array.from(svg.querySelectorAll('linearGradient stop')).map(
+      (el) => el.getAttribute('stop-color')?.toLowerCase() ?? '',
+    );
 
-    expect(usedFills.length).toBeGreaterThan(0);
-    for (const fill of usedFills) {
-      expect(specTokenColors).toContain(fill, `Farbe ${fill} ist kein in SPEC-00 §1.2 definiertes Token`);
-    }
+    expect(gradientStops).toEqual(documentedBrandGradient);
   });
 });
