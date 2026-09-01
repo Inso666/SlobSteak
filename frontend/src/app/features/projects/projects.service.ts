@@ -2,6 +2,13 @@ import { Injectable, inject } from '@angular/core';
 import { HttpClient } from '@angular/common/http';
 import { Observable } from 'rxjs';
 
+/** US-076: Bewertungsfortschritt einer perspektiv-tragenden Rolle — spiegelt
+ * `RoleAssessmentProgressResponse` im Backend 1:1. */
+export interface RoleAssessmentProgress {
+  percent: number;
+  unassessedCount: number;
+}
+
 /** US-074: `status`/`createdAt` additiv ergänzt — spiegeln `ProjectOverviewResponse` im Backend
  * 1:1 (CLAUDE.md/`.claude/agents/frontend.md` Abschnitt 3: DTO-Typen bilden den Response-Contract
  * ab). `status` steuert die „Archiviert"-Kennzeichnung der Projektkarten, `createdAt` das
@@ -12,7 +19,12 @@ import { Observable } from 'rxjs';
  * Felder nicht kennen — ein Pflichtfeld hätte deren Test-Fixtures ohne fachlichen Mehrwert für die
  * jeweilige Story angefasst (CLAUDE.md Abschnitt 3: „nur an aktueller Story arbeiten"). Die reale
  * Backend-Response liefert beide Felder immer; nur Test-Stubs außerhalb dieser Story dürfen sie
- * auslassen. */
+ * auslassen.
+ *
+ * US-076: `updatedAt` sowie der Bewertungsfortschritt je perspektiv-tragender Rolle (`pl`/
+ * `coreteam`/`architect`) ebenso additiv/optional ergänzt — Grundlage der Fortschritts-Ringe, des
+ * „unbewertet · deine Sicht"-Hinweises und der Kartenfußzeile „Aktualisiert vor …" auf der
+ * Projektübersicht. */
 export interface ProjectOverviewItem {
   id: string;
   name: string;
@@ -20,6 +32,10 @@ export interface ProjectOverviewItem {
   stakeholderCount: number;
   status?: string;
   createdAt?: string;
+  updatedAt?: string;
+  pl?: RoleAssessmentProgress;
+  coreteam?: RoleAssessmentProgress;
+  architect?: RoleAssessmentProgress;
 }
 
 /**

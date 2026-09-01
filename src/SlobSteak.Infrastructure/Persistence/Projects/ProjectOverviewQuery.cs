@@ -33,12 +33,12 @@ public sealed class ProjectOverviewQuery : IProjectOverviewQuery
 
         var projectIds = memberships.Select(m => m.ProjectId).ToList();
 
-        // US-074: Projektion statt vollständiger Aggregate-Rekonstruktion — Name, Status und
-        // CreatedAt genügen für die Projektübersicht, `Description`/`Memberships` werden hier nicht
-        // benötigt (reines Read-Modell, siehe Klassen-Dokumentation).
+        // US-074/US-076: Projektion statt vollständiger Aggregate-Rekonstruktion — Name, Status,
+        // CreatedAt und UpdatedAt genügen für die Projektübersicht, `Description`/`Memberships`
+        // werden hier nicht benötigt (reines Read-Modell, siehe Klassen-Dokumentation).
         var projectsById = await _dbContext.Projects
             .Where(p => projectIds.Contains(p.Id))
-            .Select(p => new { p.Id, p.Name, p.Status, p.CreatedAt })
+            .Select(p => new { p.Id, p.Name, p.Status, p.CreatedAt, p.UpdatedAt })
             .ToDictionaryAsync(p => p.Id, cancellationToken);
 
         var stakeholderCountsByProjectId = await _dbContext.Stakeholders
@@ -58,7 +58,8 @@ public sealed class ProjectOverviewQuery : IProjectOverviewQuery
                     m.Role,
                     stakeholderCountsByProjectId.GetValueOrDefault(m.ProjectId, 0),
                     project.Status,
-                    project.CreatedAt);
+                    project.CreatedAt,
+                    project.UpdatedAt);
             })
             .ToList();
     }

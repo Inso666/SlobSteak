@@ -155,9 +155,12 @@ public sealed class US003_DatenbankschemaTests : IAsyncLifetime
         using var scope = _factory.Services.CreateScope();
         var dbContext = scope.ServiceProvider.GetRequiredService<SlobSteakDbContext>();
 
-        // InitializeAsync hat die Migration bereits angewendet (entspricht `dotnet ef database
-        // update`) — hier verifiziert: alle sieben Tabellen sind abfragbar.
-        (await dbContext.Database.GetAppliedMigrationsAsync()).Should().ContainSingle();
+        // InitializeAsync hat die Migration(en) bereits angewendet (entspricht `dotnet ef database
+        // update`) — hier verifiziert: alle sieben Tabellen sind abfragbar. Seit US-076 (zweite
+        // Migration `AddProjectUpdatedAt`) ist die genaue Anzahl kein stabiles Kriterium mehr für
+        // "die initiale Migration wurde angewendet" — entscheidend ist nur, dass überhaupt
+        // mindestens eine (die initiale) angewendet wurde.
+        (await dbContext.Database.GetAppliedMigrationsAsync()).Should().NotBeEmpty();
         foreach (var setAccessor in new Func<Task<int>>[]
                  {
                      () => dbContext.Users.CountAsync(),

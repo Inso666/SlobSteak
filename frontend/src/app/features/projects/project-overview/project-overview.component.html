@@ -10,11 +10,25 @@
        (unverändertes Berechtigungsverhalten aus US-018). -->
   <div class="toolbar">
     <div class="tab-pills" role="tablist">
-      <button type="button" class="tab-pill" role="tab" [class.active]="activeTab === 'mine'" [attr.aria-selected]="activeTab === 'mine'" (click)="onSelectTab('mine')">
+      <button
+        type="button"
+        class="tab-pill"
+        role="tab"
+        [class.active]="activeTab === 'mine'"
+        [attr.aria-selected]="activeTab === 'mine'"
+        (click)="onSelectTab('mine')"
+      >
         Meine Projekte ({{ myProjects.length }})
       </button>
       @if (isSystemAdmin) {
-        <button type="button" class="tab-pill" role="tab" [class.active]="activeTab === 'all'" [attr.aria-selected]="activeTab === 'all'" (click)="onSelectTab('all')">
+        <button
+          type="button"
+          class="tab-pill"
+          role="tab"
+          [class.active]="activeTab === 'all'"
+          [attr.aria-selected]="activeTab === 'all'"
+          (click)="onSelectTab('all')"
+        >
           Alle Projekte ({{ allProjects.length }})
         </button>
       }
@@ -22,12 +36,19 @@
 
     <div class="search-sort">
       <label for="project-search" class="sr-only">Projekte durchsuchen</label>
-      <input pInputText id="project-search" type="text" placeholder="Projekte durchsuchen…" [formControl]="filterForm.controls.search" />
+      <input
+        pInputText
+        id="project-search"
+        type="text"
+        placeholder="Projekte durchsuchen…"
+        [formControl]="filterForm.controls.search"
+      />
 
       <label for="project-sort" class="sr-only">Sortierung</label>
       <select id="project-sort" [formControl]="filterForm.controls.sortBy" aria-label="Sortierung">
         <option value="name">Name (A–Z)</option>
         <option value="newest">Neu zuerst</option>
+        <option value="lastUpdated">Zuletzt aktualisiert</option>
       </select>
     </div>
 
@@ -37,10 +58,19 @@
   </div>
 
   @if (activeTab === 'mine' || !isSystemAdmin) {
-    <app-view-state [state]="myProjectsState" emptyMessage="Du bist noch keinem Projekt zugewiesen." [skeletonCount]="3">
+    <app-view-state
+      [state]="myProjectsState"
+      emptyMessage="Du bist noch keinem Projekt zugewiesen."
+      [skeletonCount]="3"
+    >
       <div class="project-cards">
         @for (project of filteredMyProjects; track project.id) {
-          <button type="button" class="project-card" [class.archived]="project.status === 'Archived'" (click)="onOpenProject(project.id)">
+          <button
+            type="button"
+            class="project-card"
+            [class.archived]="project.status === 'Archived'"
+            (click)="onOpenProject(project.id)"
+          >
             <div class="project-card__head">
               <h2>{{ project.name }}</h2>
               @if (project.status === 'Archived') {
@@ -54,6 +84,28 @@
               <span class="stat-num">{{ project.stakeholderCount }}</span>
               <span class="stat-label">Stakeholder</span>
             </p>
+
+            <!-- US-076 Akzeptanzkriterium 4: Fortschritts-Ringe und Attention-Banner entfallen bei
+                 archivierten Projekten (analog docs/design/Main.dc.html Karte 5/SPEC-02 §3.5). -->
+            @if (project.status !== 'Archived') {
+              <div class="radar-row" aria-label="Bewertungsstand je Rolle">
+                @for (entry of roleProgressEntries(project); track entry.roleCode) {
+                  <app-role-progress-ring
+                    [roleCode]="entry.roleCode"
+                    [roleLabel]="entry.roleLabel"
+                    [percent]="entry.percent"
+                  />
+                }
+              </div>
+
+              @if (ownRoleUnassessedCount(project); as unassessedCount) {
+                <app-attention-badge [text]="unassessedCount + ' unbewertet · deine Sicht'" />
+              }
+            }
+
+            <div class="card-footer">
+              <span class="meta">Aktualisiert {{ relativeUpdatedAt(project) }}</span>
+            </div>
           </button>
         }
       </div>
@@ -61,10 +113,19 @@
   }
 
   @if (isSystemAdmin && activeTab === 'all') {
-    <app-view-state [state]="allProjectsState" emptyMessage="Es existieren noch keine Projekte." [skeletonCount]="3">
+    <app-view-state
+      [state]="allProjectsState"
+      emptyMessage="Es existieren noch keine Projekte."
+      [skeletonCount]="3"
+    >
       <div class="project-cards">
         @for (project of filteredAllProjects; track project.id) {
-          <button type="button" class="project-card" [class.archived]="project.status === 'Archived'" (click)="onOpenProject(project.id)">
+          <button
+            type="button"
+            class="project-card"
+            [class.archived]="project.status === 'Archived'"
+            (click)="onOpenProject(project.id)"
+          >
             <div class="project-card__head">
               <h2>{{ project.name }}</h2>
               <span class="status-tag" [class.status-tag--archived]="project.status === 'Archived'">

@@ -108,4 +108,59 @@ public class ProjectMembershipTests
 
         act.Should().NotThrow();
     }
+
+    // US-076 Akzeptanzkriterium 1: AssignMember/ChangeMemberRole/RemoveMember aktualisieren
+    // Project.UpdatedAt — RemoveMember jedoch nur bei tatsächlicher Entfernung (Idempotenz).
+
+    [Fact]
+    public void AssignMember_UpdatesUpdatedAt()
+    {
+        var project = Project.Create("Projekt Phoenix", null);
+        var initialUpdatedAt = project.UpdatedAt;
+        Thread.Sleep(5);
+
+        project.AssignMember(Guid.NewGuid(), ProjectRole.PL);
+
+        project.UpdatedAt.Should().BeAfter(initialUpdatedAt);
+    }
+
+    [Fact]
+    public void ChangeMemberRole_UpdatesUpdatedAt()
+    {
+        var project = Project.Create("Projekt Phoenix", null);
+        var userId = Guid.NewGuid();
+        project.AssignMember(userId, ProjectRole.PL);
+        var updatedAtAfterAssign = project.UpdatedAt;
+        Thread.Sleep(5);
+
+        project.ChangeMemberRole(userId, ProjectRole.Architect);
+
+        project.UpdatedAt.Should().BeAfter(updatedAtAfterAssign);
+    }
+
+    [Fact]
+    public void RemoveMember_ExistingMembership_UpdatesUpdatedAt()
+    {
+        var project = Project.Create("Projekt Phoenix", null);
+        var userId = Guid.NewGuid();
+        project.AssignMember(userId, ProjectRole.PL);
+        var updatedAtAfterAssign = project.UpdatedAt;
+        Thread.Sleep(5);
+
+        project.RemoveMember(userId);
+
+        project.UpdatedAt.Should().BeAfter(updatedAtAfterAssign);
+    }
+
+    [Fact]
+    public void RemoveMember_NoExistingMembership_DoesNotChangeUpdatedAt()
+    {
+        var project = Project.Create("Projekt Phoenix", null);
+        var initialUpdatedAt = project.UpdatedAt;
+        Thread.Sleep(5);
+
+        project.RemoveMember(Guid.NewGuid());
+
+        project.UpdatedAt.Should().Be(initialUpdatedAt);
+    }
 }

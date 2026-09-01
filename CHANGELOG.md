@@ -4,6 +4,36 @@ Alle nennenswerten Änderungen an diesem Projekt werden hier je User Story dokum
 
 ## [Unreleased]
 
+### US-076 — Rollen-Bewertungsfortschritt (Progress-Ringe) und „unbewertet“-Hinweis auf Projektkarten
+
+- Folge-Story zu US-074 (Issue #99, Teil 2): `Project` erhält ein neues `UpdatedAt`-Feld
+  (`DateTimeOffset`, eigene EF-Core-Migration `AddProjectUpdatedAt`), aktualisiert durch `Archive()`,
+  `Reactivate()`, `AssignMember(...)`, `ChangeMemberRole(...)` sowie `RemoveMember(...)` (nur bei
+  tatsächlicher Entfernung — Idempotenz bleibt erhalten); initial gleich `CreatedAt`, inklusive
+  SQL-Backfill für bereits bestehende Zeilen.
+- Neue Application-Query `ProjectAssessmentProgressQuery` (analog `StakeholderMapQuery`/
+  `DistributionListQuery`) liefert je Projekt und je perspektiv-tragender Rolle (PL/Coreteam/
+  Architect) den gerundeten Anteil aktiver Stakeholder mit Assessment dieser Rolle sowie die
+  absolute Anzahl unbewerteter Stakeholder (0 aktive Stakeholder → 0 % statt Division durch 0).
+- `ProjectOverviewResponse` (`GET /api/v1/projects`) additiv um `updatedAt` sowie `pl`/`coreteam`/
+  `architect` (je `{ percent, unassessedCount }`) erweitert.
+- Frontend: neue wiederverwendbare `RoleProgressRingComponent` (SVG-Donut, Rollenfarben aus
+  SPEC-00 §1.2) zeigt drei Fortschritts-Ringe je Projektkarte; `AttentionBadgeComponent`
+  (US-047) zeigt „X unbewertet · deine Sicht“ ausschließlich für die eigene, perspektiv-tragende
+  Rolle des angemeldeten Nutzers mit tatsächlich unbewerteten Stakeholdern (nie für Rolle `User`).
+  Kartenfußzeile zeigt „Aktualisiert vor …“ (relative Zeit, extrahiert nach
+  `shared/utils/relative-time.ts`, zuvor dupliziert in `StakeholderListComponent`). Sortier-Dropdown
+  erhält zusätzlich „Zuletzt aktualisiert" (sortiert nach `updatedAt`, absteigend). Archivierte
+  Projektkarten zeigen weiterhin weder Ringe noch Banner (analog `Main.dc.html` Karte 5).
+- Story-Tests: Backend (`US076_ProjektkartenBewertungsfortschrittTests`, `SlobSteak.Api.Tests`) und
+  Frontend (`us-076-projektkarten-bewertungsfortschritt.spec.ts`) decken zusammen alle
+  Akzeptanzkriterien ab; Domain-/Application-Unit-Tests (`ProjectTests`, `ProjectMembershipTests`,
+  `ProjectAssessmentProgressQueryTests`) sichern jede neue Invariante inkl. Randfälle (0 %, 100 %,
+  0 aktive Stakeholder) ab.
+- Bewusst **kein** „Rolle nicht besetzt“-Zustand (`n/a`-Ring) umgesetzt, obwohl SPEC-02 einen
+  solchen für eine unbesetzte Rolle vorsieht — außerhalb des in dieser Story explizit geforderten
+  Akzeptanzkriterien-Umfangs (siehe Anmerkungen des Agenten in der Story-Datei).
+
 ### US-075 — Projekt-Kontext-Navigation als eingerückte Sidebar-Unterpunkte statt horizontaler Tab-Leiste
 
 - Root Cause (Issue #101, QA-Design-Abgleich-Gesamtaudit vom 30.08.2026, betrifft `Detail.dc.html`/

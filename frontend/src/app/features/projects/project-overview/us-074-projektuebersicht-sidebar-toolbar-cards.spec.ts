@@ -57,7 +57,9 @@ describe('US-074: Projektübersicht — Sidebar-Icons/Nutzerkarte, Toolbar (Tabs
       const fixture = TestBed.createComponent(AppNavigationComponent);
       fixture.detectChanges();
 
-      const links: HTMLAnchorElement[] = Array.from(fixture.nativeElement.querySelectorAll('.app-navigation__links a'));
+      const links: HTMLAnchorElement[] = Array.from(
+        fixture.nativeElement.querySelectorAll('.app-navigation__links a'),
+      );
       expect(links.length).toBeGreaterThanOrEqual(2); // Projektübersicht + Admin (isSystemAdmin: true)
       links.forEach((link) => {
         expect(link.querySelector('i[aria-hidden="true"]')).not.toBeNull();
@@ -72,11 +74,14 @@ describe('US-074: Projektübersicht — Sidebar-Icons/Nutzerkarte, Toolbar (Tabs
       const userCard: HTMLElement | null = aside.querySelector('.app-navigation__user-card');
       expect(userCard).not.toBeNull();
       expect(userCard!.querySelector('.app-navigation__avatar')?.textContent?.trim()).toBe('PZ');
-      expect(userCard!.querySelector('.app-navigation__user-name')?.textContent?.trim()).toBe('Petra Ziegler');
+      expect(userCard!.querySelector('.app-navigation__user-name')?.textContent?.trim()).toBe(
+        'Petra Ziegler',
+      );
 
       const nav = aside.querySelector('nav') as HTMLElement;
       const logout = aside.querySelector('.app-navigation__logout') as HTMLElement;
-      const position = (a: Node, b: Node) => a.compareDocumentPosition(b) & Node.DOCUMENT_POSITION_FOLLOWING;
+      const position = (a: Node, b: Node) =>
+        a.compareDocumentPosition(b) & Node.DOCUMENT_POSITION_FOLLOWING;
       expect(position(nav, userCard!)).toBeTruthy(); // Nutzerkarte kommt nach der Navigation …
       expect(position(userCard!, logout)).toBeTruthy(); // … und vor „Abmelden".
     });
@@ -88,12 +93,40 @@ describe('US-074: Projektübersicht — Sidebar-Icons/Nutzerkarte, Toolbar (Tabs
     let tokenStorageSpy: jasmine.SpyObj<TokenStorageService>;
 
     const myProjects: ProjectOverviewItem[] = [
-      { id: 'project-1', name: 'Berta-Projekt', role: 'PL', stakeholderCount: 3, status: 'Active', createdAt: '2026-06-01T00:00:00Z' },
-      { id: 'project-2', name: 'Anton-Projekt', role: 'Coreteam', stakeholderCount: 12, status: 'Archived', createdAt: '2026-01-01T00:00:00Z' },
+      {
+        id: 'project-1',
+        name: 'Berta-Projekt',
+        role: 'PL',
+        stakeholderCount: 3,
+        status: 'Active',
+        createdAt: '2026-06-01T00:00:00Z',
+      },
+      {
+        id: 'project-2',
+        name: 'Anton-Projekt',
+        role: 'Coreteam',
+        stakeholderCount: 12,
+        status: 'Archived',
+        createdAt: '2026-01-01T00:00:00Z',
+      },
     ];
     const allProjects: AdminProject[] = [
-      { id: 'project-1', name: 'Berta-Projekt', description: null, status: 'Active', memberCount: 4, createdAt: '2026-01-01T00:00:00Z' },
-      { id: 'project-3', name: 'Fremdprojekt', description: null, status: 'Archived', memberCount: 1, createdAt: '2026-02-01T00:00:00Z' },
+      {
+        id: 'project-1',
+        name: 'Berta-Projekt',
+        description: null,
+        status: 'Active',
+        memberCount: 4,
+        createdAt: '2026-01-01T00:00:00Z',
+      },
+      {
+        id: 'project-3',
+        name: 'Fremdprojekt',
+        description: null,
+        status: 'Archived',
+        memberCount: 1,
+        createdAt: '2026-02-01T00:00:00Z',
+      },
     ];
 
     function configure(isSystemAdmin: boolean) {
@@ -123,7 +156,9 @@ describe('US-074: Projektübersicht — Sidebar-Icons/Nutzerkarte, Toolbar (Tabs
       const nonAdminFixture = TestBed.createComponent(ProjectOverviewComponent);
       nonAdminFixture.detectChanges();
 
-      const nonAdminTabs: HTMLButtonElement[] = Array.from(nonAdminFixture.nativeElement.querySelectorAll('.tab-pill'));
+      const nonAdminTabs: HTMLButtonElement[] = Array.from(
+        nonAdminFixture.nativeElement.querySelectorAll('.tab-pill'),
+      );
       expect(nonAdminTabs.length).toBe(1);
       expect(nonAdminTabs[0].textContent?.trim()).toBe(`Meine Projekte (${myProjects.length})`);
 
@@ -131,7 +166,9 @@ describe('US-074: Projektübersicht — Sidebar-Icons/Nutzerkarte, Toolbar (Tabs
       const adminFixture = TestBed.createComponent(ProjectOverviewComponent);
       adminFixture.detectChanges();
 
-      const adminTabs: HTMLButtonElement[] = Array.from(adminFixture.nativeElement.querySelectorAll('.tab-pill'));
+      const adminTabs: HTMLButtonElement[] = Array.from(
+        adminFixture.nativeElement.querySelectorAll('.tab-pill'),
+      );
       expect(adminTabs.length).toBe(2);
       expect(adminTabs[0].textContent?.trim()).toBe(`Meine Projekte (${myProjects.length})`);
       expect(adminTabs[1].textContent?.trim()).toBe(`Alle Projekte (${allProjects.length})`);
@@ -142,7 +179,9 @@ describe('US-074: Projektübersicht — Sidebar-Icons/Nutzerkarte, Toolbar (Tabs
       const fixture = TestBed.createComponent(ProjectOverviewComponent);
       fixture.detectChanges();
 
-      expect(fixture.nativeElement.querySelectorAll('.project-card').length).toBe(myProjects.length);
+      expect(fixture.nativeElement.querySelectorAll('.project-card').length).toBe(
+        myProjects.length,
+      );
 
       const searchInput: HTMLInputElement = fixture.nativeElement.querySelector('#project-search');
       expect(searchInput.placeholder).toBe('Projekte durchsuchen…');
@@ -150,7 +189,9 @@ describe('US-074: Projektübersicht — Sidebar-Icons/Nutzerkarte, Toolbar (Tabs
       searchInput.dispatchEvent(new Event('input'));
       fixture.detectChanges();
 
-      const cards: HTMLElement[] = Array.from(fixture.nativeElement.querySelectorAll('.project-card'));
+      const cards: HTMLElement[] = Array.from(
+        fixture.nativeElement.querySelectorAll('.project-card'),
+      );
       expect(cards.length).toBe(1);
       expect(cards[0].textContent).toContain('Anton-Projekt');
     });
@@ -160,12 +201,17 @@ describe('US-074: Projektübersicht — Sidebar-Icons/Nutzerkarte, Toolbar (Tabs
       const fixture = TestBed.createComponent(ProjectOverviewComponent);
       fixture.detectChanges();
 
+      // US-076 ergänzt eine dritte Option („Zuletzt aktualisiert") additiv — diese Story prüft
+      // ausschließlich, dass ihre eigenen zwei Optionen weiterhin (in dieser Reihenfolge)
+      // vorhanden sind, nicht die Gesamtzahl.
       const select: HTMLSelectElement = fixture.nativeElement.querySelector('#project-sort');
       const optionLabels = Array.from(select.options).map((option) => option.textContent?.trim());
-      expect(optionLabels).toEqual(['Name (A–Z)', 'Neu zuerst']);
+      expect(optionLabels.slice(0, 2)).toEqual(['Name (A–Z)', 'Neu zuerst']);
 
       // Default „Name (A–Z)": Anton-Projekt vor Berta-Projekt.
-      let titles: HTMLElement[] = Array.from(fixture.nativeElement.querySelectorAll('.project-card h2'));
+      let titles: HTMLElement[] = Array.from(
+        fixture.nativeElement.querySelectorAll('.project-card h2'),
+      );
       expect(titles[0].textContent).toBe('Anton-Projekt');
 
       // Direktes `setValue()` auf dem `FormControl` statt eines simulierten DOM-`change`-Events —
@@ -183,14 +229,22 @@ describe('US-074: Projektübersicht — Sidebar-Icons/Nutzerkarte, Toolbar (Tabs
       configure(false);
       const nonAdminFixture = TestBed.createComponent(ProjectOverviewComponent);
       nonAdminFixture.detectChanges();
-      const nonAdminButtons: HTMLButtonElement[] = Array.from(nonAdminFixture.nativeElement.querySelectorAll('button'));
-      expect(nonAdminButtons.some((button) => button.textContent?.trim() === 'Neues Projekt')).toBeFalse();
+      const nonAdminButtons: HTMLButtonElement[] = Array.from(
+        nonAdminFixture.nativeElement.querySelectorAll('button'),
+      );
+      expect(
+        nonAdminButtons.some((button) => button.textContent?.trim() === 'Neues Projekt'),
+      ).toBeFalse();
 
       configure(true);
       const adminFixture = TestBed.createComponent(ProjectOverviewComponent);
       adminFixture.detectChanges();
-      const adminButtons: HTMLButtonElement[] = Array.from(adminFixture.nativeElement.querySelectorAll('button'));
-      expect(adminButtons.some((button) => button.textContent?.trim() === 'Neues Projekt')).toBeTrue();
+      const adminButtons: HTMLButtonElement[] = Array.from(
+        adminFixture.nativeElement.querySelectorAll('button'),
+      );
+      expect(
+        adminButtons.some((button) => button.textContent?.trim() === 'Neues Projekt'),
+      ).toBeTrue();
     });
 
     it('Akzeptanzkriterium 7: jede Karte zeigt eine farbcodierte Rollen-Badge-Pille (PL/Coreteam/Architect)', () => {
@@ -198,11 +252,15 @@ describe('US-074: Projektübersicht — Sidebar-Icons/Nutzerkarte, Toolbar (Tabs
       const fixture = TestBed.createComponent(ProjectOverviewComponent);
       fixture.detectChanges();
 
-      const cards: HTMLElement[] = Array.from(fixture.nativeElement.querySelectorAll('.project-card'));
+      const cards: HTMLElement[] = Array.from(
+        fixture.nativeElement.querySelectorAll('.project-card'),
+      );
       const antonCard = cards.find((card) => card.textContent?.includes('Anton-Projekt'));
       const bertaCard = cards.find((card) => card.textContent?.includes('Berta-Projekt'));
       expect(bertaCard?.querySelector('.role-badge--pl')?.textContent?.trim()).toBe('PL');
-      expect(antonCard?.querySelector('.role-badge--coreteam')?.textContent?.trim()).toBe('Coreteam');
+      expect(antonCard?.querySelector('.role-badge--coreteam')?.textContent?.trim()).toBe(
+        'Coreteam',
+      );
     });
 
     it('Akzeptanzkriterium 8: die Stakeholder-Zahl wird in Mono-Schrift hervorgehoben dargestellt', () => {
@@ -220,12 +278,16 @@ describe('US-074: Projektübersicht — Sidebar-Icons/Nutzerkarte, Toolbar (Tabs
       const fixture = TestBed.createComponent(ProjectOverviewComponent);
       fixture.detectChanges();
 
-      const cards: HTMLElement[] = Array.from(fixture.nativeElement.querySelectorAll('.project-card'));
+      const cards: HTMLElement[] = Array.from(
+        fixture.nativeElement.querySelectorAll('.project-card'),
+      );
       const archivedCard = cards.find((card) => card.textContent?.includes('Anton-Projekt'));
       const activeCard = cards.find((card) => card.textContent?.includes('Berta-Projekt'));
 
       expect(archivedCard?.classList.contains('archived')).toBeTrue();
-      expect(archivedCard?.querySelector('.status-tag--archived')?.textContent?.trim()).toBe('Archiviert');
+      expect(archivedCard?.querySelector('.status-tag--archived')?.textContent?.trim()).toBe(
+        'Archiviert',
+      );
       expect(activeCard?.classList.contains('archived')).toBeFalse();
       expect(activeCard?.querySelector('.status-tag--archived')).toBeNull();
     });
@@ -234,13 +296,15 @@ describe('US-074: Projektübersicht — Sidebar-Icons/Nutzerkarte, Toolbar (Tabs
       configure(true);
       const fixture = TestBed.createComponent(ProjectOverviewComponent);
       fixture.detectChanges();
-      const allTab: HTMLButtonElement = Array.from<HTMLButtonElement>(fixture.nativeElement.querySelectorAll('.tab-pill')).find(
-        (button) => button.textContent?.includes('Alle Projekte'),
-      )!;
+      const allTab: HTMLButtonElement = Array.from<HTMLButtonElement>(
+        fixture.nativeElement.querySelectorAll('.tab-pill'),
+      ).find((button) => button.textContent?.includes('Alle Projekte'))!;
       allTab.click();
       fixture.detectChanges();
 
-      const cards: HTMLElement[] = Array.from(fixture.nativeElement.querySelectorAll('.project-card'));
+      const cards: HTMLElement[] = Array.from(
+        fixture.nativeElement.querySelectorAll('.project-card'),
+      );
       expect(cards.length).toBe(allProjects.length);
 
       const activeAdminCard = cards.find((card) => card.textContent?.includes('Berta-Projekt'));
@@ -248,7 +312,9 @@ describe('US-074: Projektübersicht — Sidebar-Icons/Nutzerkarte, Toolbar (Tabs
       expect(activeAdminCard?.textContent).toContain('Mitglieder: 4');
       expect(activeAdminCard?.querySelector('.status-tag')?.textContent?.trim()).toBe('Aktiv');
       expect(archivedAdminCard?.textContent).toContain('Mitglieder: 1');
-      expect(archivedAdminCard?.querySelector('.status-tag--archived')?.textContent?.trim()).toBe('Archiviert');
+      expect(archivedAdminCard?.querySelector('.status-tag--archived')?.textContent?.trim()).toBe(
+        'Archiviert',
+      );
     });
   });
 });
