@@ -7,6 +7,7 @@ import { ProjectOverviewItem, ProjectsService } from '../../projects/projects.se
 import { TokenStorageService } from '../../auth/token-storage.service';
 import { httpErrorInterceptor } from '../../../core/interceptors/http-error.interceptor';
 import { LOAD_ERROR_MESSAGE } from '../../../core/messages/http-error-messages';
+import { CurrentProjectContextService } from '../../../core/services/current-project-context.service';
 import { ProjectWorkspaceLayoutComponent } from './project-workspace-layout.component';
 
 describe('ProjectWorkspaceLayoutComponent', () => {
@@ -39,44 +40,52 @@ describe('ProjectWorkspaceLayoutComponent', () => {
     expect(fixture.componentInstance['project']?.role).toBe('PL');
   });
 
-  it('should show the map tab for PL/Coreteam/Architect but hide it for User (Akzeptanzkriterium 3)', () => {
-    configure({ id: 'project-1', name: 'Projekt', role: 'User', stakeholderCount: 0 });
+  // US-075: die vormals hier getesteten `showMapTab`/`showDistributionTab`-Getter sind mit der
+  // horizontalen Tab-Leiste entfallen — dieselbe Rollenregel wird jetzt von `AppNavigationComponent`
+  // für die Sidebar-Unterpunkte ausgewertet (siehe `us-075-projekt-kontext-sidebar-unterpunkte.spec.ts`).
+  // Diese Komponente ist stattdessen die einzige Quelle für den geteilten Projekt-Kontext-Zustand.
+  it('publishes the loaded project into CurrentProjectContextService for the sidebar to read (US-075)', () => {
+    configure({ id: 'project-1', name: 'Projekt Phoenix', role: 'PL', stakeholderCount: 2 });
     const fixture = TestBed.createComponent(ProjectWorkspaceLayoutComponent);
     fixture.detectChanges();
 
-    expect(fixture.componentInstance['showMapTab']).toBeFalse();
+    const context = TestBed.inject(CurrentProjectContextService);
+    expect(context.project()?.name).toBe('Projekt Phoenix');
+    expect(context.project()?.role).toBe('PL');
   });
 
-  it('should show the map tab for a non-User role', () => {
-    configure({ id: 'project-1', name: 'Projekt', role: 'Architect', stakeholderCount: 0 });
+  it('clears CurrentProjectContextService when the component is destroyed (US-075)', () => {
+    configure({ id: 'project-1', name: 'Projekt Phoenix', role: 'PL', stakeholderCount: 2 });
     const fixture = TestBed.createComponent(ProjectWorkspaceLayoutComponent);
     fixture.detectChanges();
 
-    expect(fixture.componentInstance['showMapTab']).toBeTrue();
+    const context = TestBed.inject(CurrentProjectContextService);
+    expect(context.project()).not.toBeNull();
+
+    fixture.destroy();
+
+    expect(context.project()).toBeNull();
   });
 
-  it('should show the distribution tab only for PL/Coreteam (Akzeptanzkriterium 4)', () => {
-    configure({ id: 'project-1', name: 'Projekt', role: 'PL', stakeholderCount: 0 });
+  it('clears CurrentProjectContextService when the project fails to load (US-075)', () => {
+    projectsServiceSpy = jasmine.createSpyObj('ProjectsService', ['getProject']);
+    projectsServiceSpy.getProject.and.returnValue(throwError(() => new HttpErrorResponse({ status: 500 })));
+
+    TestBed.configureTestingModule({
+      imports: [ProjectWorkspaceLayoutComponent],
+      providers: [
+        provideRouter([]),
+        { provide: ProjectsService, useValue: projectsServiceSpy },
+        { provide: ActivatedRoute, useValue: { snapshot: { paramMap: convertToParamMap({ id: 'project-1' }) } } },
+      ],
+    });
+    const context = TestBed.inject(CurrentProjectContextService);
+    context.setProject({ id: 'stale-project', name: 'Veraltet', role: 'PL', stakeholderCount: 0 });
+
     const fixture = TestBed.createComponent(ProjectWorkspaceLayoutComponent);
     fixture.detectChanges();
 
-    expect(fixture.componentInstance['showDistributionTab']).toBeTrue();
-  });
-
-  it('should hide the distribution tab for Architect', () => {
-    configure({ id: 'project-1', name: 'Projekt', role: 'Architect', stakeholderCount: 0 });
-    const fixture = TestBed.createComponent(ProjectWorkspaceLayoutComponent);
-    fixture.detectChanges();
-
-    expect(fixture.componentInstance['showDistributionTab']).toBeFalse();
-  });
-
-  it('should hide the distribution tab for User', () => {
-    configure({ id: 'project-1', name: 'Projekt', role: 'User', stakeholderCount: 0 });
-    const fixture = TestBed.createComponent(ProjectWorkspaceLayoutComponent);
-    fixture.detectChanges();
-
-    expect(fixture.componentInstance['showDistributionTab']).toBeFalse();
+    expect(context.project()).toBeNull();
   });
 
   it('should show a consistent load-error message when the project fails to load (US-044 Akzeptanzkriterium 4)', () => {
