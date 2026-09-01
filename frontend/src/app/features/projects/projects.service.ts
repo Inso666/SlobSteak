@@ -2,11 +2,24 @@ import { Injectable, inject } from '@angular/core';
 import { HttpClient } from '@angular/common/http';
 import { Observable } from 'rxjs';
 
+/** US-074: `status`/`createdAt` additiv ergänzt — spiegeln `ProjectOverviewResponse` im Backend
+ * 1:1 (CLAUDE.md/`.claude/agents/frontend.md` Abschnitt 3: DTO-Typen bilden den Response-Contract
+ * ab). `status` steuert die „Archiviert"-Kennzeichnung der Projektkarten, `createdAt` das
+ * clientseitige Sortierkriterium „Neu zuerst" — beide ausschließlich auf der Projektübersicht
+ * ausgewertet (`ProjectOverviewComponent`). Bewusst optional statt Pflichtfeld: `ProjectOverviewItem`
+ * wird auch von `ProjectsService.getProject()` für den Projekt-Workspace (US-019) sowie von
+ * Rollen-Guards/zahlreichen bestehenden Story-Tests außerhalb dieser Story verwendet, die beide
+ * Felder nicht kennen — ein Pflichtfeld hätte deren Test-Fixtures ohne fachlichen Mehrwert für die
+ * jeweilige Story angefasst (CLAUDE.md Abschnitt 3: „nur an aktueller Story arbeiten"). Die reale
+ * Backend-Response liefert beide Felder immer; nur Test-Stubs außerhalb dieser Story dürfen sie
+ * auslassen. */
 export interface ProjectOverviewItem {
   id: string;
   name: string;
   role: string;
   stakeholderCount: number;
+  status?: string;
+  createdAt?: string;
 }
 
 /**

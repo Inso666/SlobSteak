@@ -11,19 +11,38 @@
       <ul class="app-navigation__links">
         @for (link of navLinks; track link.route) {
           <li>
-            <a [routerLink]="link.route" routerLinkActive="active" (click)="drawerOpen.set(false)">{{ link.label }}</a>
+            <a [routerLink]="link.route" routerLinkActive="active" (click)="drawerOpen.set(false)">
+              <i class="pi {{ link.icon }}" aria-hidden="true"></i>
+              <span>{{ link.label }}</span>
+            </a>
           </li>
         }
         @if (isAdmin()) {
           <li>
-            <a [routerLink]="adminLink.route" routerLinkActive="active" (click)="drawerOpen.set(false)">{{ adminLink.label }}</a>
+            <a [routerLink]="adminLink.route" routerLinkActive="active" (click)="drawerOpen.set(false)">
+              <i class="pi {{ adminLink.icon }}" aria-hidden="true"></i>
+              <span>{{ adminLink.label }}</span>
+            </a>
           </li>
         }
       </ul>
     </nav>
 
+    <!-- US-074 Akzeptanzkriterium „Sidebar": Nutzerkarte (Avatar-Initialen + angemeldeter Name)
+         unterhalb der Navigationslinks, über „Abmelden" — Daten aus der bereits vorhandenen
+         Session (`TokenStorageService.getClaims()?.name`), kein neuer Backend-Request (siehe
+         Anmerkungen des Agenten in der Story-Datei zur zugrundeliegenden JWT-Erweiterung). Bleibt
+         leer, solange kein Name im Token steckt, statt eine bedeutungslose Initiale zu zeigen. -->
+    <div class="app-navigation__user-card">
+      @if (currentUserName(); as userName) {
+        <span class="app-navigation__avatar" aria-hidden="true">{{ userInitials }}</span>
+        <span class="app-navigation__user-name">{{ userName }}</span>
+      }
+    </div>
+
     <button type="button" class="app-navigation__logout" (click)="onLogout()">
-      {{ logoutLabel }}
+      <i class="pi pi-sign-out" aria-hidden="true"></i>
+      <span>{{ logoutLabel }}</span>
     </button>
   </ng-template>
 

@@ -58,6 +58,12 @@ export class AppNavigationComponent {
   protected readonly logoutLabel = APP_NAV_LOGOUT_LABEL;
   protected readonly isVisible = signal(this.computeVisibility());
   protected readonly isAdmin = signal(this.computeIsAdmin());
+  /** US-074 Akzeptanzkriterium „Sidebar": Anzeigename für die Nutzerkarte, aus dem bereits
+   * vorhandenen Session-Token (siehe `TokenStorageService.getClaims()` / `IJwtTokenGenerator`) —
+   * kein neuer Backend-Request. `null`, solange kein Name im Token steckt (z. B. eine vor diesem
+   * Release ausgestellte Session) — die Nutzerkarte bleibt dann bewusst leer statt eine
+   * bedeutungslose Initiale/einen leeren Namen anzuzeigen. */
+  protected readonly currentUserName = signal(this.computeUserName());
 
   /** US-055 Akzeptanzkriterium 3 / SPEC-02 §1.4 „Variante A": `BreakpointObserver` statt
    * PrimeFlex-Default-Breakpoints, exakte Custom-Query {@link MOBILE_NAV_QUERY}. */
@@ -74,6 +80,7 @@ export class AppNavigationComponent {
       .subscribe(() => {
         this.isVisible.set(this.computeVisibility());
         this.isAdmin.set(this.computeIsAdmin());
+        this.currentUserName.set(this.computeUserName());
         // Ein Klick auf einen Navigationslink navigiert bereits — der mobile Drawer soll sich
         // danach nicht länger über dem neuen Inhalt befinden.
         this.drawerOpen.set(false);
@@ -102,7 +109,23 @@ export class AppNavigationComponent {
     this.tokenStorage.clearToken();
     this.isVisible.set(false);
     this.isAdmin.set(false);
+    this.currentUserName.set(null);
     void this.router.navigate([LOGIN_ROUTE]);
+  }
+
+  /** US-074 Akzeptanzkriterium „Sidebar": Initialen für den Avatar-Kreis, aus bis zu zwei
+   * Namensteilen (erstem und letztem) — z. B. „Petra Ziegler" → „PZ". Leerer String, solange kein
+   * Name vorliegt (Template blendet die Nutzerkarte in diesem Fall vollständig aus). */
+  protected get userInitials(): string {
+    const name = this.currentUserName();
+    if (!name) {
+      return '';
+    }
+
+    const parts = name.trim().split(/\s+/);
+    const first = parts[0]?.charAt(0) ?? '';
+    const last = parts.length > 1 ? (parts[parts.length - 1]?.charAt(0) ?? '') : '';
+    return (first + last).toUpperCase();
   }
 
   private computeVisibility(): boolean {
@@ -111,6 +134,10 @@ export class AppNavigationComponent {
 
   private computeIsAdmin(): boolean {
     return this.tokenStorage.getClaims()?.isSystemAdmin === true;
+  }
+
+  private computeUserName(): string | null {
+    return this.tokenStorage.getClaims()?.name ?? null;
   }
 
   private hasToken(): boolean {

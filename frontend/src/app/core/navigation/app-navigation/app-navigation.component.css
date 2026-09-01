@@ -46,12 +46,22 @@
 }
 
 .app-navigation__links a {
-  display: block;
+  display: flex;
+  align-items: center;
+  gap: var(--app-space-sm);
   padding: var(--app-space-sm);
   border-radius: var(--app-radius-md);
   text-decoration: none;
   color: var(--app-color-text-muted);
   font-size: var(--app-font-size-body);
+}
+
+/* US-074 Akzeptanzkriterium „Sidebar": einheitliche Icon-Breite je Nav-Eintrag, damit die Labels
+   trotz unterschiedlich breiter PrimeIcons-Glyphen bündig untereinanderstehen. */
+.app-navigation__links a i {
+  width: 1rem;
+  text-align: center;
+  flex-shrink: 0;
 }
 
 .app-navigation__links a:hover {
@@ -64,8 +74,48 @@
   font-weight: 600;
 }
 
-.app-navigation__logout {
+/* US-074 Akzeptanzkriterium „Sidebar": Nutzerkarte sitzt unterhalb der Navigationslinks, direkt
+   über „Abmelden" — `margin-top: auto` schiebt sie (und den nachfolgenden Logout-Eintrag) an das
+   untere Ende der Sidebar, während die Navigationslinks oben verbleiben. Bleibt der Karteninhalt
+   leer (kein Name im Token, siehe Template), nimmt der leere Container dieselbe Position ein, ohne
+   sichtbaren Inhalt zu zeigen. */
+.app-navigation__user-card {
+  display: flex;
+  align-items: center;
+  gap: var(--app-space-sm);
   margin-top: auto;
+  margin-bottom: var(--app-space-sm);
+  padding: var(--app-space-sm);
+  border-top: 1px solid var(--app-color-border);
+}
+
+.app-navigation__avatar {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 2rem;
+  height: 2rem;
+  flex-shrink: 0;
+  border-radius: var(--app-radius-full);
+  background: var(--app-color-surface-hover);
+  color: var(--app-color-text);
+  font-family: var(--app-font-family-mono);
+  font-size: var(--app-font-size-meta);
+  font-weight: 600;
+}
+
+.app-navigation__user-name {
+  overflow: hidden;
+  color: var(--app-color-text);
+  font-size: var(--app-font-size-body);
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.app-navigation__logout {
+  display: flex;
+  align-items: center;
+  gap: var(--app-space-sm);
   padding: var(--app-space-xs) var(--app-space-md);
   border: 1px solid var(--app-color-border);
   border-radius: var(--app-radius-md);
