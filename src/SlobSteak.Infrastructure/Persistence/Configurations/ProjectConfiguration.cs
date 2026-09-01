@@ -24,5 +24,8 @@ public sealed class ProjectConfiguration : IEntityTypeConfiguration<Project>
 
         builder.Property(p => p.CreatedAt)
             .IsRequired();
+
+        builder.Property(p => p.UpdatedAt)
+            .IsRequired();
     }
 }
