@@ -1,26 +1,38 @@
-/* US-047 Akzeptanzkriterium 4: Kartenlayout statt roher <table> — alle Spalteninhalte
-   (Name/Typ/Organisation/Position/Kontakt) und Aktionen (Bearbeiten/Löschen/Wiederherstellen)
-   bleiben erhalten, nur die Darstellung ändert sich. Ausschließlich zentrale Tokens
-   (`frontend/src/styles.css`), keine hartcodierten Hex-/px-Werte. */
+/* US-072 (Issue #100): Tabellen-Umbau statt Karten-Raster, analog zum bereits etablierten
+   `.dl-table`-Muster aus `distribution-list-page.component.css` (US-042). Ausschließlich zentrale
+   Tokens (`frontend/src/styles.css`), keine hartcodierten Hex-/px-Werte. */
 .stakeholder-list {
   padding: var(--app-space-md) 0;
+  display: flex;
+  flex-direction: column;
+  gap: var(--app-space-md);
 }
 
-.filters {
+.sh-toolbar {
   display: flex;
-  gap: var(--app-space-lg);
   align-items: flex-end;
-  margin-bottom: var(--app-space-md);
+  gap: var(--app-space-lg);
   flex-wrap: wrap;
 }
 
-.filters .field {
+.sh-toolbar__spacer {
+  flex: 1;
+}
+
+.sh-filters {
+  display: flex;
+  gap: var(--app-space-lg);
+  align-items: flex-end;
+  flex-wrap: wrap;
+}
+
+.sh-filters .field {
   display: flex;
   flex-direction: column;
   gap: var(--app-space-xs);
 }
 
-.filters label {
+.sh-filters label {
   font-size: var(--app-font-size-body);
   color: var(--app-color-text-muted);
 }
@@ -29,90 +41,163 @@
   display: flex;
   align-items: center;
   gap: var(--app-space-sm);
-  margin-bottom: var(--app-space-md);
+  font-size: var(--app-font-size-body);
+  color: var(--app-color-text-muted);
 }
 
-.stakeholder-cards {
-  display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(18rem, 1fr));
-  gap: var(--app-space-lg);
-  margin-bottom: var(--app-space-md);
-}
-
-.stakeholder-card {
-  display: flex;
-  flex-direction: column;
-  gap: var(--app-space-sm);
-  padding: var(--app-space-lg);
-  background: var(--app-color-surface);
+.sh-table-wrapper {
+  overflow-x: auto;
   border: 1px solid var(--app-color-border);
   border-radius: var(--app-radius-md);
 }
 
-.stakeholder-card.deleted {
-  color: var(--app-color-text-muted);
-  background: var(--app-color-surface-hover);
-}
-
-.stakeholder-card__head {
-  display: flex;
-  align-items: baseline;
-  justify-content: space-between;
-  gap: var(--app-space-sm);
-}
-
-.stakeholder-card__name {
-  font-family: var(--app-font-family-display);
-  font-size: var(--app-font-size-card-title);
-  font-weight: 600;
-  color: var(--app-color-text);
-  text-decoration: none;
-}
-
-a.stakeholder-card__name:hover {
-  text-decoration: underline;
-}
-
-.stakeholder-card__type {
-  font-size: var(--app-font-size-meta);
-  font-family: var(--app-font-family-mono);
-  color: var(--app-color-text-muted);
-  text-transform: uppercase;
-  letter-spacing: 0.08em;
-}
-
-.stakeholder-card__data {
-  display: grid;
-  grid-template-columns: auto 1fr;
-  column-gap: var(--app-space-sm);
-  row-gap: var(--app-space-xs);
-  margin: 0;
+.sh-table {
+  width: 100%;
+  border-collapse: collapse;
   font-size: var(--app-font-size-body);
 }
 
-.stakeholder-card__data dt {
+.sh-table th,
+.sh-table td {
+  padding: var(--app-space-sm) var(--app-space-md);
+  text-align: left;
+  border-bottom: 1px solid var(--app-color-border);
+}
+
+.sh-table th {
   color: var(--app-color-text-muted);
+  font-weight: 600;
+  font-size: var(--app-font-size-meta);
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
 }
 
-.stakeholder-card__data dd {
-  margin: 0;
-  color: var(--app-color-text);
+.sh-table tbody tr:last-child td {
+  border-bottom: none;
 }
 
-.stakeholder-card__footer {
+.sh-row {
+  cursor: pointer;
+}
+
+.sh-row:hover td,
+.sh-row:focus-visible td {
+  background: var(--app-color-surface-hover);
+}
+
+.sh-name-cell {
   display: flex;
   align-items: center;
   gap: var(--app-space-sm);
-  margin-top: var(--app-space-xs);
+  font-weight: 600;
+  color: var(--app-color-text);
+}
+
+.sh-type-icon {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 1.6rem;
+  height: 1.6rem;
+  flex: 0 0 1.6rem;
+  border-radius: var(--app-radius-sm);
+  background: var(--app-color-surface-hover);
+  border: 1px solid var(--app-color-border);
+  color: var(--app-color-text-faint);
+  font-size: var(--app-font-size-meta);
+}
+
+.sh-org-cell {
+  color: var(--app-color-text-muted);
+}
+
+.sh-chips {
+  display: flex;
+  gap: var(--app-space-xs);
   flex-wrap: wrap;
 }
 
-.deleted-badge {
+.sh-chip {
+  display: inline-flex;
+  align-items: center;
+  padding: 0.15rem var(--app-space-sm);
+  border-radius: var(--app-radius-full);
+  background: var(--app-color-surface-hover);
+  color: var(--app-color-text-muted);
+  border: 1px solid var(--app-color-border);
   font-size: var(--app-font-size-meta);
-  font-style: italic;
+  font-weight: 600;
+}
+
+.sh-assess-cell {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: var(--app-space-xs);
+}
+
+.sh-assess-cell__values {
+  font-family: var(--app-font-family-mono);
+  font-size: var(--app-font-size-body);
+  color: var(--app-color-text);
+}
+
+.sh-none {
+  color: var(--app-color-text-faint);
+  font-family: var(--app-font-family-mono);
+  font-size: var(--app-font-size-meta);
+}
+
+.sh-meta {
+  color: var(--app-color-text-faint);
+  font-family: var(--app-font-family-mono);
+  font-size: var(--app-font-size-meta);
+  white-space: nowrap;
+}
+
+.sh-empty-row {
+  color: var(--app-color-text-muted);
+  text-align: center;
+}
+
+.sh-row-count {
+  margin: 0;
+  padding: var(--app-space-sm) var(--app-space-md);
+  font-size: var(--app-font-size-meta);
+  color: var(--app-color-text-faint);
+}
+
+/* US-072 Akzeptanzkriterium 4: Papierkorb erscheint zusätzlich unterhalb der aktiven Liste
+   (gestrichelt umrandet), beide gleichzeitig sichtbar statt sich gegenseitig zu ersetzen. */
+.sh-trash-section {
+  display: flex;
+  flex-direction: column;
+  gap: var(--app-space-sm);
+}
+
+.sh-trash-title {
+  display: flex;
+  align-items: center;
+  gap: var(--app-space-sm);
+  font-size: var(--app-font-size-body);
+  font-weight: 600;
   color: var(--app-color-text-muted);
 }
 
-.empty-state {
-  color: var(--app-color-text-muted);
+.sh-trash-panel {
+  border: 1px dashed var(--app-color-border);
+  border-radius: var(--app-radius-md);
+  overflow: hidden;
+}
+
+.sh-trash-panel .sh-table tbody tr {
+  opacity: 0.7;
+}
+
+.sh-trash-name {
+  width: 40%;
+}
+
+.sh-trash-actions {
+  text-align: right;
 }

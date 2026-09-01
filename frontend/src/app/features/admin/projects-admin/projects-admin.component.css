@@ -1,5 +1,5 @@
-/* US-047 Akzeptanzkriterium 4: Kartenlayout statt roher <table> für die Projektliste. Ausschließlich
-   zentrale Tokens, keine hartcodierten Hex-/px-Werte. */
+/* US-072 (Issue #100): Tabellen-Umbau statt Karten-Raster, analog zum etablierten `.sh-table`-/
+   `.au-table`-Muster. Ausschließlich zentrale Tokens, keine hartcodierten Hex-/px-Werte. */
 .admin-projects {
   padding: var(--app-space-md) 0;
 }
@@ -12,58 +12,57 @@
   margin-bottom: var(--app-space-md);
 }
 
-.project-cards {
-  display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(18rem, 1fr));
-  gap: var(--app-space-lg);
-  margin-bottom: var(--app-space-md);
-}
-
-.project-card {
-  display: flex;
-  flex-direction: column;
-  gap: var(--app-space-sm);
-  padding: var(--app-space-lg);
-  background: var(--app-color-surface);
+.ap-table-wrapper {
+  overflow-x: auto;
   border: 1px solid var(--app-color-border);
   border-radius: var(--app-radius-md);
 }
 
-.project-card__head {
-  display: flex;
-  align-items: baseline;
-  justify-content: space-between;
-  gap: var(--app-space-sm);
+.ap-table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: var(--app-font-size-body);
 }
 
-.project-card__name {
-  font-family: var(--app-font-family-display);
-  font-size: var(--app-font-size-card-title);
+.ap-table th,
+.ap-table td {
+  padding: var(--app-space-sm) var(--app-space-md);
+  text-align: left;
+  border-bottom: 1px solid var(--app-color-border);
+}
+
+.ap-table th {
+  color: var(--app-color-text-muted);
+  font-weight: 600;
+  font-size: var(--app-font-size-meta);
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+}
+
+.ap-table tbody tr:last-child td {
+  border-bottom: none;
+}
+
+.ap-row:hover td {
+  background: var(--app-color-surface-hover);
+}
+
+.ap-name-cell {
   font-weight: 600;
   color: var(--app-color-text);
 }
 
-.project-card__data {
-  display: grid;
-  grid-template-columns: auto 1fr;
-  column-gap: var(--app-space-sm);
-  margin: 0;
-  font-size: var(--app-font-size-body);
-}
-
-.project-card__data dt {
+.ap-meta {
   color: var(--app-color-text-muted);
 }
 
-.project-card__data dd {
-  margin: 0;
-  color: var(--app-color-text);
+.ap-actions {
+  text-align: right;
 }
 
-.project-card__footer {
-  display: flex;
-  gap: var(--app-space-sm);
-  margin-top: var(--app-space-xs);
+.ap-membership-row td {
+  background: var(--app-color-surface-hover);
+  padding: var(--app-space-md);
 }
 
 .field {

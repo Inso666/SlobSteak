@@ -120,7 +120,7 @@ describe('US-050: Verlässlicher Lade-Zustand statt fälschlicher Leer-/Stale-Da
     // nur der reguläre Change-Detection-Zyklus, den Zone.js in Produktion automatisch auslöst.
     fixture.detectChanges();
 
-    expect(fixture.nativeElement.querySelectorAll('.user-card').length).toBe(1);
+    expect(fixture.nativeElement.querySelectorAll('.au-row').length).toBe(1);
     expect(fixture.nativeElement.textContent).toContain('Max Mustermann');
     http.verify();
   });
@@ -166,7 +166,7 @@ describe('US-050: Verlässlicher Lade-Zustand statt fälschlicher Leer-/Stale-Da
 
     // Bewusst keinerlei Eingabe in `createForm` — die Liste muss unabhängig davon gefüllt sein.
     expect(fixture.componentInstance['createForm'].pristine).toBeTrue();
-    expect(fixture.nativeElement.querySelectorAll('.user-card').length).toBe(1);
+    expect(fixture.nativeElement.querySelectorAll('.au-row').length).toBe(1);
     http.verify();
   });
 
@@ -183,7 +183,7 @@ describe('US-050: Verlässlicher Lade-Zustand statt fälschlicher Leer-/Stale-Da
     fixture.detectChanges();
 
     expect(fixture.componentInstance['createForm'].pristine).toBeTrue();
-    expect(fixture.nativeElement.querySelectorAll('.project-card').length).toBe(1);
+    expect(fixture.nativeElement.querySelectorAll('.ap-row').length).toBe(1);
     http.verify();
   });
 

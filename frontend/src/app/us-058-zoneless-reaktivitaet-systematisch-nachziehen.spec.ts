@@ -285,6 +285,9 @@ describe('US-058: Zoneless-Reaktivität systematisch nachziehen', () => {
       fixture.detectChanges();
       http.expectOne('/api/v1/projects/project-1/stakeholders').flush([]);
       http.expectOne('/api/v1/projects/project-1').flush({ id: 'project-1', name: 'Projekt', role: 'PL', stakeholderCount: 0 });
+      // US-072: Rolle `PL` trägt eine eigene Perspektive — die Komponente lädt „Meine Bewertung“
+      // zusätzlich client-seitig über die Map-Query-API (US-031) nach.
+      http.expectOne('/api/v1/projects/project-1/map?perspective=PL').flush([]);
       fixture.detectChanges();
 
       expect(fixture.componentInstance['showDeletedToggle']).toBeTrue();
@@ -296,6 +299,7 @@ describe('US-058: Zoneless-Reaktivität systematisch nachziehen', () => {
       fixture.detectChanges();
       http.expectOne('/api/v1/projects/project-1/stakeholders').flush([stakeholder]);
       http.expectOne('/api/v1/projects/project-1').flush({ id: 'project-1', name: 'Projekt', role: 'PL', stakeholderCount: 1 });
+      http.expectOne('/api/v1/projects/project-1/map?perspective=PL').flush([]);
       fixture.detectChanges();
       const component = fixture.componentInstance;
       component['onToggleDeleted'](true);
@@ -305,11 +309,18 @@ describe('US-058: Zoneless-Reaktivität systematisch nachziehen', () => {
       component['onRestore'](stakeholder);
       http.expectOne('/api/v1/stakeholders/stakeholder-1/restore').flush(null);
       http.expectOne('/api/v1/projects/project-1/stakeholders?deleted=true').flush([]);
+      // US-072: Restore lädt zusätzlich die (weiterhin sichtbare) aktive Liste neu — beide
+      // Listen koexistieren, statt sich gegenseitig zu ersetzen (Akzeptanzkriterium 4).
+      http.expectOne('/api/v1/projects/project-1/stakeholders').flush([]);
+      // US-072: Restore lädt außerdem „Meine Bewertung“ neu — die Map-Query-API liefert nur
+      // aktive Stakeholder, ein wiederhergestellter Stakeholder fehlte sonst fälschlich weiterhin
+      // in `assessmentByStakeholderId` (im manuellen Smoke-Test dieser Story beobachtet).
+      http.expectOne('/api/v1/projects/project-1/map?perspective=PL').flush([]);
       fixture.detectChanges();
 
       expect(component['restoringStakeholderIds'].size).toBe(0);
-      expect(component['stakeholders']).toEqual([]);
-      expect(fixture.nativeElement.querySelector('.empty-state')?.textContent).toContain('Keine gelöschten Stakeholder gefunden.');
+      expect(component['deletedStakeholders']).toEqual([]);
+      expect(fixture.nativeElement.querySelector('.sh-trash-section .sh-empty-row')?.textContent).toContain('Papierkorb ist leer.');
     });
 
     it('listStakeholders-Fehlerfall: die konsistente Fehlermeldung erscheint ohne weitere Interaktion', () => {

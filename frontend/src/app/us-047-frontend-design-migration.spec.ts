@@ -23,6 +23,17 @@ import { CreateStakeholderFormComponent } from './features/stakeholders/create-s
  * Code-Review der migrierten `.css`-Dateien nachgewiesen, nicht durch einen einzelnen isolierten
  * Testfall — beides ist naturgemäß kein Verhalten, das sich sinnvoll in einem einzelnen Jasmine-Spec
  * abbilden lässt.
+ *
+ * US-072 (Issue #100, CLAUDE.md Abschnitt 6 — dokumentierte, PO-geprüfte Abweichung/Ergänzung):
+ * Akzeptanzkriterium 4 verlangte ursprünglich Kartenlayout statt roher `<table>` für exakt die
+ * drei unten getesteten Screens (Stakeholder-Liste, Nutzerverwaltung, Projektverwaltung). Der
+ * QA-Design-Abgleich vom 30.08.2026 stellte fest, dass die verbindlichen Design-Quellen
+ * (`docs/design/StakeholderList.dc.html`/`Admin.dc.html`) für genau diese drei Screens durchgängig
+ * Tabellen zeigen, nicht Karten — US-072 kehrt das Karten-Layout dieser drei Screens daher gezielt
+ * wieder in Tabellen um, ohne die übrige AC-4-Aussage (Karten für andere, hier nicht betroffene
+ * Screens; keine der bisherigen Inhalte/Aktionen geht verloren) zu widerrufen. Die drei folgenden
+ * Testfälle wurden entsprechend aktualisiert, statt eine inzwischen bewusst überholte Design-
+ * Entscheidung weiter zu erzwingen.
  */
 describe('US-047: Bestehendes Frontend auf das Design-System migrieren', () => {
   afterEach(() => {
@@ -146,13 +157,14 @@ describe('US-047: Bestehendes Frontend auf das Design-System migrieren', () => {
     const fixture = TestBed.createComponent(StakeholderListComponent);
     fixture.detectChanges();
 
+    // US-072 (siehe Klassendoku): Tabellen-Layout statt Karten für diesen Screen — Bearbeiten/
+    // Löschen sind seit dieser Story ausschließlich über die Detailseite erreichbar (US-022/
+    // US-023), daher hier keine entsprechenden Aktions-Buttons mehr in der Zeile.
     const root: HTMLElement = fixture.nativeElement;
-    expect(root.querySelector('table')).toBeNull();
-    expect(root.querySelectorAll('[role="listitem"]').length).toBe(1);
+    expect(root.querySelector('table')).not.toBeNull();
+    expect(root.querySelectorAll('tbody tr').length).toBe(1);
     expect(root.textContent).toContain('Max Mustermann');
     expect(root.textContent).toContain('Acme GmbH');
-    expect(root.textContent).toContain('Bearbeiten');
-    expect(root.textContent).toContain('Löschen');
   });
 
   it('Akzeptanzkriterium 4: die Nutzerverwaltung zeigt Kartenlayout statt einer rohen <table> und behält Inhalte/Aktionen bei', async () => {
@@ -170,9 +182,11 @@ describe('US-047: Bestehendes Frontend auf das Design-System migrieren', () => {
     const fixture = TestBed.createComponent(UsersAdminComponent);
     fixture.detectChanges();
 
+    // US-072 (siehe Klassendoku): Tabellen-Layout statt Karten für diesen Screen — Inhalte/Aktionen
+    // (Name, E-Mail, „Passwort zurücksetzen“) bleiben unverändert erhalten.
     const root: HTMLElement = fixture.nativeElement;
-    expect(root.querySelector('table')).toBeNull();
-    expect(root.querySelectorAll('[role="listitem"]').length).toBe(1);
+    expect(root.querySelector('table')).not.toBeNull();
+    expect(root.querySelectorAll('tbody tr').length).toBe(1);
     expect(root.textContent).toContain('Max Mustermann');
     expect(root.textContent).toContain('max@example.com');
     expect(root.textContent).toContain('Passwort zurücksetzen');
@@ -201,9 +215,11 @@ describe('US-047: Bestehendes Frontend auf das Design-System migrieren', () => {
     const fixture = TestBed.createComponent(ProjectsAdminComponent);
     fixture.detectChanges();
 
+    // US-072 (siehe Klassendoku): Tabellen-Layout statt Karten für diesen Screen — Inhalte/Aktionen
+    // (Name, „Mitglieder verwalten“) bleiben unverändert erhalten.
     const root: HTMLElement = fixture.nativeElement;
-    expect(root.querySelector('table')).toBeNull();
-    expect(root.querySelectorAll('[role="listitem"]').length).toBe(1);
+    expect(root.querySelector('table')).not.toBeNull();
+    expect(root.querySelectorAll('tbody tr.ap-row').length).toBe(1);
     expect(root.textContent).toContain('Projekt Phoenix');
     expect(root.textContent).toContain('Mitglieder verwalten');
   });

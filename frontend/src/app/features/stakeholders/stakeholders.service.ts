@@ -25,6 +25,14 @@ export interface Stakeholder {
   /** Nur in der Papierkorb-Ansicht gesetzt (US-024 Akzeptanzkriterium 1), sonst `null`. */
   deletedAt: string | null;
   deletedByName: string | null;
+  /** US-072, additiv: Namen der zugeordneten Kommunikationsarten — serverseitig nur befüllt für
+   * die Listen-Antwort (`GET .../stakeholders`) und ausschließlich für die Rollen `PL`/
+   * `Coreteam`/`Architect` (Sichtbarkeitsgrenze aus US-040); für Rolle `User` sowie in jeder
+   * anderen Antwort (Anlegen/Bearbeiten/Papierkorb) stets ein leeres Array. Optional (statt eines
+   * strikt erforderlichen Felds) typisiert, damit die zahlreichen bestehenden Test-Fixtures dieses
+   * additive Feld nicht nachträglich überall ergänzen müssen — der reale Wire-Contract liefert es
+   * dennoch immer (nie `undefined`), Konsumenten behandeln ein Fehlen defensiv als leeres Array. */
+  communicationTypeNames?: string[];
 }
 
 export interface StakeholderDetailsPayload {

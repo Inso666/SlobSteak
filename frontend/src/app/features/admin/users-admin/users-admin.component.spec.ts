@@ -132,16 +132,16 @@ describe('UsersAdminComponent', () => {
 
       expect(fixture.componentInstance['usersState']).toBe('loading');
       expect(fixture.nativeElement.querySelector('.empty-state')).toBeNull();
-      expect(fixture.nativeElement.querySelectorAll('.user-card').length).toBe(0);
+      expect(fixture.nativeElement.querySelectorAll('.au-row').length).toBe(0);
 
       const httpTestingController = TestBed.inject(HttpTestingController);
       httpTestingController.expectOne('/api/v1/admin/users').flush(existingUsers);
       fixture.detectChanges();
 
       expect(fixture.componentInstance['usersState']).toBe('content');
-      const cards: NodeListOf<HTMLElement> = fixture.nativeElement.querySelectorAll('.user-card');
-      expect(cards.length).toBe(existingUsers.length);
-      expect(cards[0].textContent).toContain(existingUsers[0].name);
+      const rows: NodeListOf<HTMLElement> = fixture.nativeElement.querySelectorAll('.au-row');
+      expect(rows.length).toBe(existingUsers.length);
+      expect(rows[0].textContent).toContain(existingUsers[0].name);
 
       httpTestingController.verify();
     });
