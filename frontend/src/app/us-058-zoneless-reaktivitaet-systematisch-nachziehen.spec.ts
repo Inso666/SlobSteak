@@ -312,6 +312,10 @@ describe('US-058: Zoneless-Reaktivität systematisch nachziehen', () => {
       // US-072: Restore lädt zusätzlich die (weiterhin sichtbare) aktive Liste neu — beide
       // Listen koexistieren, statt sich gegenseitig zu ersetzen (Akzeptanzkriterium 4).
       http.expectOne('/api/v1/projects/project-1/stakeholders').flush([]);
+      // US-072: Restore lädt außerdem „Meine Bewertung“ neu — die Map-Query-API liefert nur
+      // aktive Stakeholder, ein wiederhergestellter Stakeholder fehlte sonst fälschlich weiterhin
+      // in `assessmentByStakeholderId` (im manuellen Smoke-Test dieser Story beobachtet).
+      http.expectOne('/api/v1/projects/project-1/map?perspective=PL').flush([]);
       fixture.detectChanges();
 
       expect(component['restoringStakeholderIds'].size).toBe(0);

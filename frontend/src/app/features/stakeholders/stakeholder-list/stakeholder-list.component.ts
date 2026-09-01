@@ -202,7 +202,13 @@ export class StakeholderListComponent implements OnInit {
 
   /** US-024 Akzeptanzkriterium 4: aktualisiert die Papierkorb-Ansicht ohne vollständigen Reload.
    * US-043 Akzeptanzkriterium 3: ein zweiter Trigger während eines laufenden Requests löst
-   * nachweislich keinen zweiten HTTP-Request aus. */
+   * nachweislich keinen zweiten HTTP-Request aus.
+   *
+   * Lädt zusätzlich {@link loadAssessments} neu (US-072): die Map-Query-API (US-031) liefert nur
+   * aktive Stakeholder — solange dieser Stakeholder gelöscht war, fehlte er in
+   * `assessmentByStakeholderId`; ohne diesen erneuten Ladevorgang zeigte die Spalte „Meine
+   * Bewertung“ nach dem Wiederherstellen fälschlich „– noch nicht bewertet“, obwohl ein
+   * Assessment existiert (im manuellen Smoke-Test dieser Story beobachtet und hier behoben). */
   protected onRestore(stakeholder: Stakeholder): void {
     if (this.restoringStakeholderIds.has(stakeholder.id)) {
       return;
@@ -214,6 +220,7 @@ export class StakeholderListComponent implements OnInit {
         this.restoringStakeholderIds.delete(stakeholder.id);
         this.loadDeletedStakeholders();
         this.loadStakeholders();
+        this.loadAssessments();
         this.changeDetectorRef.markForCheck();
       },
       error: () => {

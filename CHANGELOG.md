@@ -4,6 +4,31 @@ Alle nennenswerten Änderungen an diesem Projekt werden hier je User Story dokum
 
 ## [Unreleased]
 
+### US-072 — Stakeholder-Liste & Admin-Listen als Tabellen mit vollständiger Informationsdichte statt Karten-Raster
+
+- Root Cause (Issue #100, QA-Design-Abgleich-Gesamtaudit vom 30.08.2026): Stakeholder-Liste sowie
+  Admin-Nutzer-/Projektlisten rendern als Karten-Raster mit reduzierter Information statt als
+  Tabellen gemäß `docs/design/StakeholderList.dc.html`/`Admin.dc.html`.
+- Backend: `StakeholderListItem`/`ListStakeholdersService` um additives Feld
+  `CommunicationTypeNames` erweitert, serverseitig nur befüllt für perspektiv-tragende Rollen
+  (`PL`/`Coreteam`/`Architect`, identische Sichtbarkeitsgrenze wie US-040) — für Rolle `User`
+  immer ein leeres Array. `StakeholderResponse` reicht das Feld im `FromListItem`-Zweig durch.
+- Frontend Stakeholder-Liste: Tabellen-Layout mit Spalten Name/Organisation/Kommunikation (Chips)/
+  Meine Bewertung (Einfluss/Interesse der eigenen Rolle, client-seitig über die bestehende
+  Map-Query-API aus US-031 nachgeladen und gejoint, kein neuer Endpoint)/Aktualisiert. Zeilenzahl-
+  Anzeige „N Stakeholder insgesamt · M angezeigt (gefiltert)“. „Gelöschte anzeigen“ blendet den
+  Papierkorb jetzt als paralleles Panel unterhalb der aktiven Liste ein (beide gleichzeitig
+  sichtbar statt sich gegenseitig zu ersetzen). „Stakeholder anlegen“ als Toolbar-Button mit Dialog
+  statt eingebettetem Dauerformular.
+- Frontend Admin: `users-admin`/`projects-admin` von Karten-Raster auf Tabellen umgebaut; bestehende
+  Funktionalität (Anlegen-Dialog, Passwort zurücksetzen, Mitglieder verwalten) unverändert.
+- Im manuellen Smoke-Test gefunden und mitbehoben: nach „Wiederherstellen“ eines Stakeholders zeigte
+  „Meine Bewertung“ fälschlich „– noch nicht bewertet“, da die Map-Query-API nur aktive Stakeholder
+  liefert — `onRestore()` lädt jetzt zusätzlich die Bewertungen neu.
+- Story-Test: `us-072-stakeholder-admin-listen-tabellen.spec.ts` sowie
+  `US072_StakeholderAdminListenTabellenTests.cs`; bestehende Story-Tests (US-013/014/015/016/017/
+  023/024/025/056/058) an das neue Markup bzw. den zusätzlichen Reload-Request angepasst.
+
 ### US-071 — Stakeholder-Detailseite als Zwei-Spalten-Layout mit direkt editierbaren Stammdaten und Typ-Badge
 
 - Root Cause (Issue #102, QA-Design-Abgleich-Gesamtaudit vom 30.08.2026): Die Stakeholder-Detailseite

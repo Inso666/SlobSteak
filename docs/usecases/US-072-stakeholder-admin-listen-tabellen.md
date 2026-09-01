@@ -2,6 +2,7 @@
 **Titel:** Stakeholder-Liste & Admin-Listen als Tabellen mit vollständiger Informationsdichte statt Karten-Raster
 **Bounded Context / Domain:** StakeholderManagement (+ punktuelle Erweiterung StakeholderCommunication/StakeholderAssessment für Read-Modelle), IdentityAccess, ProjectManagement (Frontend, Presentation-Schicht; kleine additive Backend-Erweiterung für die Stakeholder-Liste)
 **Abhängigkeiten:** US-071
+**Status:** fertig (01.09.2026), PR siehe Feature-Branch `feature/US-072-stakeholder-admin-listen-tabellen`
 
 ---
 
@@ -24,26 +25,26 @@ Als **Nutzer** möchte ich die Stakeholder-Liste sowie die Admin-Übersichten f�
 ### 3. Akzeptanzkriterien
 
 **Stakeholder-Liste (`docs/design/StakeholderList.dc.html`):**
-- [ ] Liste rendert als Tabelle mit Spalten Name (inkl. Typ-Icon/-Kennzeichnung), Organisation, **Kommunikation** (Chips der zugeordneten Kommunikationsarten, leer für Rolle `User`), **Meine Bewertung** (Einfluss/Interesse-Werte der eigenen Rolle inline, oder „– noch nicht bewertet“; Spalte entfällt/leer für Rolle `User`), Aktualisiert (relative Zeit).
-- [ ] Zeilen sind klickbar und führen zur Detailseite; keine Bearbeiten-/Löschen-Buttons direkt in der Tabellenzeile mehr (Bearbeiten/Löschen bleibt über die Detailseite erreichbar, US-022/US-023).
-- [ ] Eine Zeilenzahl-Anzeige „N Stakeholder insgesamt · M angezeigt (gefiltert)“ ergänzt die Liste.
-- [ ] „Gelöschte anzeigen“ ist ein Toggle-Schalter, der einen zusätzlichen, gestrichelt umrandeten Papierkorb-Bereich **unterhalb** der aktiven Liste einblendet (beide gleichzeitig sichtbar, kein gegenseitiges Ausblenden mehr), mit „Wiederherstellen“-Button je Zeile (US-024 Funktionalität bleibt unverändert).
-- [ ] „Stakeholder anlegen“ wird über einen Toolbar-Button aufgerufen (Dialog analog zum in US-038/US-065 etablierten Muster), statt als dauerhaft sichtbares, langes Formular unterhalb der Liste eingebettet zu sein.
-- [ ] `communicationTypeNames` in `StakeholderResponse`/`StakeholderListItem` ist für Rolle `User` immer ein leeres Array (Sichtbarkeitsgrenze aus US-040 bleibt gewahrt).
+- [x] Liste rendert als Tabelle mit Spalten Name (inkl. Typ-Icon/-Kennzeichnung), Organisation, **Kommunikation** (Chips der zugeordneten Kommunikationsarten, leer für Rolle `User`), **Meine Bewertung** (Einfluss/Interesse-Werte der eigenen Rolle inline, oder „– noch nicht bewertet“; Spalte entfällt/leer für Rolle `User`), Aktualisiert (relative Zeit).
+- [x] Zeilen sind klickbar und führen zur Detailseite; keine Bearbeiten-/Löschen-Buttons direkt in der Tabellenzeile mehr (Bearbeiten/Löschen bleibt über die Detailseite erreichbar, US-022/US-023).
+- [x] Eine Zeilenzahl-Anzeige „N Stakeholder insgesamt · M angezeigt (gefiltert)“ ergänzt die Liste.
+- [x] „Gelöschte anzeigen“ ist ein Toggle-Schalter, der einen zusätzlichen, gestrichelt umrandeten Papierkorb-Bereich **unterhalb** der aktiven Liste einblendet (beide gleichzeitig sichtbar, kein gegenseitiges Ausblenden mehr), mit „Wiederherstellen“-Button je Zeile (US-024 Funktionalität bleibt unverändert).
+- [x] „Stakeholder anlegen“ wird über einen Toolbar-Button aufgerufen (Dialog analog zum in US-038/US-065 etablierten Muster), statt als dauerhaft sichtbares, langes Formular unterhalb der Liste eingebettet zu sein.
+- [x] `communicationTypeNames` in `StakeholderResponse`/`StakeholderListItem` ist für Rolle `User` immer ein leeres Array (Sichtbarkeitsgrenze aus US-040 bleibt gewahrt).
 
 **Admin-Nutzerverwaltung (`docs/design/Admin.dc.html`):**
-- [ ] Liste rendert als Tabelle mit Spalten Name, E-Mail, Status (Badge „Muss Passwort ändern“ sofern `mustChangePassword`, sonst kein Badge/„Aktiv“), Erstellt am, sowie einem Aktionslink „Passwort zurücksetzen“ je Zeile (bestehende Funktionalität aus US-013/US-016 unverändert).
-- [ ] Bestehendes „Nutzer anlegen“-Dialogmuster (US-016, im Einklang mit dem in US-056 etablierten Tab-Host+Dialog-Muster) bleibt unverändert — siehe PO-Entscheidung unten zur bewussten Abgrenzung von `Admin.dc.html`s permanentem Formular-Panel.
+- [x] Liste rendert als Tabelle mit Spalten Name, E-Mail, Status (Badge „Muss Passwort ändern“ sofern `mustChangePassword`, sonst kein Badge/„Aktiv“), Erstellt am, sowie einem Aktionslink „Passwort zurücksetzen“ je Zeile (bestehende Funktionalität aus US-013/US-016 unverändert).
+- [x] Bestehendes „Nutzer anlegen“-Dialogmuster (US-016, im Einklang mit dem in US-056 etablierten Tab-Host+Dialog-Muster) bleibt unverändert — siehe PO-Entscheidung unten zur bewussten Abgrenzung von `Admin.dc.html`s permanentem Formular-Panel.
 
 **Admin-Projektliste:**
-- [ ] Liste rendert als Tabelle statt Karten-Raster, mit denselben, bereits heute in der Karten-Ansicht verfügbaren Feldern (kein neuer Datenbedarf) — bestehende Funktionalität aus US-014/US-015/US-017 (Anlegen, Mitgliederzuweisung) bleibt unverändert erreichbar.
+- [x] Liste rendert als Tabelle statt Karten-Raster, mit denselben, bereits heute in der Karten-Ansicht verfügbaren Feldern (kein neuer Datenbedarf) — bestehende Funktionalität aus US-014/US-015/US-017 (Anlegen, Mitgliederzuweisung) bleibt unverändert erreichbar.
 
 **Übergreifend:**
-- [ ] Automatisierter Test (Angular `TestBed` + `HttpTestingController`) belegt je Screen: Tabellen-Struktur, korrekte Spaltenwerte, rollenabhängige Sichtbarkeit von „Kommunikation“/„Meine Bewertung“ (Stakeholder-Liste), gleichzeitige Anzeige von aktiver Liste und Papierkorb-Panel.
-- [ ] Backend-Test (xUnit) belegt: `communicationTypeNames` korrekt befüllt für `PL`/`Coreteam`/`Architect`, leeres Array für `User`.
-- [ ] Manueller Smoke-Test gegen `docker-compose up`: alle drei Screens entsprechen optisch `docs/design` — Screenshot-Nachweis im PR.
-- [ ] Story-Test gemäß `.claude/agents/qa.md`-Konvention, ausschließlich gegen obige Akzeptanzkriterien.
-- [ ] Bestehende Tests (inkl. Story-Tests aus US-013, US-014, US-015, US-016, US-017, US-023, US-024, US-025, US-056) bleiben grün bzw. werden ans neue Markup angepasst, ohne eine bisher geprüfte fachliche Aussage zu verlieren.
+- [x] Automatisierter Test (Angular `TestBed` + `HttpTestingController`) belegt je Screen: Tabellen-Struktur, korrekte Spaltenwerte, rollenabhängige Sichtbarkeit von „Kommunikation“/„Meine Bewertung“ (Stakeholder-Liste), gleichzeitige Anzeige von aktiver Liste und Papierkorb-Panel.
+- [x] Backend-Test (xUnit) belegt: `communicationTypeNames` korrekt befüllt für `PL`/`Coreteam`/`Architect`, leeres Array für `User`.
+- [x] Manueller Smoke-Test gegen `docker-compose up`: alle drei Screens entsprechen optisch `docs/design` — Screenshot-Nachweis im PR.
+- [x] Story-Test gemäß `.claude/agents/qa.md`-Konvention, ausschließlich gegen obige Akzeptanzkriterien.
+- [x] Bestehende Tests (inkl. Story-Tests aus US-013, US-014, US-015, US-016, US-017, US-023, US-024, US-025, US-056) bleiben grün bzw. werden ans neue Markup angepasst, ohne eine bisher geprüfte fachliche Aussage zu verlieren.
 
 ### 4. Technische Hinweise für den Dev-Agenten
 
@@ -68,4 +69,22 @@ Vierte Story dieser Phase (nach [US-069](US-069-assessment-tabs-markforcheck.md)
 
 **Bewusste Abgrenzung beim Admin-Nutzerverwaltungs-Formular:** `docs/design/Admin.dc.html` zeigt „Nutzer anlegen“ laut Issue #100 als permanent sichtbares Formular-Panel statt Dialog. US-056 hat den Admin-Bereich jedoch erst kürzlich bewusst auf ein Tab-Host+Dialog-Muster gemäß `SPEC-07-Admin.md` ausgerichtet (als eigene, verifizierte PO-Entscheidung). Diese Story kehrt dieses erst kürzlich etablierte Muster **nicht** erneut um — eine zweite Umkehrung des Anlegen-Flusses innerhalb kurzer Zeit ohne triftigen neuen Grund wäre selbst eine Form von Inkonsistenz. Der Dialog bleibt bestehen; nur das Karten-→-Tabellen-Layout der Liste selbst wird korrigiert. Sollte der Projektverantwortliche das Formular-Panel-Muster aus `Admin.dc.html` dennoch für verbindlich erklären, ist das Gegenstand einer eigenen, gezielten Folge-Story.
 
-### Anmerkungen des Agenten (bei Umsetzung zu ergänzen)
+### Anmerkungen des Agenten
+
+**Umsetzung:**
+- Backend: `StakeholderListItem`/`ListStakeholdersService` um `CommunicationTypeNames` erweitert, ausschließlich befüllt für `PL`/`Coreteam`/`Architect` (identische Rollengrenze wie US-040); `StakeholderResponse.FromListItem` reicht das Feld durch, `FromCreateResult`/`FromUpdateResult`/`FromDeletedItem` liefern konsequent ein leeres Array. Rollenabhängigkeit datengetrieben getestet (`ListStakeholdersServiceTests`, `[InlineData(ProjectRole.Coreteam, true)]`/`Architect`/`PL`/`User`).
+- Frontend Stakeholder-Liste: Tabellen-Umbau abgeschlossen — Spalten Name/Organisation/Kommunikation/Meine Bewertung/Aktualisiert, Zeilenzahl-Anzeige (`{{totalStakeholderCount}} Stakeholder insgesamt` + optional `· {{stakeholders.length}} angezeigt (gefiltert)` nur bei aktivem Filter), Papierkorb als paralleles Panel unterhalb der aktiven Liste (kein gegenseitiges Ausblenden mehr), „Stakeholder anlegen“ als Toolbar-Button mit Dialog (PrimeNG `p-dialog`, analog US-038/US-065). „Meine Bewertung“ wird client-seitig per bestehender Map-Query-API (`GET .../map?perspective={eigeneRolle}`) nachgeladen und über `stakeholderId` gejoint — kein neuer Endpoint.
+- Frontend Admin: `users-admin`/`projects-admin` von Karten-Raster auf Tabellen umgebaut, bestehende Funktionalität (Nutzer/Projekt anlegen als Dialog, Passwort zurücksetzen, Mitglieder verwalten) unverändert erreichbar.
+- **Im manuellen Smoke-Test gefundener und behobener Fix (nicht ursprünglich Teil der Story-ACs, aber notwendige Korrektur derselben Story):** Nach „Wiederherstellen“ eines Stakeholders zeigte die Spalte „Meine Bewertung“ fälschlich „– noch nicht bewertet“, obwohl ein Assessment existierte — Ursache: die Map-Query-API (US-031) liefert nur aktive Stakeholder, `assessmentByStakeholderId` enthielt den gerade wiederhergestellten Stakeholder daher nicht mehr. `onRestore()` lädt jetzt zusätzlich `loadAssessments()` neu. Bestehender US-058-Story-Test (`restoreStakeholder-Erfolgsfall`) entsprechend um die zusätzliche erwartete HTTP-Anfrage ergänzt.
+
+**Manueller Smoke-Test (gegen isolierten `docker-compose`-Stack `us072smoke`, Ports 4200/5000/5432):**
+- Rolle `User`: Stakeholder-Liste zeigt nur Name/Organisation/Aktualisiert, keine „Kommunikation“-/„Meine Bewertung“-Spalte, „Stakeholder anlegen“-Button vorhanden, kein Papierkorb-Toggle sichtbar. Screenshot: `stakeholder-list-role-user.jpg`.
+- Rolle `PL`: Kommunikation-Chips („Statusbericht“) und „Meine Bewertung“ (`E 71 · I 76` + Rollen-Badge, bzw. „– noch nicht bewertet“) korrekt angezeigt; „Gelöschte anzeigen“ blendet Papierkorb-Panel **parallel** unterhalb der aktiven Liste ein (nicht anstelle). Screenshot: `stakeholder-list-role-pl-mit-papierkorb.jpg`.
+- „Stakeholder anlegen“: Toolbar-Button öffnet Dialog mit vollständigem Formular (kein eingebettetes Langformular mehr). Screenshot: `stakeholder-anlegen-dialog.jpg`.
+- Admin-Nutzerverwaltung: Tabelle mit Name/E-Mail/Status (Badge „MUSS PASSWORT ÄNDERN“ nur bei `mustChangePassword`, sonst „Aktiv“ ohne Badge)/Erstellt am/„Passwort zurücksetzen“. Screenshot: `admin-nutzerverwaltung-tabelle.jpg`.
+- Admin-Projektliste: Tabelle mit Name/Status/Mitglieder/„Mitglieder verwalten“. Screenshot: `admin-projektliste-tabelle.jpg`.
+- Rollen `Coreteam`/`Architect` nicht zusätzlich manuell durchgeklickt (kein Unterschied zur bereits manuell verifizierten `PL`-Darstellung zu erwarten, da identische Rollengruppe „perspektiv-tragend“) — stattdessen durch den bereits bestehenden, datengetriebenen Backend-Test (`ListStakeholdersServiceTests`) sowie Frontend-Story-Test abgedeckt.
+
+**Testergebnis:** Backend `dotnet test` 465/465 grün. Frontend `ng test` 475/475 grün (nach Anpassung des US-058-Story-Tests, siehe oben), `ng lint` fehlerfrei.
+
+Keine Abweichung von PRD/Story-Vorgaben, keine Eskalation nach CLAUDE.md Abschnitt 6 nötig — die einzige während der Umsetzung getroffene Interpretation (bewusste Beibehaltung des Dialog-Musters für „Nutzer anlegen“ statt `Admin.dc.html`s Formular-Panel) war bereits vom PO in Abschnitt „Anmerkungen des Product Owners“ vorgegeben.
