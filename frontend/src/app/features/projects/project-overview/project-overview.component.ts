@@ -3,23 +3,39 @@ import { Router } from '@angular/router';
 import { FormControl, FormGroup, ReactiveFormsModule } from '@angular/forms';
 import { ButtonDirective } from 'primeng/button';
 import { InputText } from 'primeng/inputtext';
-import { ProjectOverviewItem, ProjectsService } from '../projects.service';
+import { ProjectOverviewItem, ProjectsService, RoleAssessmentProgress } from '../projects.service';
 import { AdminProject, AdminProjectsService } from '../../admin/admin-projects.service';
 import { TokenStorageService } from '../../auth/token-storage.service';
 import { LOAD_ERROR_MESSAGE } from '../../../core/messages/http-error-messages';
 import { ViewState, deriveListViewState } from '../../../shared/view-state/view-state';
 import { ViewStateComponent } from '../../../shared/view-state/view-state.component';
+import {
+  ProgressRingRoleCode,
+  RoleProgressRingComponent,
+} from '../../../shared/role-progress-ring/role-progress-ring.component';
+import { AttentionBadgeComponent } from '../../../shared/attention-badge/attention-badge.component';
+import { formatRelativeTime } from '../../../shared/utils/relative-time';
 
-/** US-074 Akzeptanzkriterium „Toolbar": Sortieroptionen des Sortier-Dropdowns. Ersetzt das laut
- * PO-Entscheidung (Story-Datei Abschnitt 2) vorerst ausgesetzte SPEC-02-Kriterium „Zuletzt
- * aktualisiert" — es gibt noch kein `Project.UpdatedAt` (siehe Folge-Story US-076). */
-type ProjectSortOption = 'name' | 'newest';
+/** US-074/US-076 Akzeptanzkriterium „Toolbar": Sortieroptionen des Sortier-Dropdowns. US-076
+ * ergänzt `lastUpdated` (SPEC-02-Kriterium „Zuletzt aktualisiert", zuvor laut PO-Entscheidung
+ * ausgesetzt, da `Project.UpdatedAt` erst mit dieser Story existiert) zusätzlich zum bereits
+ * bestehenden `newest` (Sortierung nach `createdAt`, Label „Neu zuerst") — beide bleiben
+ * eigenständige Optionen. */
+type ProjectSortOption = 'name' | 'newest' | 'lastUpdated';
 
 /** Gemeinsame Teilmenge, die beide Kartentypen („Meine Projekte“/`ProjectOverviewItem` und „Alle
- * Projekte“/`AdminProject`) für die client-seitige Suche/Sortierung benötigen (US-074). */
+ * Projekte“/`AdminProject`) für die client-seitige Suche/Sortierung benötigen (US-074/US-076). */
 interface SortableProject {
   name: string;
   createdAt?: string;
+  updatedAt?: string;
+}
+
+/** Ein Eintrag der drei Fortschritts-Ringe einer Projektkarte (US-076 Akzeptanzkriterium 4). */
+interface RoleProgressEntry {
+  roleCode: ProgressRingRoleCode;
+  roleLabel: string;
+  percent: number;
 }
 
 /**
@@ -33,7 +49,14 @@ interface SortableProject {
 @Component({
   selector: 'app-project-overview',
   standalone: true,
-  imports: [ButtonDirective, InputText, ReactiveFormsModule, ViewStateComponent],
+  imports: [
+    ButtonDirective,
+    InputText,
+    ReactiveFormsModule,
+    ViewStateComponent,
+    RoleProgressRingComponent,
+    AttentionBadgeComponent,
+  ],
   templateUrl: './project-overview.component.html',
   styleUrl: './project-overview.component.css',
 })
@@ -150,11 +173,58 @@ export class ProjectOverviewComponent implements OnInit {
 
   private filterAndSort<T extends SortableProject>(items: T[]): T[] {
     const term = this.filterForm.controls.search.value.trim().toLowerCase();
-    const filtered = term ? items.filter((item) => item.name.toLowerCase().includes(term)) : items.slice();
+    const filtered = term
+      ? items.filter((item) => item.name.toLowerCase().includes(term))
+      : items.slice();
 
     const sortBy = this.filterForm.controls.sortBy.value;
-    return filtered.sort((a, b) =>
-      sortBy === 'name' ? a.name.localeCompare(b.name, 'de') : (b.createdAt ?? '').localeCompare(a.createdAt ?? ''),
-    );
+    if (sortBy === 'name') {
+      return filtered.sort((a, b) => a.name.localeCompare(b.name, 'de'));
+    }
+    if (sortBy === 'lastUpdated') {
+      return filtered.sort((a, b) => (b.updatedAt ?? '').localeCompare(a.updatedAt ?? ''));
+    }
+    return filtered.sort((a, b) => (b.createdAt ?? '').localeCompare(a.createdAt ?? ''));
+  }
+
+  /** US-076 Akzeptanzkriterium 4: die drei Fortschritts-Ringe (PL/CT/AR) einer Karte, in fester
+   * Reihenfolge. Fehlt der Fortschrittswert einer Rolle (sollte bei der realen Backend-Response
+   * nie vorkommen, additive Erweiterung siehe `ProjectsService`), wird defensiv 0 % angenommen
+   * statt die Karte fehlerhaft darzustellen. */
+  protected roleProgressEntries(project: ProjectOverviewItem): RoleProgressEntry[] {
+    return [
+      { roleCode: 'pl', roleLabel: 'PL', percent: project.pl?.percent ?? 0 },
+      { roleCode: 'ct', roleLabel: 'CT', percent: project.coreteam?.percent ?? 0 },
+      { roleCode: 'ar', roleLabel: 'AR', percent: project.architect?.percent ?? 0 },
+    ];
+  }
+
+  /** US-076 Akzeptanzkriterium 5: Anzahl unbewerteter Stakeholder aus Sicht der EIGENEN Rolle des
+   * angemeldeten Nutzers in diesem Projekt — `null`, wenn der Banner nicht gezeigt werden soll
+   * (Rolle `User` ohne eigene Perspektive, oder keine unbewerteten Stakeholder). */
+  protected ownRoleUnassessedCount(project: ProjectOverviewItem): number | null {
+    const progress = this.progressForRole(project, project.role);
+    return progress && progress.unassessedCount > 0 ? progress.unassessedCount : null;
+  }
+
+  /** US-076 Akzeptanzkriterium 6: Kartenfußzeile „Aktualisiert vor …" als relative Zeitangabe. */
+  protected relativeUpdatedAt(project: ProjectOverviewItem): string {
+    return project.updatedAt ? formatRelativeTime(project.updatedAt) : '';
+  }
+
+  private progressForRole(
+    project: ProjectOverviewItem,
+    role: string,
+  ): RoleAssessmentProgress | undefined {
+    switch (role) {
+      case 'PL':
+        return project.pl;
+      case 'Coreteam':
+        return project.coreteam;
+      case 'Architect':
+        return project.architect;
+      default:
+        return undefined;
+    }
   }
 }

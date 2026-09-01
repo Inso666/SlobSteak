@@ -12,6 +12,7 @@ import { MapService, MapPoint, PerspectiveRole } from '../../map/map.service';
 import { CreateStakeholderFormComponent } from '../create-stakeholder-form/create-stakeholder-form.component';
 import { LOAD_ERROR_MESSAGE } from '../../../core/messages/http-error-messages';
 import { ProcessingButtonComponent } from '../../../shared/processing-button/processing-button.component';
+import { formatRelativeTime } from '../../../shared/utils/relative-time';
 
 /** Projektrollen, die eine eigene Perspektive im Assessment tragen und damit die Spalten
  * „Kommunikation“/„Meine Bewertung“ sehen dürfen (US-072 Akzeptanzkriterium 1/6, identische
@@ -55,7 +56,15 @@ const PERSPECTIVE_ROLES: readonly string[] = ['PL', 'Coreteam', 'Architect'];
 @Component({
   selector: 'app-stakeholder-list',
   standalone: true,
-  imports: [ReactiveFormsModule, DatePipe, CreateStakeholderFormComponent, ProcessingButtonComponent, ButtonDirective, Dialog, InputText],
+  imports: [
+    ReactiveFormsModule,
+    DatePipe,
+    CreateStakeholderFormComponent,
+    ProcessingButtonComponent,
+    ButtonDirective,
+    Dialog,
+    InputText,
+  ],
   templateUrl: './stakeholder-list.component.html',
   styleUrl: './stakeholder-list.component.css',
 })
@@ -144,36 +153,11 @@ export class StakeholderListComponent implements OnInit {
   }
 
   /** Formatiert einen ISO-Zeitstempel als deutsche relative Zeitangabe (Akzeptanzkriterium 1,
-   * „vor 2 Std.“/„vor 1 Tag“/… analog zu `docs/design/StakeholderList.dc.html`). */
+   * „vor 2 Std.“/„vor 1 Tag“/… analog zu `docs/design/StakeholderList.dc.html`). US-076: Logik
+   * nach `shared/utils/relative-time.ts` extrahiert, da die Projektübersicht (Kartenfußzeile)
+   * dieselbe Umrechnung benötigt. */
   protected relativeTime(iso: string): string {
-    const diffMs = Date.now() - new Date(iso).getTime();
-    const minutes = Math.floor(diffMs / 60_000);
-    if (minutes < 1) {
-      return 'gerade eben';
-    }
-    if (minutes < 60) {
-      return `vor ${minutes} Min.`;
-    }
-    const hours = Math.floor(minutes / 60);
-    if (hours < 24) {
-      return `vor ${hours} Std.`;
-    }
-    const days = Math.floor(hours / 24);
-    if (days === 1) {
-      return 'vor 1 Tag';
-    }
-    if (days < 7) {
-      return `vor ${days} Tagen`;
-    }
-    const weeks = Math.floor(days / 7);
-    if (weeks === 1) {
-      return 'vor 1 Woche';
-    }
-    if (weeks < 5) {
-      return `vor ${weeks} Wochen`;
-    }
-    const months = Math.floor(days / 30);
-    return months <= 1 ? 'vor 1 Monat' : `vor ${months} Monaten`;
+    return formatRelativeTime(iso);
   }
 
   protected onRowClick(stakeholder: Stakeholder): void {
@@ -243,21 +227,23 @@ export class StakeholderListComponent implements OnInit {
     this.loadError = null;
     const { search, type } = this.filterForm.getRawValue();
     const filtered = this.isFiltered;
-    this.stakeholdersService.listStakeholders(this.projectId, { search: search || undefined, type: type || undefined }).subscribe({
-      next: (stakeholders) => {
-        this.stakeholders = stakeholders;
-        if (filtered) {
-          this.refreshTotalCountOnly();
-        } else {
-          this.totalStakeholderCount = stakeholders.length;
-        }
-        this.changeDetectorRef.markForCheck();
-      },
-      error: () => {
-        this.loadError = LOAD_ERROR_MESSAGE;
-        this.changeDetectorRef.markForCheck();
-      },
-    });
+    this.stakeholdersService
+      .listStakeholders(this.projectId, { search: search || undefined, type: type || undefined })
+      .subscribe({
+        next: (stakeholders) => {
+          this.stakeholders = stakeholders;
+          if (filtered) {
+            this.refreshTotalCountOnly();
+          } else {
+            this.totalStakeholderCount = stakeholders.length;
+          }
+          this.changeDetectorRef.markForCheck();
+        },
+        error: () => {
+          this.loadError = LOAD_ERROR_MESSAGE;
+          this.changeDetectorRef.markForCheck();
+        },
+      });
   }
 
   /** Lädt die ungefilterte Gesamtzahl aktiver Stakeholder ausschließlich für die
@@ -304,7 +290,9 @@ export class StakeholderListComponent implements OnInit {
 
     this.mapService.getMapData(this.projectId, this.currentUserRole as PerspectiveRole).subscribe({
       next: (points) => {
-        this.assessmentByStakeholderId = new Map(points.map((point) => [point.stakeholderId, point]));
+        this.assessmentByStakeholderId = new Map(
+          points.map((point) => [point.stakeholderId, point]),
+        );
         this.changeDetectorRef.markForCheck();
       },
       error: () => {

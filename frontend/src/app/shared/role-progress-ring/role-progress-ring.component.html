@@ -1,0 +1,22 @@
+<div class="role-progress-ring">
+  <div class="ring-wrap">
+    <svg width="34" height="34" viewBox="0 0 34 34" aria-hidden="true">
+      <circle cx="17" cy="17" [attr.r]="radius" fill="none" class="ring-track" stroke-width="3" />
+      <circle
+        cx="17"
+        cy="17"
+        [attr.r]="radius"
+        fill="none"
+        class="ring-value"
+        [class]="'ring-value ring-value--' + roleCode"
+        stroke-width="3"
+        stroke-linecap="round"
+        [attr.stroke-dasharray]="circumference"
+        [attr.stroke-dashoffset]="dashOffset"
+        transform="rotate(-90 17 17)"
+      />
+    </svg>
+  </div>
+  <span class="role-tag" [class]="'role-tag--' + roleCode">{{ roleLabel }}</span>
+  <span class="pct">{{ percent }}%</span>
+</div>

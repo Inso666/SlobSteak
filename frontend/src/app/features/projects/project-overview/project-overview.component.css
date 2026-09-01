@@ -96,3 +96,29 @@
   font-weight: 600;
   color: var(--app-color-text);
 }
+
+/* US-076 Akzeptanzkriterium 4: Reihe der drei Fortschritts-Ringe, abgesetzt durch Trennlinien
+   oben/unten (analog docs/design/Main.dc.html `.radar-row`). */
+.radar-row {
+  display: flex;
+  align-items: flex-start;
+  gap: var(--app-space-md);
+  width: 100%;
+  padding: var(--app-space-sm) 0;
+  border-top: 1px solid var(--app-color-border);
+  border-bottom: 1px solid var(--app-color-border);
+}
+
+/* US-076 Akzeptanzkriterium 6: Kartenfußzeile mit relativer Zeitangabe. */
+.card-footer {
+  display: flex;
+  align-items: center;
+  width: 100%;
+  margin-top: auto;
+}
+
+.meta {
+  font-family: var(--app-font-family-mono);
+  font-size: var(--app-font-size-meta);
+  color: var(--app-color-text-faint);
+}

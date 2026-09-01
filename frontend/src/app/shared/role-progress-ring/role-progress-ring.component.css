@@ -1,0 +1,52 @@
+/* US-076 / SPEC-00 §1.2: ausschließlich zentrale Tokens, keine hartcodierten Hex-/px-Werte. */
+.role-progress-ring {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: var(--app-space-xs);
+}
+
+.ring-wrap {
+  width: 34px;
+  height: 34px;
+}
+
+.ring-track {
+  stroke: var(--app-color-border);
+}
+
+.ring-value--pl {
+  stroke: var(--app-role-pl);
+}
+
+.ring-value--ct {
+  stroke: var(--app-role-ct);
+}
+
+.ring-value--ar {
+  stroke: var(--app-role-ar);
+}
+
+.role-tag {
+  font-size: var(--app-font-size-meta);
+  font-weight: 700;
+  letter-spacing: 0.03em;
+}
+
+.role-tag--pl {
+  color: var(--app-role-pl);
+}
+
+.role-tag--ct {
+  color: var(--app-role-ct);
+}
+
+.role-tag--ar {
+  color: var(--app-role-ar);
+}
+
+.pct {
+  font-family: var(--app-font-family-mono);
+  font-size: var(--app-font-size-meta);
+  color: var(--app-color-text-faint);
+}
