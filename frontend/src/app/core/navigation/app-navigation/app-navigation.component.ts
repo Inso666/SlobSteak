@@ -1,13 +1,15 @@
 import { NgTemplateOutlet } from '@angular/common';
 import { BreakpointObserver } from '@angular/cdk/layout';
-import { ChangeDetectionStrategy, Component, inject, signal } from '@angular/core';
+import { ChangeDetectionStrategy, Component, computed, inject, signal } from '@angular/core';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { NavigationEnd, Router, RouterLink, RouterLinkActive } from '@angular/router';
 import { filter } from 'rxjs';
 import { Drawer } from 'primeng/drawer';
 import { BrandMarkComponent } from '../../../shared/brand-mark/brand-mark.component';
 import { TokenStorageService } from '../../../features/auth/token-storage.service';
-import { APP_NAV_ADMIN_LINK, APP_NAV_LINKS, APP_NAV_LOGOUT_LABEL } from './nav-items';
+import { ProjectOverviewItem } from '../../../features/projects/projects.service';
+import { CurrentProjectContextService } from '../../services/current-project-context.service';
+import { APP_NAV_ADMIN_LINK, APP_NAV_LINKS, APP_NAV_LOGOUT_LABEL, APP_NAV_PROJECT_SUB_ITEM_LABELS } from './nav-items';
 
 /** US-055 / SPEC-02 §1.4: verbindliche Custom-Query für die Sidebar→Drawer-Umschaltung — deckt
  * sich bewusst NICHT mit PrimeFlex-Standardbreakpoints (siehe dortige Begründung „Variante A"). */
@@ -38,6 +40,16 @@ const LOGIN_ROUTE = '/login';
  * neu berechnet, damit ein Login als Systemadmin den Eintrag ohne Reload einblendet
  * (Akzeptanzkriterium 2 verlangt zudem, dass der Eintrag bei fehlender Berechtigung vollständig aus
  * dem DOM entfernt wird — nicht nur per CSS versteckt — daher `@if` statt `[hidden]` im Template).
+ *
+ * US-075: zusätzlich zu `isVisible`/`isAdmin` berechnet {@link isProjectRoute}, ob die aktuelle
+ * Route innerhalb eines geöffneten Projekts liegt (`/projects/{id}/...`, jedoch NICHT die
+ * Projektübersicht `/projects` selbst). Kombiniert mit dem von {@link CurrentProjectContextService}
+ * gehaltenen, bereits von `ProjectWorkspaceLayoutComponent` geladenen Projekt ergibt sich
+ * {@link projectNavContext} — der eingerückte Sidebar-Block (nicht-klickbares Projekt-Label +
+ * Unterpunkte Stakeholder-Liste/Map/Verteiler) rendert nur, wenn beides zutrifft. Es findet dafür
+ * bewusst **kein** eigener `ProjectsService.getProject(...)`-Aufruf statt (Story „Wichtige
+ * Invarianten": kein neuer Backend-Request nur für die Sidebar) — diese Komponente liest
+ * ausschließlich den geteilten Zustand.
  */
 @Component({
   selector: 'app-navigation',
@@ -51,13 +63,27 @@ export class AppNavigationComponent {
   private readonly tokenStorage = inject(TokenStorageService);
   private readonly router = inject(Router);
   private readonly breakpointObserver = inject(BreakpointObserver);
+  private readonly currentProjectContext = inject(CurrentProjectContextService);
 
   /** Konfigurierte Navigationseinträge (US-045/US-046, siehe `nav-items.ts`). */
   protected readonly navLinks = APP_NAV_LINKS;
   protected readonly adminLink = APP_NAV_ADMIN_LINK;
   protected readonly logoutLabel = APP_NAV_LOGOUT_LABEL;
+  protected readonly projectSubItemLabels = APP_NAV_PROJECT_SUB_ITEM_LABELS;
   protected readonly isVisible = signal(this.computeVisibility());
   protected readonly isAdmin = signal(this.computeIsAdmin());
+  /** US-075 Akzeptanzkriterium 1/5: `true`, solange die aktuelle Route innerhalb eines geöffneten
+   * Projekts liegt (`/projects/{id}/...`) — die Projektübersicht `/projects` selbst zählt bewusst
+   * NICHT dazu. */
+  protected readonly isProjectRoute = signal(this.computeIsProjectRoute());
+  /** US-075 Akzeptanzkriterium 1: das anzuzeigende Projekt für den Sidebar-Block — `null` außerhalb
+   * eines Projekt-Kontexts ODER solange `ProjectWorkspaceLayoutComponent` noch lädt/fehlgeschlagen
+   * ist. Ein `computed()`-Signal statt eines manuell aktualisierten Felds, damit ein asynchron erst
+   * nach dem Routenwechsel eintreffendes `setProject(...)` (siehe
+   * `ProjectWorkspaceLayoutComponent.ngOnInit`) automatisch ins Template durchschlägt. */
+  protected readonly projectNavContext = computed<ProjectOverviewItem | null>(() =>
+    this.isProjectRoute() ? this.currentProjectContext.project() : null,
+  );
   /** US-074 Akzeptanzkriterium „Sidebar": Anzeigename für die Nutzerkarte, aus dem bereits
    * vorhandenen Session-Token (siehe `TokenStorageService.getClaims()` / `IJwtTokenGenerator`) —
    * kein neuer Backend-Request. `null`, solange kein Name im Token steckt (z. B. eine vor diesem
@@ -81,6 +107,7 @@ export class AppNavigationComponent {
         this.isVisible.set(this.computeVisibility());
         this.isAdmin.set(this.computeIsAdmin());
         this.currentUserName.set(this.computeUserName());
+        this.isProjectRoute.set(this.computeIsProjectRoute());
         // Ein Klick auf einen Navigationslink navigiert bereits — der mobile Drawer soll sich
         // danach nicht länger über dem neuen Inhalt befinden.
         this.drawerOpen.set(false);
@@ -128,8 +155,29 @@ export class AppNavigationComponent {
     return (first + last).toUpperCase();
   }
 
+  /** US-075 Akzeptanzkriterium 3 (US-031): Map-Unterpunkt ist für Rolle `User` ausgeblendet —
+   * unverändert übernommene Regel aus dem vormaligen `ProjectWorkspaceLayoutComponent.showMapTab`. */
+  protected showMapSubItem(project: ProjectOverviewItem): boolean {
+    return project.role !== 'User';
+  }
+
+  /** US-075 Akzeptanzkriterium 3 (US-041): Verteiler-Unterpunkt ist ausschließlich für
+   * `PL`/`Coreteam` sichtbar — unverändert übernommene Regel aus dem vormaligen
+   * `ProjectWorkspaceLayoutComponent.showDistributionTab`. */
+  protected showDistributionSubItem(project: ProjectOverviewItem): boolean {
+    return project.role === 'PL' || project.role === 'Coreteam';
+  }
+
   private computeVisibility(): boolean {
     return this.hasToken() && !this.router.url.startsWith(LOGIN_ROUTE);
+  }
+
+  /** US-075: erkennt einen geöffneten Projekt-Workspace (`/projects/{id}/...`) anhand der
+   * Router-URL — bewusst per Regex statt `ActivatedRoute`-Baum, da `AppNavigationComponent`
+   * außerhalb des Router-Outlets (in `app.html`) lebt und keinen Zugriff auf die aktivierte
+   * Kind-Route hat. `/projects` selbst (Projektübersicht, ohne ID-Segment) matcht bewusst NICHT. */
+  private computeIsProjectRoute(): boolean {
+    return /^\/projects\/[^/?#]+/.test(this.router.url);
   }
 
   private computeIsAdmin(): boolean {

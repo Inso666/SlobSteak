@@ -40,3 +40,17 @@ export const APP_NAV_ADMIN_LINK: AppNavLink = { label: 'Admin', route: '/admin/u
 
 /** Text der „Abmelden“-Aktion — kein Navigationslink, sondern ein Button mit Seiteneffekt (Akzeptanzkriterium 4). */
 export const APP_NAV_LOGOUT_LABEL = 'Abmelden';
+
+/**
+ * US-075: Wording der drei Projekt-Kontext-Unterpunkte (eingerückter Sidebar-Block innerhalb eines
+ * geöffneten Projekts) — zentral hier gepflegt statt in `app-navigation.component.html`
+ * hartkodiert (`.claude/agents/frontend.md` Abschnitt 3), identisch mit dem bisherigen Wortlaut der
+ * entfallenen `project-workspace-layout.component.html`-Tab-Pills sowie den vier
+ * `docs/design`-Artboards (`Detail.dc.html`, `Map.dc.html`, `StakeholderList.dc.html`,
+ * `Verteiler.dc.html`).
+ */
+export const APP_NAV_PROJECT_SUB_ITEM_LABELS = {
+  stakeholders: 'Stakeholder-Liste',
+  map: 'Map',
+  distribution: 'Verteiler',
+} as const;

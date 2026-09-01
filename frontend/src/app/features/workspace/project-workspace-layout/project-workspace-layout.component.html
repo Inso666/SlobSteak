@@ -11,16 +11,6 @@
         <span class="role-badge" [class]="roleBadgeClass">{{ project.role }}</span>
       }
     </header>
-
-    <nav class="tab-pills workspace-tabs" aria-label="Projekt-Workspace-Bereiche">
-      <a class="tab-pill" routerLink="stakeholders" routerLinkActive="active">Stakeholder-Liste</a>
-      @if (showMapTab) {
-        <a class="tab-pill" routerLink="map" routerLinkActive="active">Map</a>
-      }
-      @if (showDistributionTab) {
-        <a class="tab-pill" routerLink="distribution" routerLinkActive="active">Verteiler</a>
-      }
-    </nav>
   }
 
   <!-- US-052: außerhalb des `@if (project)`-Blocks, damit die Kind-Route `access-denied` (bzw.

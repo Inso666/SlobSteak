@@ -1,27 +1,32 @@
-import { ChangeDetectorRef, Component, OnInit, inject } from '@angular/core';
-import { ActivatedRoute, Router, RouterLink, RouterLinkActive, RouterOutlet } from '@angular/router';
+import { ChangeDetectorRef, Component, OnDestroy, OnInit, inject } from '@angular/core';
+import { ActivatedRoute, Router, RouterOutlet } from '@angular/router';
 import { ProjectOverviewItem, ProjectsService } from '../../projects/projects.service';
 import { LOAD_ERROR_MESSAGE } from '../../../core/messages/http-error-messages';
+import { CurrentProjectContextService } from '../../../core/services/current-project-context.service';
 
 /**
  * Projekt-Workspace-Shell (US-019, Screen S3): Header mit Projektname und Rollen-Badge
- * (Akzeptanzkriterium 1), Tab-Navigation zwischen Stakeholder-Liste/Map/Verteiler. Tab-Sichtbarkeit
- * folgt exakt der Berechtigungsmatrix aus PRD Abschnitt 2.3 (Akzeptanzkriterium 2/3/4) — zusätzlich
- * zur hier vorgenommenen UI-Ausblendung sichert `roleGuard` die jeweilige Route auch bei direktem
+ * (Akzeptanzkriterium 1). Die frühere horizontale Tab-Navigation zwischen
+ * Stakeholder-Liste/Map/Verteiler ist seit US-075 entfallen — dieselben drei Ziele sind stattdessen
+ * als eingerückte Unterpunkte in der linken Sidebar erreichbar (`AppNavigationComponent`). Die
+ * Rollen-basierte Sichtbarkeitsregel selbst (PRD Abschnitt 2.3, Akzeptanzkriterium 2/3/4 aus US-019)
+ * ist dadurch in {@link CurrentProjectContextService}s Konsumenten (Sidebar) gewandert — zusätzlich
+ * zur dortigen UI-Ausblendung sichert `roleGuard` die jeweilige Route weiterhin auch bei direktem
  * Aufruf ab (Akzeptanzkriterium 5).
  */
 @Component({
   selector: 'app-project-workspace-layout',
   standalone: true,
-  imports: [RouterLink, RouterLinkActive, RouterOutlet],
+  imports: [RouterOutlet],
   templateUrl: './project-workspace-layout.component.html',
   styleUrl: './project-workspace-layout.component.css',
 })
-export class ProjectWorkspaceLayoutComponent implements OnInit {
+export class ProjectWorkspaceLayoutComponent implements OnInit, OnDestroy {
   private readonly route = inject(ActivatedRoute);
   private readonly router = inject(Router);
   private readonly projectsService = inject(ProjectsService);
   private readonly changeDetectorRef = inject(ChangeDetectorRef);
+  private readonly currentProjectContext = inject(CurrentProjectContextService);
 
   protected project: ProjectOverviewItem | null = null;
   protected loadError: string | null = null;
@@ -49,13 +54,23 @@ export class ProjectWorkspaceLayoutComponent implements OnInit {
     this.projectsService.getProject(projectId).subscribe({
       next: (project) => {
         this.project = project;
+        // US-075: einzige Stelle, die das Projekt lädt — die Sidebar (`AppNavigationComponent`)
+        // liest denselben Zustand, statt selbst nachzuladen (kein zweiter Backend-Request).
+        this.currentProjectContext.setProject(project);
         this.changeDetectorRef.markForCheck();
       },
       error: () => {
         this.loadError = LOAD_ERROR_MESSAGE;
+        this.currentProjectContext.clear();
         this.changeDetectorRef.markForCheck();
       },
     });
+  }
+
+  /** US-075: verhindert, dass die Sidebar nach dem Verlassen des Projekt-Workspace weiterhin das
+   * zuletzt geladene Projekt anzeigt. */
+  ngOnDestroy(): void {
+    this.currentProjectContext.clear();
   }
 
   /**
@@ -71,16 +86,6 @@ export class ProjectWorkspaceLayoutComponent implements OnInit {
    */
   protected get showLoadError(): boolean {
     return this.loadError !== null && !this.router.url.endsWith('/access-denied');
-  }
-
-  /** Map-Tab ist für Rolle `User` ausgeblendet (Akzeptanzkriterium 3). */
-  protected get showMapTab(): boolean {
-    return this.project !== null && this.project.role !== 'User';
-  }
-
-  /** Verteiler-Tab ist ausschließlich für `PL`/`Coreteam` sichtbar (Akzeptanzkriterium 4). */
-  protected get showDistributionTab(): boolean {
-    return this.project !== null && (this.project.role === 'PL' || this.project.role === 'Coreteam');
   }
 
   /**

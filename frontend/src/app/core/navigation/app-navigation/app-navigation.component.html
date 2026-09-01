@@ -17,6 +17,46 @@
             </a>
           </li>
         }
+        @if (projectNavContext(); as project) {
+          <!-- US-075 Akzeptanzkriterium 1: nicht-klickbares Projekt-Label + eingerückte
+               Unterpunkte, analog `docs/design` (Detail/Map/StakeholderList/Verteiler.dc.html). -->
+          <li class="app-navigation__project-block">
+            <span class="app-navigation__project-label">{{ project.name }}</span>
+            <ul class="app-navigation__sub-links">
+              <li>
+                <a
+                  [routerLink]="['/projects', project.id, 'stakeholders']"
+                  routerLinkActive="active"
+                  class="app-navigation__sub-item"
+                  (click)="drawerOpen.set(false)"
+                  >{{ projectSubItemLabels.stakeholders }}</a
+                >
+              </li>
+              @if (showMapSubItem(project)) {
+                <li>
+                  <a
+                    [routerLink]="['/projects', project.id, 'map']"
+                    routerLinkActive="active"
+                    class="app-navigation__sub-item"
+                    (click)="drawerOpen.set(false)"
+                    >{{ projectSubItemLabels.map }}</a
+                  >
+                </li>
+              }
+              @if (showDistributionSubItem(project)) {
+                <li>
+                  <a
+                    [routerLink]="['/projects', project.id, 'distribution']"
+                    routerLinkActive="active"
+                    class="app-navigation__sub-item"
+                    (click)="drawerOpen.set(false)"
+                    >{{ projectSubItemLabels.distribution }}</a
+                  >
+                </li>
+              }
+            </ul>
+          </li>
+        }
         @if (isAdmin()) {
           <li>
             <a [routerLink]="adminLink.route" routerLinkActive="active" (click)="drawerOpen.set(false)">
