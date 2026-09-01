@@ -74,6 +74,56 @@
   font-weight: 600;
 }
 
+/* US-075 Akzeptanzkriterium 1/2: Projekt-Kontext-Block (nicht-klickbares Projekt-Label +
+   eingerückte Unterpunkte), analog `docs/design` (`.project-block`/`.project-label`/`.sub-item` in
+   `Detail.dc.html`/`Map.dc.html`/`StakeholderList.dc.html`/`Verteiler.dc.html`) — auf zentrale
+   Tokens (SPEC-00 §1.2) statt der dortigen Ad-hoc-Werte abgebildet. */
+.app-navigation__project-block {
+  margin-top: var(--app-space-xs);
+  display: flex;
+  flex-direction: column;
+  gap: var(--app-space-xs);
+}
+
+.app-navigation__project-label {
+  display: block;
+  padding: 0 var(--app-space-sm);
+  color: var(--app-color-text-faint);
+  font-size: var(--app-font-size-meta);
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+}
+
+.app-navigation__sub-links {
+  display: flex;
+  flex-direction: column;
+  gap: var(--app-space-xs);
+  list-style: none;
+  margin: 0;
+  padding: 0;
+}
+
+.app-navigation__sub-item {
+  display: block;
+  padding: var(--app-space-sm) var(--app-space-sm) var(--app-space-sm) var(--app-space-xl);
+  border-radius: var(--app-radius-md);
+  text-decoration: none;
+  color: var(--app-color-text-muted);
+  font-size: var(--app-font-size-body);
+}
+
+.app-navigation__sub-item:hover {
+  background: var(--app-color-surface-hover);
+  color: var(--app-color-text);
+}
+
+.app-navigation__sub-item.active {
+  color: var(--app-color-text);
+  background: var(--app-color-surface-hover);
+  font-weight: 600;
+}
+
 /* US-074 Akzeptanzkriterium „Sidebar": Nutzerkarte sitzt unterhalb der Navigationslinks, direkt
    über „Abmelden" — `margin-top: auto` schiebt sie (und den nachfolgenden Logout-Eintrag) an das
    untere Ende der Sidebar, während die Navigationslinks oben verbleiben. Bleibt der Karteninhalt

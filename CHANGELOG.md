@@ -4,6 +4,38 @@ Alle nennenswerten Änderungen an diesem Projekt werden hier je User Story dokum
 
 ## [Unreleased]
 
+### US-075 — Projekt-Kontext-Navigation als eingerückte Sidebar-Unterpunkte statt horizontaler Tab-Leiste
+
+- Root Cause (Issue #101, QA-Design-Abgleich-Gesamtaudit vom 30.08.2026, betrifft `Detail.dc.html`/
+  `Map.dc.html`/`StakeholderList.dc.html`/`Verteiler.dc.html` übereinstimmend): die
+  Projekt-Kontext-Navigation (Stakeholder-Liste/Map/Verteiler) lag als horizontale
+  `tab-pills`-Leiste im Hauptbereich statt — wie in allen vier Artboards gezeigt — als
+  eingerückter Block in der linken Sidebar.
+- Neuer gemeinsam injizierbarer `CurrentProjectContextService` (`core/services/`, Signal-Halter):
+  einzige Datenquelle für das aktuell geöffnete Projekt (Name, eigene Rolle), befüllt von
+  `ProjectWorkspaceLayoutComponent` (unverändert einzige Stelle mit `ProjectsService.getProject(...)`)
+  und gelesen von `AppNavigationComponent` — kein zweiter Backend-Request nur für die Sidebar.
+- `AppNavigationComponent`: unterhalb der globalen Nav-Items erscheint innerhalb eines geöffneten
+  Projekts (`/projects/{id}/...`) ein eingerückter Block — nicht-klickbares, per Kapitälchen
+  hervorgehobenes Projekt-Label gefolgt von den Unterpunkten „Stakeholder-Liste“, „Map“, „Verteiler“
+  (aktive Hervorhebung via `routerLinkActive`, analog zu den globalen Nav-Items). Die
+  rollenabhängige Sichtbarkeit von „Map“ (nicht Rolle `User`, US-031) und „Verteiler“ (nur
+  `PL`/`Coreteam`, US-041) ist unverändert aus `ProjectWorkspaceLayoutComponent` übernommen.
+  Außerhalb eines Projekt-Kontexts (z. B. `/projects`, `/admin/...`) zeigt die Sidebar unverändert
+  nur die globalen Nav-Items.
+- `ProjectWorkspaceLayoutComponent`: die vormalige horizontale `tab-pills`-Leiste ist vollständig
+  entfallen (inkl. der dortigen `showMapTab`/`showDistributionTab`-Getter); der Rollen-Badge neben
+  dem Projektnamen im Hauptbereich-Header bleibt unverändert bestehen (Story-Anmerkung: Design zeigt
+  hierzu keine explizite Vorgabe, etabliertes Muster beibehalten).
+- Reine Darstellungsänderung ohne Routing-Änderung: Direktnavigation per URL zu
+  `/projects/{id}/stakeholders`, `/map`, `/distribution` funktioniert unverändert (`roleGuard`
+  weiterhin serverseitig/routenseitig unverändert wirksam).
+- Story-Test Frontend: `us-075-projekt-kontext-sidebar-unterpunkte.spec.ts` (6 automatisiert
+  prüfbare Akzeptanzkriterien). Bestehende Tests aus US-019/US-031/US-041/US-055 ans neue Markup
+  angepasst (`project-workspace-layout.component.spec.ts`, `us-032-map-ui.spec.ts`,
+  `us-052-stakeholderverwaltung-nach-projektklick.spec.ts`), ohne die geprüften fachlichen Aussagen
+  (insbesondere rollenabhängige Sichtbarkeit) zu verlieren.
+
 ### US-074 — Projektübersicht: Sidebar-Icons/Nutzerkarte, Toolbar (Tabs/Suche/Sortierung) und Karten-Grundlayout gemäß Main.dc.html
 
 - Root Cause (Issue #99, QA-Design-Abgleich-Gesamtaudit vom 30.08.2026): Sidebar zeigte weder

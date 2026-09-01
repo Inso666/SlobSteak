@@ -1,6 +1,7 @@
-/* US-047: ausschließlich zentrale Tokens (frontend/src/styles.css). Rollen-Badge- und
-   Tab-Pill-Optik kommen vollständig aus den geteilten `.role-badge`/`.tab-pills`-Utility-Klassen
-   (SPEC-00 §1.3) — hier bleibt nur Layout/Abstand. */
+/* US-047: ausschließlich zentrale Tokens (frontend/src/styles.css). Rollen-Badge-Optik kommt
+   vollständig aus der geteilten `.role-badge`-Utility-Klasse (SPEC-00 §1.3) — hier bleibt nur
+   Layout/Abstand. US-075: die vormalige `.workspace-tabs`-Tab-Pill-Leiste ist entfallen (siehe
+   `AppNavigationComponent`-Sidebar-Unterpunkte). */
 .workspace {
   padding: var(--app-space-md) 0;
 }
@@ -14,8 +15,4 @@
 
 .workspace-header h1 {
   margin: 0;
-}
-
-.workspace-tabs {
-  margin-bottom: var(--app-space-lg);
 }

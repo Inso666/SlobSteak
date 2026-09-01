@@ -1,3 +1,5 @@
+import { BreakpointObserver } from '@angular/cdk/layout';
+import { Component } from '@angular/core';
 import { TestBed } from '@angular/core/testing';
 import { By } from '@angular/platform-browser';
 import { ActivatedRoute, convertToParamMap, provideRouter, Router } from '@angular/router';
@@ -6,7 +8,12 @@ import { MapPoint, MapService } from './map.service';
 import { ProjectOverviewItem, ProjectsService } from '../projects/projects.service';
 import { Stakeholder, StakeholdersService } from '../stakeholders/stakeholders.service';
 import { StakeholderMapPageComponent } from './stakeholder-map-page/stakeholder-map-page.component';
-import { ProjectWorkspaceLayoutComponent } from '../workspace/project-workspace-layout/project-workspace-layout.component';
+import { TokenStorageService } from '../auth/token-storage.service';
+import { CurrentProjectContextService } from '../../core/services/current-project-context.service';
+import { AppNavigationComponent } from '../../core/navigation/app-navigation/app-navigation.component';
+
+@Component({ selector: 'app-us032-dummy', standalone: true, template: 'dummy' })
+class DummyRouteComponent {}
 
 /**
  * Story-Test US-032 „Map-UI Quadranten-Diagramm mit Perspektiv-Dropdown“ (Frontend-Anteil,
@@ -15,10 +22,12 @@ import { ProjectWorkspaceLayoutComponent } from '../workspace/project-workspace-
  * Story-Dokument. Generische Rendering-/Verhaltenstests bleiben in
  * `quadrant-chart.component.spec.ts` bzw. `stakeholder-map-page.component.spec.ts`.
  *
- * Akzeptanzkriterium 4 (Tab „Map“ ausgeblendet für Rolle `User`) ist bereits seit US-019 in
- * {@link ProjectWorkspaceLayoutComponent} umgesetzt und in `project-workspace-layout.component.spec.ts`
- * generisch abgedeckt — diese Story ändert daran nichts (kein neuer Code), der Test hier bestätigt
- * die AC dennoch explizit für diese Story, statt sie unverifiziert vorauszusetzen.
+ * Akzeptanzkriterium 4 (Tab „Map“ ausgeblendet für Rolle `User`) war bis US-075 als horizontale
+ * Tab-Leiste in `ProjectWorkspaceLayoutComponent` umgesetzt; seit US-075 ist derselbe Link ein
+ * eingerückter Sidebar-Unterpunkt in {@link AppNavigationComponent} (siehe dortige
+ * `us-075-projekt-kontext-sidebar-unterpunkte.spec.ts`) — diese Story ändert an der Rollenregel
+ * selbst nichts, der Test hier bestätigt die AC dennoch explizit für diese Story am neuen
+ * Darstellungsort, statt sie unverifiziert vorauszusetzen.
  */
 describe('US-032: Map-UI Quadranten-Diagramm mit Perspektiv-Dropdown', () => {
   const points: MapPoint[] = [
@@ -113,43 +122,36 @@ describe('US-032: Map-UI Quadranten-Diagramm mit Perspektiv-Dropdown', () => {
     expect(router.navigate).toHaveBeenCalledWith(['/projects', 'project-1', 'stakeholders', 'sh-1']);
   });
 
-  // Akzeptanzkriterium 4: Tab „Map" ist in der Sidebar/Workspace-Navigation für Rolle `User`
-  // ausgeblendet (seit US-019 umgesetzt, hier für diese Story erneut verifiziert).
-  it('hides the "Map" workspace tab for role User but shows it for PL/Coreteam/Architect', () => {
-    TestBed.resetTestingModule();
-    const workspaceProjectsServiceSpy = jasmine.createSpyObj<ProjectsService>('ProjectsService', ['getProject']);
-    workspaceProjectsServiceSpy.getProject.and.returnValue(of({ id: 'project-1', name: 'Projekt', role: 'User', stakeholderCount: 0 }));
-
-    TestBed.configureTestingModule({
-      imports: [ProjectWorkspaceLayoutComponent],
-      providers: [
-        provideRouter([]),
-        { provide: ProjectsService, useValue: workspaceProjectsServiceSpy },
-        { provide: ActivatedRoute, useValue: { snapshot: { paramMap: convertToParamMap({ id: 'project-1' }) } } },
-      ],
-    });
-
-    const userFixture = TestBed.createComponent(ProjectWorkspaceLayoutComponent);
-    userFixture.detectChanges();
-    expect(userFixture.nativeElement.querySelector('a[routerLink="map"]')).toBeNull();
-
-    for (const role of ['PL', 'Coreteam', 'Architect']) {
+  // Akzeptanzkriterium 4: „Map"-Unterpunkt ist für Rolle `User` ausgeblendet (seit US-019 in der
+  // damaligen Tab-Leiste umgesetzt; seit US-075 als eingerückter Sidebar-Unterpunkt in
+  // `AppNavigationComponent` — hier für diese Story erneut verifiziert, unabhängig vom
+  // Darstellungsort).
+  it('hides the "Map" sidebar sub-item for role User but shows it for PL/Coreteam/Architect', async () => {
+    async function renderSidebarFor(role: string) {
       TestBed.resetTestingModule();
-      const projectRoleServiceSpy = jasmine.createSpyObj<ProjectsService>('ProjectsService', ['getProject']);
-      projectRoleServiceSpy.getProject.and.returnValue(of({ id: 'project-1', name: 'Projekt', role, stakeholderCount: 0 }));
-
       TestBed.configureTestingModule({
-        imports: [ProjectWorkspaceLayoutComponent],
+        imports: [AppNavigationComponent],
         providers: [
-          provideRouter([]),
-          { provide: ProjectsService, useValue: projectRoleServiceSpy },
-          { provide: ActivatedRoute, useValue: { snapshot: { paramMap: convertToParamMap({ id: 'project-1' }) } } },
+          provideRouter([{ path: 'projects/:id/stakeholders', component: DummyRouteComponent }]),
+          { provide: BreakpointObserver, useValue: { observe: () => of({ matches: false }) } },
         ],
       });
+      const tokenStorage = TestBed.inject(TokenStorageService);
+      tokenStorage.setToken('token-123');
+      await TestBed.inject(Router).navigateByUrl('/projects/project-1/stakeholders');
+      TestBed.inject(CurrentProjectContextService).setProject({ id: 'project-1', name: 'Projekt', role, stakeholderCount: 0 } as ProjectOverviewItem);
 
-      const roleFixture = TestBed.createComponent(ProjectWorkspaceLayoutComponent);
-      roleFixture.detectChanges();
-      expect(roleFixture.nativeElement.querySelector('a[routerLink="map"]')).not.toBeNull();
+      const fixture = TestBed.createComponent(AppNavigationComponent);
+      fixture.detectChanges();
+      return fixture;
+    }
+
+    const userFixture = await renderSidebarFor('User');
+    expect(userFixture.nativeElement.querySelector('a[href="/projects/project-1/map"]')).toBeNull();
+
+    for (const role of ['PL', 'Coreteam', 'Architect']) {
+      const roleFixture = await renderSidebarFor(role);
+      expect(roleFixture.nativeElement.querySelector('a[href="/projects/project-1/map"]')).not.toBeNull();
     }
   });
 

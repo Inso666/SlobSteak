@@ -63,7 +63,9 @@ describe('US-052: Stakeholderverwaltung nach Projektauswahl zuverlässig anzeige
     await harness.navigateByUrl('/projects/project-1');
 
     expect(harness.routeNativeElement?.querySelector('.workspace-header h1')?.textContent).toContain('Projekt Alpha');
-    expect(harness.routeNativeElement?.querySelector('.workspace-tabs')).not.toBeNull();
+    // US-075: die vormalige `.workspace-tabs`-Leiste ist entfallen (Navigation liegt seither in der
+    // Sidebar, `AppNavigationComponent`) — der eigentliche AC-Nachweis dieses Tests bleibt das
+    // gerenderte Kind-`router-outlet` (Stakeholder-Liste), nicht die (nicht mehr existierende) Tab-Leiste.
     expect(harness.routeNativeElement?.querySelector('app-test-stakeholders-stub')?.textContent).toContain('Stakeholder-Liste-Stub');
     expect(harness.routeNativeElement?.querySelector('app-access-denied')).toBeNull();
     expect(harness.routeNativeElement?.querySelector('.load-error')).toBeNull();
