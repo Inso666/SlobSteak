@@ -2,6 +2,7 @@
 **Titel:** Einheitliches Marken-Icon (Steak-SVG) app-weit statt abstraktem Drei-Kreise-Symbol
 **Bounded Context / Domain:** Frontend-Shell (Presentation-Schicht)
 **Abhängigkeiten:** US-072
+**Status:** fertig (01.09.2026), PR siehe Feature-Branch `feature/US-073-marken-icon-steak-svg`
 
 ---
 
@@ -19,14 +20,14 @@ Als **Nutzer** möchte ich auf jedem Screen (Login, Sidebar, Browser-Tab) dassel
 
 ### 3. Akzeptanzkriterien
 
-- [ ] `BrandMarkComponent` rendert das Steak-Icon gemäß `docs/design` (Farbverlauf `#c96a45` → `#a8502f` → `#6f2f1c`, Grillstreifen-Andeutung) statt der drei Kreise — automatisch wirksam überall, wo `<app-brand-mark />` bereits eingebunden ist (Login-Seite, US-053/US-054).
-- [ ] Die Sidebar-Brand-Zeile (`app-navigation.component.html`) bindet `<app-brand-mark />` zusätzlich zum bestehenden Text „SlobSteak“ ein.
-- [ ] `frontend/public/icon.svg` und `frontend/public/favicon.ico` zeigen dieselbe Steak-Grafik (`GET /icon.svg` liefert die neue Grafik).
-- [ ] Kein Bruch der bestehenden Barrierefreiheits-/Dekorativ-Kennzeichnung (`aria-hidden="true"`, `focusable="false"` bleiben erhalten, analog zur bisherigen `BrandMarkComponent`).
-- [ ] Automatisierter Test (Angular `TestBed`) belegt: `BrandMarkComponent` enthält kein Element mit den alten Drei-Kreis-Farbwerten mehr; `app-navigation.component.html` bindet `app-brand-mark` ein.
-- [ ] Manueller Smoke-Test gegen `docker-compose up`: Login-Seite, Sidebar und Browser-Tab-Icon zeigen konsistent die Steak-Grafik — Screenshot-Nachweis im PR.
-- [ ] Story-Test gemäß `.claude/agents/qa.md`-Konvention, ausschließlich gegen obige Akzeptanzkriterien.
-- [ ] Bestehende Tests von `BrandMarkComponent`, `LoginPageComponent`, `AppNavigationComponent` (inkl. Story-Tests aus US-053/US-054/US-055) bleiben grün.
+- [x] `BrandMarkComponent` rendert das Steak-Icon gemäß `docs/design` (Farbverlauf `#c96a45` → `#a8502f` → `#6f2f1c`, Grillstreifen-Andeutung) statt der drei Kreise — automatisch wirksam überall, wo `<app-brand-mark />` bereits eingebunden ist (Login-Seite, US-053/US-054).
+- [x] Die Sidebar-Brand-Zeile (`app-navigation.component.html`) bindet `<app-brand-mark />` zusätzlich zum bestehenden Text „SlobSteak“ ein.
+- [x] `frontend/public/icon.svg` und `frontend/public/favicon.ico` zeigen dieselbe Steak-Grafik (`GET /icon.svg` liefert die neue Grafik).
+- [x] Kein Bruch der bestehenden Barrierefreiheits-/Dekorativ-Kennzeichnung (`aria-hidden="true"`, `focusable="false"` bleiben erhalten, analog zur bisherigen `BrandMarkComponent`).
+- [x] Automatisierter Test (Angular `TestBed`) belegt: `BrandMarkComponent` enthält kein Element mit den alten Drei-Kreis-Farbwerten mehr; `app-navigation.component.html` bindet `app-brand-mark` ein.
+- [x] Manueller Smoke-Test gegen `docker-compose up`: Login-Seite, Sidebar und Browser-Tab-Icon zeigen konsistent die Steak-Grafik — Screenshot-Nachweis im PR.
+- [x] Story-Test gemäß `.claude/agents/qa.md`-Konvention, ausschließlich gegen obige Akzeptanzkriterien.
+- [x] Bestehende Tests von `BrandMarkComponent`, `LoginPageComponent`, `AppNavigationComponent` (inkl. Story-Tests aus US-053/US-054/US-055) bleiben grün.
 
 ### 4. Technische Hinweise für den Dev-Agenten
 
@@ -45,3 +46,33 @@ Als **Nutzer** möchte ich auf jedem Screen (Login, Sidebar, Browser-Tab) dassel
 Fünfte Story dieser Phase — unabhängig von den vorangehenden vier Stories (keine gemeinsam betroffenen Dateien), aber bewusst vor [US-074](US-074-projektuebersicht-sidebar-toolbar-cards.md) eingeplant, da jene Story dieselbe Sidebar-Brand-Zeile für die Nav-Item-Icons/Nutzerkarte weiter ausbaut — sequenzielle Reihenfolge vermeidet parallele Änderungen an `app-navigation.component.html`.
 
 ### Anmerkungen des Agenten (bei Umsetzung zu ergänzen)
+
+- **Extraktion aus `docs/design`:** Das `<script id="appifact-doc">`-JSON in
+  `docs/design/S2-Projektuebersicht-Wireframe.html` wurde per einmaligem, nicht eingechecktem
+  Node-Skript geparst (Datei ist zu groß für eine direkte Volltextsuche/-anzeige). Alle 8 der 12
+  Artboards, die das Icon enthalten (u. a. `Main.dc.html`, `Login.dc.html`), führen exakt dasselbe
+  `<path>`-Markup mit identischem Farbverlauf (`#c96a45` → `#a8502f` → `#6f2f1c`, Stop-Offsets
+  0 %/55 %/100 %) — 1:1 in `BrandMarkComponent`/`icon.svg` übernommen, keine eigene Interpretation.
+- **`favicon.ico`-Erzeugung:** Wie bereits in US-053 dokumentiert, existiert in dieser Umgebung kein
+  Bildkonvertierungswerkzeug. `frontend/gen-favicon.js` (einmalig, nicht eingecheckt) hat via
+  temporär installiertem `sharp` (SVG→PNG, 48/32/16px) und `png-to-ico` (PNG→ICO) die neue
+  `favicon.ico` erzeugt; beide npm-Pakete wurden anschließend wieder deinstalliert
+  (`package.json`/`package-lock.json` unverändert, `--no-save`).
+- **Superseded Test (US-053 Akzeptanzkriterium 4):** Der bestehende Story-Test
+  `us-053-app-identitaet-browser.spec.ts` prüfte bisher, dass `BrandMarkComponent` ausschließlich
+  SPEC-00-Farb-Tokens verwendet (Konsequenz des damaligen Drei-Kreise-Designs). Diese Story ersetzt
+  das Design bewusst durch eine Marken-/Illustrationsfarbe außerhalb von SPEC-00 (siehe „Wichtige
+  Invarianten“ oben) — der Test wurde entsprechend angepasst (prüft jetzt den dokumentierten
+  Steak-Farbverlauf statt der SPEC-00-Token-Liste), nicht ersatzlos gelöscht. Keine bisher geprüfte
+  fachliche Aussage geht verloren (CLAUDE.md Abschnitt 3, analog zum Vorgehen in US-071/US-070).
+- **Icon-Größe:** `BrandMarkComponent` bleibt bei der bestehenden, festen Größe (1.5rem, siehe
+  `brand-mark.component.css`) statt der in `docs/design` uneinheitlichen Nativgrößen (34px Login
+  vs. 28px Sidebar) — konsistente Icon-Größe an allen Einsatzorten ist näher an der fachlichen
+  Absicht „einheitliches Markenzeichen“ als eine unterschiedliche Größe je Screen; keine
+  Design-Vorgabe wird dadurch verletzt (nur die Nativgröße des SVG-`viewBox`, nicht die Darstellung,
+  unterscheidet sich vom Mockup).
+- **Manueller Smoke-Test:** `docker-compose up` mit isoliertem Port-Satz (`db:55432`, `api:55010`,
+  `frontend:54210`, Projekt `us073smoke`) gegen einen frischen Seed-Admin. Login-Seite, Browser-Tab-
+  Favicon (Zoom) und Sidebar nach Login zeigen konsistent die Steak-Grafik — Screenshots in
+  `docs/usecases/screenshots/US-073/`. Stack anschließend vollständig abgebaut
+  (`docker compose down -v`), temporäre Compose-Override-Datei nicht eingecheckt.

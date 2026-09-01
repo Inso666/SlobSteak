@@ -17,13 +17,23 @@
   box-sizing: border-box;
 }
 
+/* US-073 Akzeptanzkriterium 2: Icon+Schriftzug-Zeile, analog des bereits etablierten
+   `.brand-block__row`-Musters auf der Login-Seite (SPEC-01 §1.2, `login-page.component.css`) --
+   Wiederverwendung des Patterns statt eines abweichenden neuen Layouts (`.claude/agents/ux-ui.md`
+   Abschnitt 2). */
+.app-navigation__brand-row {
+  display: flex;
+  align-items: center;
+  gap: var(--app-space-sm);
+  margin-bottom: var(--app-space-xl);
+  padding: 0 var(--app-space-sm);
+}
+
 .app-navigation__brand {
   display: block;
   font-family: var(--app-font-family-display);
   font-weight: 600;
   color: var(--app-color-text);
-  margin-bottom: var(--app-space-xl);
-  padding: 0 var(--app-space-sm);
 }
 
 .app-navigation__links {

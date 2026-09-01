@@ -4,6 +4,25 @@ Alle nennenswerten Änderungen an diesem Projekt werden hier je User Story dokum
 
 ## [Unreleased]
 
+### US-073 — Einheitliches Marken-Icon (Steak-SVG) app-weit statt abstraktem Drei-Kreise-Symbol
+
+- Root Cause (Issue #98, QA-Design-Abgleich-Gesamtaudit vom 30.08.2026): alle 12 Artboards in
+  `docs/design/S2-Projektuebersicht-Wireframe.html` zeigen übereinstimmend eine stilisierte,
+  gegrillte Steak-Form (Farbverlauf `#c96a45` → `#a8502f` → `#6f2f1c`, Grillstreifen) als
+  Markenzeichen — `BrandMarkComponent` (US-053) rendert stattdessen drei überlappende Kreise in
+  den SPEC-00-Rollenfarben, ohne `docs/design` damals konsultiert zu haben. Die Sidebar
+  (`AppNavigationComponent`, US-055) band `<app-brand-mark />` zudem gar nicht ein.
+- Fix: SVG-Inhalt von `BrandMarkComponent` (alleinige Quelle im Angular-Code) durch die aus
+  `docs/design` extrahierte Steak-Grafik ersetzt; `frontend/public/icon.svg`/`favicon.ico` bilden
+  dieselbe Grafik als eigene, notwendige Kopie für die build-zeitlichen Browser-Assets nach
+  (`favicon.ico` per einmaligem, nicht eingechecktem Node-Skript aus dem SVG rasterisiert, analog
+  US-053). Sidebar-Brand-Zeile bindet `<app-brand-mark />` jetzt zusätzlich zum Schriftzug ein
+  (`.app-navigation__brand-row`, Pattern wiederverwendet aus `.brand-block__row` der Login-Seite).
+  `aria-hidden="true"`/`focusable="false"` unverändert erhalten.
+- Story-Test: `us-073-marken-icon-steak-svg.spec.ts`; Akzeptanzkriterium 4 des US-053-Story-Tests
+  (SPEC-00-Farb-Tokens) an die seit dieser Story dokumentierte Marken-/Illustrationsfarbe angepasst
+  (Story-Datei „Anmerkungen des Agenten“) — keine bisher geprüfte fachliche Aussage geht verloren.
+
 ### US-072 — Stakeholder-Liste & Admin-Listen als Tabellen mit vollständiger Informationsdichte statt Karten-Raster
 
 - Root Cause (Issue #100, QA-Design-Abgleich-Gesamtaudit vom 30.08.2026): Stakeholder-Liste sowie
