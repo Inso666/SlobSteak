@@ -5,11 +5,13 @@ using SlobSteak.Domain.Projects;
 namespace SlobSteak.Api.Controllers;
 
 /// <summary>Response-DTO für eine Zeile der Projektübersicht (US-018 Akzeptanzkriterium 1). Wire-
-/// Contract camelCase gemäß CLAUDE.md Abschnitt 3.1.</summary>
-public sealed record ProjectOverviewResponse(Guid Id, string Name, string Role, int StakeholderCount)
+/// Contract camelCase gemäß CLAUDE.md Abschnitt 3.1. US-074: <c>Status</c>/<c>CreatedAt</c> additiv
+/// ergänzt (analog <c>ProjectListItemResponse</c> im Admin-Bereich) — steuert die
+/// „Archiviert"-Kennzeichnung bzw. das Sortierkriterium „Neu zuerst" auf der Projektübersicht.</summary>
+public sealed record ProjectOverviewResponse(Guid Id, string Name, string Role, int StakeholderCount, string Status, DateTimeOffset CreatedAt)
 {
     public static ProjectOverviewResponse FromItem(ProjectOverviewItem item) =>
-        new(item.ProjectId, item.ProjectName, item.Role.ToString(), item.StakeholderCount);
+        new(item.ProjectId, item.ProjectName, item.Role.ToString(), item.StakeholderCount, item.Status.ToString(), item.CreatedAt);
 }
 
 /// <summary>Controller für den ProjectManagement Bounded Context aus Sicht eines beliebigen

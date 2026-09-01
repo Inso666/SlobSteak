@@ -24,7 +24,8 @@ public class LoginServiceTests
             .ReturnsAsync(user);
 
         var tokenGenerator = new Mock<IJwtTokenGenerator>();
-        tokenGenerator.Setup(g => g.GenerateToken(user.Id, user.IsSystemAdmin)).Returns(IssuedToken);
+        // US-074: LoginService reicht zusätzlich den Anzeigenamen durch (Sidebar-Nutzerkarte).
+        tokenGenerator.Setup(g => g.GenerateToken(user.Id, user.IsSystemAdmin, user.Name)).Returns(IssuedToken);
 
         var service = new LoginService(repository.Object, tokenGenerator.Object);
 
