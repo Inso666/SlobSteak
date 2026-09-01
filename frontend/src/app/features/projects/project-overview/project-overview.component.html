@@ -5,17 +5,31 @@
     <p class="load-error" role="alert">{{ loadError }}</p>
   }
 
+  <!-- US-074 Akzeptanzkriterium „Toolbar": Tabs mit Live-Zähler für ALLE Rollen (nicht mehr nur
+       Systemadmins) — „Alle Projekte" bleibt weiterhin ausschließlich für Systemadmins sichtbar
+       (unverändertes Berechtigungsverhalten aus US-018). -->
   <div class="toolbar">
-    @if (isSystemAdmin) {
-      <div class="tab-pills" role="tablist">
-        <button type="button" class="tab-pill" role="tab" [class.active]="activeTab === 'mine'" [attr.aria-selected]="activeTab === 'mine'" (click)="onSelectTab('mine')">
-          Meine Projekte
-        </button>
+    <div class="tab-pills" role="tablist">
+      <button type="button" class="tab-pill" role="tab" [class.active]="activeTab === 'mine'" [attr.aria-selected]="activeTab === 'mine'" (click)="onSelectTab('mine')">
+        Meine Projekte ({{ myProjects.length }})
+      </button>
+      @if (isSystemAdmin) {
         <button type="button" class="tab-pill" role="tab" [class.active]="activeTab === 'all'" [attr.aria-selected]="activeTab === 'all'" (click)="onSelectTab('all')">
-          Alle Projekte
+          Alle Projekte ({{ allProjects.length }})
         </button>
-      </div>
-    }
+      }
+    </div>
+
+    <div class="search-sort">
+      <label for="project-search" class="sr-only">Projekte durchsuchen</label>
+      <input pInputText id="project-search" type="text" placeholder="Projekte durchsuchen…" [formControl]="filterForm.controls.search" />
+
+      <label for="project-sort" class="sr-only">Sortierung</label>
+      <select id="project-sort" [formControl]="filterForm.controls.sortBy" aria-label="Sortierung">
+        <option value="name">Name (A–Z)</option>
+        <option value="newest">Neu zuerst</option>
+      </select>
+    </div>
 
     @if (isSystemAdmin) {
       <button type="button" pButton (click)="onCreateProject()">Neues Projekt</button>
@@ -25,11 +39,21 @@
   @if (activeTab === 'mine' || !isSystemAdmin) {
     <app-view-state [state]="myProjectsState" emptyMessage="Du bist noch keinem Projekt zugewiesen." [skeletonCount]="3">
       <div class="project-cards">
-        @for (project of myProjects; track project.id) {
-          <button type="button" class="project-card" (click)="onOpenProject(project.id)">
-            <h2>{{ project.name }}</h2>
-            <p>Rolle: {{ project.role }}</p>
-            <p>Stakeholder: {{ project.stakeholderCount }}</p>
+        @for (project of filteredMyProjects; track project.id) {
+          <button type="button" class="project-card" [class.archived]="project.status === 'Archived'" (click)="onOpenProject(project.id)">
+            <div class="project-card__head">
+              <h2>{{ project.name }}</h2>
+              @if (project.status === 'Archived') {
+                <span class="status-tag status-tag--archived">Archiviert</span>
+              }
+            </div>
+            @if (roleBadgeClass(project.role); as badgeClass) {
+              <span class="role-badge" [class]="badgeClass">{{ project.role }}</span>
+            }
+            <p class="stat-row">
+              <span class="stat-num">{{ project.stakeholderCount }}</span>
+              <span class="stat-label">Stakeholder</span>
+            </p>
           </button>
         }
       </div>
@@ -39,11 +63,15 @@
   @if (isSystemAdmin && activeTab === 'all') {
     <app-view-state [state]="allProjectsState" emptyMessage="Es existieren noch keine Projekte." [skeletonCount]="3">
       <div class="project-cards">
-        @for (project of allProjects; track project.id) {
-          <button type="button" class="project-card" (click)="onOpenProject(project.id)">
-            <h2>{{ project.name }}</h2>
-            <p>Status: {{ project.status }}</p>
-            <p>Mitglieder: {{ project.memberCount }}</p>
+        @for (project of filteredAllProjects; track project.id) {
+          <button type="button" class="project-card" [class.archived]="project.status === 'Archived'" (click)="onOpenProject(project.id)">
+            <div class="project-card__head">
+              <h2>{{ project.name }}</h2>
+              <span class="status-tag" [class.status-tag--archived]="project.status === 'Archived'">
+                {{ project.status === 'Archived' ? 'Archiviert' : 'Aktiv' }}
+              </span>
+            </div>
+            <p class="stat-row">Mitglieder: {{ project.memberCount }}</p>
           </button>
         }
       </div>

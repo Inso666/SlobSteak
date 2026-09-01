@@ -1,12 +1,26 @@
 import { ChangeDetectorRef, Component, OnInit, inject } from '@angular/core';
 import { Router } from '@angular/router';
+import { FormControl, FormGroup, ReactiveFormsModule } from '@angular/forms';
 import { ButtonDirective } from 'primeng/button';
+import { InputText } from 'primeng/inputtext';
 import { ProjectOverviewItem, ProjectsService } from '../projects.service';
 import { AdminProject, AdminProjectsService } from '../../admin/admin-projects.service';
 import { TokenStorageService } from '../../auth/token-storage.service';
 import { LOAD_ERROR_MESSAGE } from '../../../core/messages/http-error-messages';
 import { ViewState, deriveListViewState } from '../../../shared/view-state/view-state';
 import { ViewStateComponent } from '../../../shared/view-state/view-state.component';
+
+/** US-074 Akzeptanzkriterium „Toolbar": Sortieroptionen des Sortier-Dropdowns. Ersetzt das laut
+ * PO-Entscheidung (Story-Datei Abschnitt 2) vorerst ausgesetzte SPEC-02-Kriterium „Zuletzt
+ * aktualisiert" — es gibt noch kein `Project.UpdatedAt` (siehe Folge-Story US-076). */
+type ProjectSortOption = 'name' | 'newest';
+
+/** Gemeinsame Teilmenge, die beide Kartentypen („Meine Projekte“/`ProjectOverviewItem` und „Alle
+ * Projekte“/`AdminProject`) für die client-seitige Suche/Sortierung benötigen (US-074). */
+interface SortableProject {
+  name: string;
+  createdAt?: string;
+}
 
 /**
  * Projektübersicht (US-018, Screen S2): Kartenübersicht der dem Nutzer zugewiesenen Projekte mit
@@ -19,7 +33,7 @@ import { ViewStateComponent } from '../../../shared/view-state/view-state.compon
 @Component({
   selector: 'app-project-overview',
   standalone: true,
-  imports: [ButtonDirective, ViewStateComponent],
+  imports: [ButtonDirective, InputText, ReactiveFormsModule, ViewStateComponent],
   templateUrl: './project-overview.component.html',
   styleUrl: './project-overview.component.css',
 })
@@ -42,6 +56,15 @@ export class ProjectOverviewComponent implements OnInit {
   protected allProjectsState: ViewState = 'loading';
 
   protected readonly isSystemAdmin = this.tokenStorage.getClaims()?.isSystemAdmin ?? false;
+
+  /** US-074 Akzeptanzkriterium „Toolbar": rein client-seitige Filterung/Sortierung der bereits
+   * geladenen Listen — kein erneuter Server-Request je Tastenanschlag/Auswahl. Keine
+   * `Validators`, da diese Felder (anders als z. B. Formulare mit serverseitiger Validierung,
+   * `.claude/agents/frontend.md` Abschnitt 2) rein lokal filtern, nichts an das Backend senden. */
+  protected readonly filterForm = new FormGroup({
+    search: new FormControl('', { nonNullable: true }),
+    sortBy: new FormControl<ProjectSortOption>('name', { nonNullable: true }),
+  });
 
   /** US-044 Akzeptanzkriterium 4: konsistente Fehlermeldung statt stumm leerer Ansicht bei
    * fehlgeschlagenem Laden. US-050: zusätzlich ein diskreter `ViewState` je Liste, damit
@@ -95,5 +118,43 @@ export class ProjectOverviewComponent implements OnInit {
 
   protected onCreateProject(): void {
     void this.router.navigate(['/admin/projects']);
+  }
+
+  /** US-074 Akzeptanzkriterium „Toolbar": gefilterte/sortierte Sicht auf `myProjects`, gebunden
+   * an `filterForm`. Als Getter statt einmaliger Berechnung, da sich Eingabe-/Auswahlwert
+   * jederzeit ändern kann. */
+  protected get filteredMyProjects(): ProjectOverviewItem[] {
+    return this.filterAndSort(this.myProjects);
+  }
+
+  /** Analog {@link filteredMyProjects} für die Admin-„Alle Projekte“-Liste. */
+  protected get filteredAllProjects(): AdminProject[] {
+    return this.filterAndSort(this.allProjects);
+  }
+
+  /** SPEC-00 §4 / US-074 Akzeptanzkriterium „Karten": farbcodierte Rollen-Badge-Klasse, analog zum
+   * bereits etablierten `roleBadgeClass`-Muster in `ProjectWorkspaceLayoutComponent`. Rolle
+   * „User" erhält bewusst keinen Badge (`null` → Template blendet ihn vollständig aus). */
+  protected roleBadgeClass(role: string): string | null {
+    switch (role) {
+      case 'PL':
+        return 'role-badge--pl';
+      case 'Coreteam':
+        return 'role-badge--coreteam';
+      case 'Architect':
+        return 'role-badge--architect';
+      default:
+        return null;
+    }
+  }
+
+  private filterAndSort<T extends SortableProject>(items: T[]): T[] {
+    const term = this.filterForm.controls.search.value.trim().toLowerCase();
+    const filtered = term ? items.filter((item) => item.name.toLowerCase().includes(term)) : items.slice();
+
+    const sortBy = this.filterForm.controls.sortBy.value;
+    return filtered.sort((a, b) =>
+      sortBy === 'name' ? a.name.localeCompare(b.name, 'de') : (b.createdAt ?? '').localeCompare(a.createdAt ?? ''),
+    );
   }
 }

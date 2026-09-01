@@ -14,6 +14,9 @@ export interface AppNavLink {
   readonly label: string;
   /** Ziel-Route für `routerLink`. */
   readonly route: string;
+  /** US-074 Akzeptanzkriterium „Sidebar": PrimeIcons-Klasse (ohne führendes `pi`-Präfix, z. B.
+   * `pi-th-large`) gemäß `docs/design/Main.dc.html`/`SPEC-02-Projektuebersicht.md` §1.2. */
+  readonly icon: string;
 }
 
 /**
@@ -22,7 +25,7 @@ export interface AppNavLink {
  * Sichtbarkeit hängt zusätzlich von `isSystemAdmin` ab, siehe {@link APP_NAV_ADMIN_LINK}.
  */
 export const APP_NAV_LINKS: readonly AppNavLink[] = [
-  { label: 'Projektübersicht', route: '/projects' },
+  { label: 'Projektübersicht', route: '/projects', icon: 'pi-th-large' },
 ];
 
 /**
@@ -33,7 +36,7 @@ export const APP_NAV_LINKS: readonly AppNavLink[] = [
  * vollständig aus dem DOM statt ihn nur per CSS zu verstecken. `/admin/users` ist der in
  * Akzeptanzkriterium 3 geforderte Standard-Einstieg in den Admin-Bereich.
  */
-export const APP_NAV_ADMIN_LINK: AppNavLink = { label: 'Admin', route: '/admin/users' };
+export const APP_NAV_ADMIN_LINK: AppNavLink = { label: 'Admin', route: '/admin/users', icon: 'pi-shield' };
 
 /** Text der „Abmelden“-Aktion — kein Navigationslink, sondern ein Button mit Seiteneffekt (Akzeptanzkriterium 4). */
 export const APP_NAV_LOGOUT_LABEL = 'Abmelden';

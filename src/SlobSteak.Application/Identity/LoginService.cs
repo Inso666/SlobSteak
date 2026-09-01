@@ -51,7 +51,9 @@ public sealed class LoginService
             return null;
         }
 
-        var token = _tokenGenerator.GenerateToken(user.Id, user.IsSystemAdmin);
+        // US-074: Anzeigename mit ausstellen, damit die Sidebar-Nutzerkarte im Frontend ohne
+        // zusätzlichen Backend-Request auskommt (siehe IJwtTokenGenerator-Dokumentation).
+        var token = _tokenGenerator.GenerateToken(user.Id, user.IsSystemAdmin, user.Name);
         return new LoginResult(token, user.MustChangePassword);
     }
 }
