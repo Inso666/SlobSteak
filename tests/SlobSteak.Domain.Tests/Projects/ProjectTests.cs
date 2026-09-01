@@ -59,4 +59,41 @@ public class ProjectTests
 
         project.Status.Should().Be(ProjectStatus.Active);
     }
+
+    // US-076 Akzeptanzkriterium 1: UpdatedAt ist initial gleich CreatedAt und wird durch
+    // Archive/Reactivate aktualisiert (AssignMember/ChangeMemberRole/RemoveMember siehe
+    // ProjectMembershipTests, da sie eine bestehende Mitgliedschaft voraussetzen).
+
+    [Fact]
+    public void Create_SetsUpdatedAtEqualToCreatedAt()
+    {
+        var project = Project.Create("Projekt Phoenix", null);
+
+        project.UpdatedAt.Should().Be(project.CreatedAt);
+    }
+
+    [Fact]
+    public void Archive_UpdatesUpdatedAt()
+    {
+        var project = Project.Create("Projekt Phoenix", null);
+        var initialUpdatedAt = project.UpdatedAt;
+        Thread.Sleep(5);
+
+        project.Archive();
+
+        project.UpdatedAt.Should().BeAfter(initialUpdatedAt);
+    }
+
+    [Fact]
+    public void Reactivate_UpdatesUpdatedAt()
+    {
+        var project = Project.Create("Projekt Phoenix", null);
+        project.Archive();
+        var updatedAtAfterArchive = project.UpdatedAt;
+        Thread.Sleep(5);
+
+        project.Reactivate();
+
+        project.UpdatedAt.Should().BeAfter(updatedAtAfterArchive);
+    }
 }

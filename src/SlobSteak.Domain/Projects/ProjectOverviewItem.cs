@@ -14,6 +14,9 @@ namespace SlobSteak.Domain.Projects;
 /// nötig), waren aber bislang nur in der Admin-Projektliste (<c>AdminProjectController</c>)
 /// exponiert. <see cref="Status"/> steuert die „Archiviert"-Kennzeichnung der Projektkarten,
 /// <see cref="CreatedAt"/> das Sortierkriterium „Neu zuerst" (Story-Akzeptanzkriterien).
+/// US-076: <see cref="UpdatedAt"/> additiv ergänzt (neues <see cref="Project.UpdatedAt"/>-Feld,
+/// eigene EF-Core-Migration) — Grundlage der Kartenfußzeile „Aktualisiert vor …" sowie des
+/// zusätzlichen Sortierkriteriums „Zuletzt aktualisiert".
 /// </remarks>
 public sealed record ProjectOverviewItem(
     Guid ProjectId,
@@ -21,4 +24,5 @@ public sealed record ProjectOverviewItem(
     ProjectRole Role,
     int StakeholderCount,
     ProjectStatus Status,
-    DateTimeOffset CreatedAt);
+    DateTimeOffset CreatedAt,
+    DateTimeOffset UpdatedAt);

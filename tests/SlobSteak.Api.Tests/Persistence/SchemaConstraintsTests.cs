@@ -118,7 +118,7 @@ public sealed class SchemaConstraintsTests : IAsyncLifetime
         Guid.NewGuid(), "Testnutzer", new Email($"user-{Guid.NewGuid():N}@example.com"), "hash", false, false, DateTimeOffset.UtcNow);
 
     private static Project NewProject() => new(
-        Guid.NewGuid(), $"Projekt-{Guid.NewGuid():N}", null, ProjectStatus.Active, DateTimeOffset.UtcNow);
+        Guid.NewGuid(), $"Projekt-{Guid.NewGuid():N}", null, ProjectStatus.Active, DateTimeOffset.UtcNow, DateTimeOffset.UtcNow);
 
     private static Stakeholder NewStakeholder(Guid projectId, Guid userId) => new(
         Guid.NewGuid(), projectId, StakeholderType.Person, "Max Mustermann", null, null, null, null, null, null,

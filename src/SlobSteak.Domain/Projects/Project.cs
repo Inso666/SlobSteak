@@ -20,7 +20,14 @@ public sealed class Project
 {
     private readonly List<ProjectMembership> _memberships = new();
 
-    public Project(Guid id, string name, string? description, ProjectStatus status, DateTimeOffset createdAt)
+    /// <summary>Öffentlicher Konstruktor — wird auch von EF Core zur Rematerialisierung aus der
+    /// Datenbank verwendet (Parameterbindung nach Property-Namen, analog zu
+    /// <see cref="Assessments.StakeholderAssessment"/>). <paramref name="updatedAt"/> ist bewusst
+    /// nicht optional: ein optionaler <c>DateTimeOffset?</c>-Parameter ließe sich nicht mehr an die
+    /// (nicht-nullable) <see cref="UpdatedAt"/>-Spalte binden (EF-Core-Konstruktorbindung verlangt
+    /// exakte Typgleichheit) — <see cref="Create"/> übergibt hierfür einfach denselben Wert wie
+    /// <paramref name="createdAt"/>.</summary>
+    public Project(Guid id, string name, string? description, ProjectStatus status, DateTimeOffset createdAt, DateTimeOffset updatedAt)
     {
         if (string.IsNullOrWhiteSpace(name))
         {
@@ -32,6 +39,7 @@ public sealed class Project
         Description = description;
         Status = status;
         CreatedAt = createdAt;
+        UpdatedAt = updatedAt;
     }
 
     public Guid Id { get; private set; }
@@ -43,6 +51,14 @@ public sealed class Project
     public ProjectStatus Status { get; private set; }
 
     public DateTimeOffset CreatedAt { get; private set; }
+
+    /// <summary>Zeitpunkt der letzten fachlichen Änderung (US-076) — initial gleich
+    /// <see cref="CreatedAt"/>, aktualisiert durch <see cref="Archive"/>, <see cref="Reactivate"/>,
+    /// <see cref="AssignMember"/>, <see cref="ChangeMemberRole"/> und <see cref="RemoveMember"/>
+    /// (nur, wenn dabei tatsächlich eine Mitgliedschaft entfernt wurde — idempotente Aufrufe ohne
+    /// Wirkung ändern <see cref="UpdatedAt"/> nicht). Grundlage für die Kartenfußzeile „Aktualisiert
+    /// vor …“ und das Sortierkriterium „Zuletzt aktualisiert“ der Projektübersicht.</summary>
+    public DateTimeOffset UpdatedAt { get; private set; }
 
     /// <summary>Mitgliedschaften dieses Projekts (US-011). Nur über
     /// <see cref="AssignMember"/>/<see cref="ChangeMemberRole"/>/<see cref="RemoveMember"/>
@@ -59,14 +75,23 @@ public sealed class Project
             throw new ProjectNameRequiredError();
         }
 
-        return new Project(Guid.NewGuid(), name, description, ProjectStatus.Active, DateTimeOffset.UtcNow);
+        var now = DateTimeOffset.UtcNow;
+        return new Project(Guid.NewGuid(), name, description, ProjectStatus.Active, now, now);
     }
 
     /// <summary>Setzt den Status auf <see cref="ProjectStatus.Archived"/>.</summary>
-    public void Archive() => Status = ProjectStatus.Archived;
+    public void Archive()
+    {
+        Status = ProjectStatus.Archived;
+        Touch();
+    }
 
     /// <summary>Setzt den Status zurück auf <see cref="ProjectStatus.Active"/>.</summary>
-    public void Reactivate() => Status = ProjectStatus.Active;
+    public void Reactivate()
+    {
+        Status = ProjectStatus.Active;
+        Touch();
+    }
 
     /// <summary>Ordnet <paramref name="userId"/> die Rolle <paramref name="role"/> in diesem
     /// Projekt zu.</summary>
@@ -81,6 +106,7 @@ public sealed class Project
         }
 
         _memberships.Add(new ProjectMembership(Guid.NewGuid(), Id, userId, role));
+        Touch();
     }
 
     /// <summary>Aktualisiert die Rolle einer bestehenden Mitgliedschaft.</summary>
@@ -92,16 +118,22 @@ public sealed class Project
             ?? throw new MembershipNotFoundError(Id, userId);
 
         membership.UpdateRole(newRole);
+        Touch();
     }
 
     /// <summary>Entfernt die Mitgliedschaft von <paramref name="userId"/> in diesem Projekt.
-    /// Idempotent — existiert keine Mitgliedschaft, passiert nichts (kein Fehler).</summary>
+    /// Idempotent — existiert keine Mitgliedschaft, passiert nichts (kein Fehler, <see cref="UpdatedAt"/>
+    /// bleibt unverändert).</summary>
     public void RemoveMember(Guid userId)
     {
         var membership = _memberships.SingleOrDefault(m => m.UserId == userId);
         if (membership is not null)
         {
             _memberships.Remove(membership);
+            Touch();
         }
     }
+
+    /// <summary>Setzt <see cref="UpdatedAt"/> auf den aktuellen Zeitpunkt (US-076).</summary>
+    private void Touch() => UpdatedAt = DateTimeOffset.UtcNow;
 }

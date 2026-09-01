@@ -1,17 +1,49 @@
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
+using SlobSteak.Application.Projects;
 using SlobSteak.Domain.Projects;
 
 namespace SlobSteak.Api.Controllers;
 
+/// <summary>Bewertungsfortschritt einer perspektiv-tragenden Rolle im Wire-Contract (US-076
+/// Akzeptanzkriterium 2/3).</summary>
+public sealed record RoleAssessmentProgressResponse(int Percent, int UnassessedCount)
+{
+    public static RoleAssessmentProgressResponse FromProgress(RoleAssessmentProgress progress) =>
+        new(progress.Percent, progress.UnassessedCount);
+}
+
 /// <summary>Response-DTO für eine Zeile der Projektübersicht (US-018 Akzeptanzkriterium 1). Wire-
 /// Contract camelCase gemäß CLAUDE.md Abschnitt 3.1. US-074: <c>Status</c>/<c>CreatedAt</c> additiv
 /// ergänzt (analog <c>ProjectListItemResponse</c> im Admin-Bereich) — steuert die
-/// „Archiviert"-Kennzeichnung bzw. das Sortierkriterium „Neu zuerst" auf der Projektübersicht.</summary>
-public sealed record ProjectOverviewResponse(Guid Id, string Name, string Role, int StakeholderCount, string Status, DateTimeOffset CreatedAt)
+/// „Archiviert"-Kennzeichnung bzw. das Sortierkriterium „Neu zuerst" auf der Projektübersicht.
+/// US-076: <c>UpdatedAt</c> sowie der Bewertungsfortschritt je perspektiv-tragender Rolle
+/// (<c>Pl</c>/<c>Coreteam</c>/<c>Architect</c>) additiv ergänzt — Grundlage der Fortschritts-Ringe,
+/// des „unbewertet · deine Sicht"-Hinweises und der Kartenfußzeile „Aktualisiert vor …".</summary>
+public sealed record ProjectOverviewResponse(
+    Guid Id,
+    string Name,
+    string Role,
+    int StakeholderCount,
+    string Status,
+    DateTimeOffset CreatedAt,
+    DateTimeOffset UpdatedAt,
+    RoleAssessmentProgressResponse Pl,
+    RoleAssessmentProgressResponse Coreteam,
+    RoleAssessmentProgressResponse Architect)
 {
-    public static ProjectOverviewResponse FromItem(ProjectOverviewItem item) =>
-        new(item.ProjectId, item.ProjectName, item.Role.ToString(), item.StakeholderCount, item.Status.ToString(), item.CreatedAt);
+    public static ProjectOverviewResponse FromItem(ProjectOverviewItem item, ProjectAssessmentProgress progress) =>
+        new(
+            item.ProjectId,
+            item.ProjectName,
+            item.Role.ToString(),
+            item.StakeholderCount,
+            item.Status.ToString(),
+            item.CreatedAt,
+            item.UpdatedAt,
+            RoleAssessmentProgressResponse.FromProgress(progress.Pl),
+            RoleAssessmentProgressResponse.FromProgress(progress.Coreteam),
+            RoleAssessmentProgressResponse.FromProgress(progress.Architect));
 }
 
 /// <summary>Controller für den ProjectManagement Bounded Context aus Sicht eines beliebigen
@@ -23,15 +55,17 @@ public sealed record ProjectOverviewResponse(Guid Id, string Name, string Role, 
 public sealed class ProjectController : ControllerBase
 {
     private readonly IProjectOverviewQuery _projectOverviewQuery;
+    private readonly ProjectAssessmentProgressQuery _assessmentProgressQuery;
 
-    public ProjectController(IProjectOverviewQuery projectOverviewQuery)
+    public ProjectController(IProjectOverviewQuery projectOverviewQuery, ProjectAssessmentProgressQuery assessmentProgressQuery)
     {
         _projectOverviewQuery = projectOverviewQuery;
+        _assessmentProgressQuery = assessmentProgressQuery;
     }
 
     /// <summary>Listet ausschließlich die Projekte, in denen der angemeldete Nutzer eine
     /// <c>ProjectMembership</c> hat, mit seiner jeweiligen Rolle und der Stakeholder-Anzahl
-    /// (US-018 Akzeptanzkriterium 1).</summary>
+    /// (US-018 Akzeptanzkriterium 1), inklusive Bewertungsfortschritt je Rolle (US-076).</summary>
     [HttpGet]
     [ProducesResponseType(typeof(IReadOnlyList<ProjectOverviewResponse>), StatusCodes.Status200OK)]
     [ProducesResponseType(StatusCodes.Status401Unauthorized)]
@@ -44,7 +78,15 @@ public sealed class ProjectController : ControllerBase
         }
 
         var items = await _projectOverviewQuery.GetForUserAsync(userId, cancellationToken);
-        return Ok(items.Select(ProjectOverviewResponse.FromItem));
+
+        var responses = new List<ProjectOverviewResponse>(items.Count);
+        foreach (var item in items)
+        {
+            var progress = await _assessmentProgressQuery.GetForProjectAsync(item.ProjectId, cancellationToken);
+            responses.Add(ProjectOverviewResponse.FromItem(item, progress));
+        }
+
+        return Ok(responses);
     }
 
     /// <summary>Liefert ein einzelnes Projekt aus Sicht des angemeldeten Nutzers inklusive eigener
@@ -71,6 +113,7 @@ public sealed class ProjectController : ControllerBase
             return NotFound();
         }
 
-        return Ok(ProjectOverviewResponse.FromItem(item));
+        var progress = await _assessmentProgressQuery.GetForProjectAsync(item.ProjectId, cancellationToken);
+        return Ok(ProjectOverviewResponse.FromItem(item, progress));
     }
 }
