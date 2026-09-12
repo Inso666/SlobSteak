@@ -21,15 +21,15 @@ Diese Tabelle ist die **einzige Quelle der Wahrheit** für Farben, Typografie un
 | `#1D2536` | `color.surface-hover` | `var(--p-surface-hover)` | Hover-, aktive Zustände |
 | `#262F42` | `color.border` | `var(--p-content-border-color)` / `var(--p-surface-border)` | Trennlinien, Karten-Rahmen, Input-Rahmen |
 | `#EDEFF4` | `color.text` | `var(--p-text-color)` | Primärtext, Fläche des Primär-Buttons |
-| `#8D97AC` | `color.text-muted` | `var(--p-text-muted-color)` | Sekundärtext, Labels, inaktive Tabs |
-| `#5D6883` | `color.text-faint` | `var(--p-text-color-secondary)` (abgeschwächt) bzw. eigenes Custom-Token `--app-text-faint` | Meta-Infos, Zeitstempel, Platzhalter für unbesetzte Radar-Ringe |
+| `#8D97AC` | `color.text-muted` | `var(--p-text-muted-color)` | Sekundärtext, Labels, inaktive Tabs, Meta-Infos, Zeitstempel, Platzhalter für unbesetzte Radar-Ringe, Formularfeld-Platzhalter-/Disabled-Text |
 | `#F2A93B` | `color.attention` (Akzentfarbe) | `var(--p-primary-color)` bzw. eigenes Custom-Token `--app-attention` | „Braucht Aufmerksamkeit"-Signal, Fokus-Ring — **ausschließlich** dafür reserviert, nie für allgemeine Links/Buttons |
 | `rgba(242,169,59,0.14)` | `color.attention-bg` | Custom-Token `--app-attention-bg` | Hintergrund von Attention-Badges |
 | `#22C55E` | `color.success` | `var(--p-green-500)` / `var(--p-success-color)` | Bestätigungen, Status „Aktiv" |
 | `#F87171` | `color.error` | `var(--p-red-400)` / `var(--p-error-color)` | Fehler, destruktive Aktionen |
-| `#8B7CF6` | `color.role-pl` | Custom-Token `--app-role-pl` | Badge/Radar-Ring/Map-Punkt Rolle „PL" (F3) |
-| `#2DD4BF` | `color.role-ct` | Custom-Token `--app-role-ct` | Badge/Radar-Ring/Map-Punkt Rolle „Coreteam" (F3) |
-| `#38BDF8` | `color.role-ar` | Custom-Token `--app-role-ar` | Badge/Radar-Ring/Map-Punkt Rolle „Architect" (F3) |
+| `#8B7CF6` | `color.role-pl` | Custom-Token `--app-role-pl` | Radar-Ring/Map-Punkt/Slider Rolle „PL" (F3) — reine Datenfarbe, unverändert seit US-047 |
+| `#A89DF8` | `color.role-pl-badge` | Custom-Token `--app-role-pl-badge` | **Nur** `.role-badge--pl`-Textfarbe (US-078, Issue #119): `color.role-pl` selbst verfehlt auf der 16%-Opazitätsfläche 4,5:1 (gemessen 4,05–4,44:1); ein aufgehellter, badge-exklusiver Wert behebt das, ohne die Datenfarbe auf Map/Ring/Slider zu verändern — siehe ADR-0012 |
+| `#2DD4BF` | `color.role-ct` | Custom-Token `--app-role-ct` | Badge/Radar-Ring/Map-Punkt Rolle „Coreteam" (F3) — erreicht als Badge-Textfarbe bereits >4,5:1, keine Anpassung nötig |
+| `#38BDF8` | `color.role-ar` | Custom-Token `--app-role-ar` | Badge/Radar-Ring/Map-Punkt Rolle „Architect" (F3) — erreicht als Badge-Textfarbe bereits >4,5:1, keine Anpassung nötig |
 | `8px` (Swatch-Radius) | `radius.md` | `var(--p-border-radius-md)` | Karten, Buttons, Input-Felder |
 | `10px` (Karten-/Tabs-Radius) | `radius.lg` | `var(--p-border-radius-lg)` | Panels, Tabs-Container, Legende |
 | `999px` (Badge-Radius) | `radius.full` | `var(--p-border-radius-full)` bzw. `border-radius: 9999px` | Rollen-Badges, Attention-Badge-Punkt |
@@ -42,9 +42,18 @@ Diese Tabelle ist die **einzige Quelle der Wahrheit** für Farben, Typografie un
 | `14px/20px` (Gap in `.row`) | `space.md` / `space.lg` | PrimeFlex `gap-3`/`gap-5` | horizontaler Abstand zwischen Bedienelementen |
 | `16px` (Grid-Gap Rollen/Swatches) | `space.md` | PrimeFlex `gap-4` | Grid-Abstände (Rollen-Karten, Swatches) |
 | `36px` (Section-Gap) | `space.xl` | PrimeFlex `gap-6` | Abstand zwischen Abschnitten |
-| `0.72` (Deckkraft, US-064) | `opacity.map-point-locked` | Custom-Token `--app-map-point-locked-opacity` | Einheitliche reduzierte Deckkraft für „gesperrt/nicht ziehbar"-Punkte auf der Stakeholder-Map (Vergleichspunkt UND eigener Punkt bei Rollen-/Perspektiven-Mismatch, SPEC-04 §3.1) sowie deren Legenden-Swatch — unabhängig vom Sperrgrund identisch, da kein fachlicher Unterschied zwischen den Sperr-Gründen kommuniziert wird (Issue #71) |
+| `0.92` (Deckkraft, US-064/US-078) | `opacity.map-point-locked` | Custom-Token `--app-map-point-locked-opacity` | Einheitliche reduzierte Deckkraft für „gesperrt/nicht ziehbar"-Punkte auf der Stakeholder-Map (Vergleichspunkt UND eigener Punkt bei Rollen-/Perspektiven-Mismatch, SPEC-04 §3.1) sowie deren Legenden-Swatch, **und** für archivierte Projektkarten (`.project-card.archived`, US-074) — unabhängig vom Sperrgrund identisch, da kein fachlicher Unterschied zwischen den Sperr-Gründen kommuniziert wird (Issue #71). Ursprünglich `0.72` (US-064); von US-078 auf `0.92` angehoben, weil CSS-`opacity` auf dem gesamten archivierten Karten-Element Text- und Flächenfarbe gemeinsam gegen den Seitenhintergrund faltet und dadurch bei `0.72` selbst `color.text-muted` unter 4,5:1 fiel — siehe ADR-0012 |
 
 > Hinweis für Folge-Specs: Wird in einer Feature-Spec ein Farb-/Radius-/Abstandswert benötigt, der hier nicht gelistet ist, ist das ein Hinweis auf eine fehlende Design-Entscheidung — nicht auf einen frei wählbaren Wert. Rückfrage an UX/UI statt Erfindung eines neuen Tokens.
+>
+> **US-078-Nachtrag (Issue #119/#121, ADR-0012):** `color.text-faint` (vormals `#5D6883`) wurde aus
+> dieser Tabelle entfernt und ersatzlos mit `color.text-muted` zusammengeführt — der Wireframe-Wert
+> verfehlte auf beiden im Produkt vorkommenden Flächen (`color.background`, `color.surface`) den
+> WCAG-AA-Mindestkontrast von 4,5:1, und der einzige rechnerisch mögliche eigenständige Zwischenwert
+> hätte keinen wahrnehmbaren Abstand mehr zu `color.text-muted` gehabt. Jede Verwendungsstelle, die
+> zuvor `--app-color-text-faint` referenzierte (inkl. `formField.placeholderColor`/`disabledColor` im
+> PrimeNG-Preset), nutzt jetzt `--app-color-text-muted`. Bei Konflikt zwischen einem Wireframe-Wert und
+> dem WCAG-AA-Kontrast gewinnt grundsätzlich der Kontrast (ADR-0012).
 
 ### 1.3 Wiederverwendbare UI-Bausteine → PrimeNG-Äquivalent
 
@@ -55,7 +64,7 @@ Diese Tabelle ist die **einzige Quelle der Wahrheit** für Farben, Typografie un
 | `.btn-destructive` (transparent, `color.error`-Rahmen/-Text) | `<p-button [outlined]="true" severity="danger">` | Löschen/destruktive Aktionen |
 | `.btn[disabled]` (Opazität 0.4) | `<p-button [disabled]="true">` | native PrimeNG-Disabled-Optik verwenden, keine manuelle Opazität |
 | `.tabs` / `.tab.active` (Pill-Container mit aktivem Tab in Textfarbe) | `<p-tabs>` / `<p-tablist>` / `<p-tab>` (PrimeNG v18 Tabs-API) im Pill-Stil, aktiver Tab = `color.text`-Fläche auf `color.background`-Schrift | Tab-Unterstrich-Muster aus dem Wireframe ist tatsächlich ein **gefüllter Pill**, kein Unterstrich — Folge-Specs (z. B. Stakeholder-Detail-Assessment-Tabs, US-029) übernehmen exakt dieses Pill-Muster |
-| `.role-badge` (Rollenfarbe als Text auf 16%-Opazitäts-Hintergrund, `radius.full`) | `<p-tag [rounded]="true">` mit Custom-Styling je Rolle (`--app-role-pl/ct/ar` als `color`, gleiche Farbe bei 16% Opazität als `background`) bzw. `<p-chip>` | Vier Varianten: PL, Coreteam (`ct`), Architect (`ar`), Admin (`ad`, neutral: `color.surface-hover`-Fläche + `color.border`-Rahmen). Rolle „User" hat **keinen** Badge (siehe §4) |
+| `.role-badge` (Rollenfarbe als Text auf 16%-Opazitäts-Hintergrund, `radius.full`) | `<p-tag [rounded]="true">` mit Custom-Styling je Rolle (`--app-role-ct/ar` bzw. für PL das badge-exklusive `--app-role-pl-badge`, siehe §1.2/ADR-0012, als `color`; jeweils die zugehörige `-bg`-Variable bei 16% Opazität als `background`) bzw. `<p-chip>` | Vier Varianten: PL, Coreteam (`ct`), Architect (`ar`), Admin (`ad`, neutral: `color.surface-hover`-Fläche + `color.border`-Rahmen). Rolle „User" hat **keinen** Badge (siehe §4) |
 | `.status-tag` (uppercase, `radius.sm`, drei Varianten) | `<p-tag [rounded]="false">` mit `severity`-Mapping: `active` → `success`, `archived` → `secondary`/neutral, `deleted` → `danger` | Uppercase + Letter-Spacing als Text-Transform, nicht als eigene Komponente |
 | `.attention` (Punkt + Text, `color.attention-bg`-Fläche) | Custom-Komponente `AppAttentionBadgeComponent` auf Basis `<p-tag>`/`<p-message severity="warn">`, mit vorangestelltem 6px-Punkt (`<span class="dot">`) | Kein reines PrimeNG-Standardelement — kombiniert Punkt + Badge-Fläche; als projektspezifischer Wrapper bauen |
 | `.role-card` (Karte mit Badge + Beschreibungstext) | `<p-card>` | Container für Rollenübersicht (Admin-/Hilfe-Kontext) |

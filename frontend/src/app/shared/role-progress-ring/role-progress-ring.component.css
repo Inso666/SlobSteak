@@ -48,5 +48,5 @@
 .pct {
   font-family: var(--app-font-family-mono);
   font-size: var(--app-font-size-meta);
-  color: var(--app-color-text-faint);
+  color: var(--app-color-text-muted);
 }

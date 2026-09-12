@@ -86,8 +86,13 @@ export const SlobSteakPreset = definePreset(Aura, {
       focusBorderColor: '#F2A93B',
       invalidBorderColor: '#F87171',
       color: '#EDEFF4',
-      disabledColor: '#5D6883',
-      placeholderColor: '#5D6883',
+      // US-078 (Issue #119): vormals '#5D6883' (`--app-color-text-faint`), das auf beiden im
+      // Produkt vorkommenden Flächen 4,5:1 verfehlte und ersatzlos in `--app-color-text-muted`
+      // aufgegangen ist (`frontend/src/styles.css`, `docs/adr/0012-kontrast-vor-wireframe-treue.md`).
+      // Platzhalter-/Disabled-Text zieht denselben Wert nach, statt einen eigenen, erneut zu knapp
+      // AA-konformen Grauton zu führen.
+      disabledColor: '#8D97AC',
+      placeholderColor: '#8D97AC',
       invalidPlaceholderColor: '#F87171',
       borderRadius: '8px',
     },

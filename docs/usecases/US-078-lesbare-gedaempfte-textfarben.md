@@ -2,7 +2,7 @@
 **Titel:** Gedämpfte Textfarbe und Rollen-Badges auf WCAG-AA-Kontrast anheben
 **Bounded Context / Domain:** Frontend-Shell (Design-System / zentrale Tokens)
 **Abhängigkeiten:** US-047, US-077
-**Status:** offen
+**Status:** fertig am 2026-09-13, PR feature/US-078-lesbare-gedaempfte-textfarben
 
 ---
 
@@ -67,3 +67,13 @@ Die Badges sind 11px bei Fettung 600/700 — das zählt nicht als „large text"
 ### 5. Anmerkungen des Product Owners
 
 `docs/design/S2-Projektuebersicht-Wireframe.html` wird in dieser Story bewusst nicht geändert. Der Wireframe ist die Momentaufnahme des Entwurfs; die verbindliche, gepflegte Quelle für Token-Werte ist `docs/specs/SPEC-00-Design-System.md`. Die Abweichung zwischen beiden wird über das ADR dokumentiert, damit ein späterer Design-Abgleich sie nicht erneut als Fehler meldet (CLAUDE.md Abschnitt 6).
+
+### 6. Anmerkungen des Dev-Agenten (Umsetzung 2026-09-13)
+
+**AC1 — `--app-color-text-faint` wurde ersatzlos mit `--app-color-text-muted` zusammengeführt**, nicht auf einen neuen Zwischenwert angehoben. Begründung: Der Token muss auf `color.surface` (die knappere der beiden Flächen) mindestens 4,5:1 erreichen. Der höchste rechnerisch mögliche Wert, der dabei noch sichtbar schwächer als `color.text-muted` bleibt (z. B. `#8993B5`, Kontrast 5,55:1), liegt nur noch 0,2 Kontrastpunkte unter `color.text-muted` (5,75:1) — auf einem realen Bildschirm praktisch nicht mehr unterscheidbar. Die dreistufige Texthierarchie aus SPEC-00 §1.2 wäre damit nur noch auf dem Papier, nicht mehr optisch, vorhanden gewesen. Alle vormaligen Verwendungsstellen (Meta-Infos, Zeitstempel, Map-Legende, Formularfeld-Platzhalter-/Disabled-Text in `slobsteak-preset.ts`, `select`/`textarea`-Hover-Rahmen) nutzen jetzt `--app-color-text-muted`. Siehe ADR-0012.
+
+**AC2 — nur die PL-Badge-Kombination war betroffen.** Coreteam (`--app-role-ct`) und Architect (`--app-role-ar`) erreichen als Textfarbe auf ihrer jeweiligen 16%-Opazitätsfläche bereits >4,5:1 und wurden nicht verändert. Für PL wurde ein neuer, badge-exklusiver Token `--app-role-pl-badge` (`#A89DF8`) eingeführt, der ausschließlich `.role-badge--pl { color: … }` speist; die Badge-Hintergrundfläche (`--app-role-pl-bg`) blieb unverändert.
+
+**AC4 — Konsequenz für `--app-map-point-locked-opacity`:** Die bestehende Wiederverwendung dieses Tokens für archivierte Projektkarten (`.project-card.archived`, US-074) bedeutet, dass CSS-`opacity` Text- und Flächenfarbe gemeinsam gegen den Seitenhintergrund faltet. Rechnerisch (siehe `us-078-lesbare-gedaempfte-textfarben.spec.ts` sowie ADR-0012) hält kein geprüfter Wert unterhalb von `0,92` alle betroffenen Kombinationen (bindend: `text-muted` im „ARCHIVIERT"-Status-Tag auf `color.surface-hover`) über 4,5:1 — der Token wurde daher von `0,72` auf `0,92` angehoben, nicht der Karten-Screen lokal verändert. Das bestehende, US-064 zugeordnete Story-Test-File `us-064-map-opacity-token-vereinheitlichen.spec.ts` wurde entsprechend auf den neuen Zahlenwert aktualisiert (die dortige Akzeptanz — ein einziger benannter Token statt verstreuter Literale — bleibt unberührt). **Sichtbare Nebenwirkung:** Archivierte Projektkarten wirken dadurch nur noch schwach gedimmt; die Erkennbarkeit stützt sich in der Praxis primär auf den „ARCHIVIERT"-Text-Tag. Das ist im ADR als bewusste, dokumentierte Konsequenz festgehalten, keine übersehene Regression.
+
+**Lokale Verifizierbarkeit:** `docker compose up` war in dieser Ausführungsumgebung nicht erreichbar (kein Docker-Daemon) — dieselbe Einschränkung wie bereits bei US-077 dokumentiert. Stattdessen: vollständiger `ng test`-Lauf (515/515 grün, inkl. neuem Story-Test und den angepassten US-064-/US-068-Story-Tests), `ng lint` fehlerfrei, sowie eine rechnerische Verifikation aller elf betroffenen Token-Kombinationen (Node-Skript mit derselben WCAG-Kontrastformel wie im Story-Test) gegen die tatsächlichen finalen Hex-/Opazitätswerte. Ein Browser-Smoke-Test gegen das über `docker compose up` laufende Gesamtsystem konnte nicht durchgeführt werden und ist im PR als offene Einschränkung vermerkt.

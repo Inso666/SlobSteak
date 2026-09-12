@@ -64,7 +64,7 @@
 }
 
 .au-meta {
-  color: var(--app-color-text-faint);
+  color: var(--app-color-text-muted);
   font-size: var(--app-font-size-meta);
   font-family: var(--app-font-family-mono);
 }

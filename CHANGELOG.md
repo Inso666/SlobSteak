@@ -4,6 +4,31 @@ Alle nennenswerten Änderungen an diesem Projekt werden hier je User Story dokum
 
 ## [Unreleased]
 
+### US-078 — Gedämpfte Textfarbe und Rollen-Badges auf WCAG-AA-Kontrast anheben
+
+- Root Cause (Issue #119, Issue #121, QA-Design-Abgleich 04.09.2026): `--app-color-text-faint`
+  (`#5D6883`) und die `.role-badge--pl`-Kombination verfehlten den WCAG-AA-Mindestkontrast von 4,5:1
+  auf allen im Produkt vorkommenden Flächen (gemessen 3,03–4,44:1) — beide Werte stammten unverändert
+  aus dem Wireframe, der Fehler lag in der Design-Vorlage selbst.
+- `--app-color-text-faint` ersatzlos mit `--app-color-text-muted` zusammengeführt (ein eigenständiger
+  Zwischenwert hätte keinen wahrnehmbaren Kontrastabstand mehr zu `text-muted` gehabt). Alle vormaligen
+  Verwendungsstellen (Meta-Infos, Zeitstempel, Map-Legende, `formField.placeholderColor`/
+  `disabledColor` im PrimeNG-Preset, `select`/`textarea`-Hover-Rahmen) nutzen jetzt `text-muted`.
+- Neuer, badge-exklusiver Token `--app-role-pl-badge` (`#A89DF8`) für `.role-badge--pl`-Textfarbe; die
+  rohe Datenfarbe `--app-role-pl` (Map-Punkt, Fortschrittsring, Slider) bleibt unverändert. Coreteam/
+  Architect benötigten keine Anpassung.
+- `--app-map-point-locked-opacity` von `0,72` auf `0,92` angehoben: CSS-`opacity` auf archivierten
+  Projektkarten (`.project-card.archived`, US-074) faltet Text- und Flächenfarbe gemeinsam gegen den
+  Seitenhintergrund, wodurch selbst `text-muted` bei `0,72` unter 4,5:1 fiel.
+- Neues ADR-0012 „Bei Konflikt zwischen Wireframe-Farbwert und WCAG-AA-Kontrast gewinnt der Kontrast"
+  dokumentiert die Entscheidung inkl. verworfener Alternativen.
+- Story-Test `frontend/src/app/us-078-lesbare-gedaempfte-textfarben.spec.ts` (Karma/ChromeHeadless)
+  berechnet die WCAG-Kontrastverhältnisse aller geänderten Token-Kombinationen — inkl. des
+  archivierten-Karten-Sonderfalls — direkt gegen die tatsächlich in `styles.css` hinterlegten
+  `:root`-Werte. Bestehende Story-Tests aus US-064 und US-068 wurden auf die neuen Token-Werte
+  angepasst (ihre jeweilige Kern-Akzeptanz bleibt unberührt); vollständiger `ng test`-Lauf (515/515)
+  und `ng lint` bleiben grün.
+
 ### US-077 — Overlay-Komponenten (Dialoge, Auswahl-Panels, Passwort-Overlay) im dunklen Theme statt auf weißer Fläche
 
 - Root Cause (Issue #116): `providePrimeNG` wird app-weit mit `options.darkModeSelector: false`

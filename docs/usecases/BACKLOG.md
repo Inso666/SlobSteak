@@ -201,7 +201,7 @@ Aus dem finalen QA-Design-Abgleich vom 04.09.2026 (sämtliche Artboards von `doc
 | ID | Titel | Bounded Context | Abhängigkeiten | Datei | Status |
 |---|---|---|---|---|---|
 | US-077 | Overlay-Komponenten (Dialoge, Auswahl-Panels, Passwort-Overlay) im dunklen Theme statt auf weißer Fläche | Frontend-Shell | US-047, US-048, US-056 | [US-077-overlay-komponenten-dark-theme.md](US-077-overlay-komponenten-dark-theme.md) | fertig (2026-09-13) |
-| US-078 | Gedämpfte Textfarbe und Rollen-Badges auf WCAG-AA-Kontrast anheben | Frontend-Shell | US-047, US-077 | [US-078-lesbare-gedaempfte-textfarben.md](US-078-lesbare-gedaempfte-textfarben.md) | offen |
+| US-078 | Gedämpfte Textfarbe und Rollen-Badges auf WCAG-AA-Kontrast anheben | Frontend-Shell | US-047, US-077 | [US-078-lesbare-gedaempfte-textfarben.md](US-078-lesbare-gedaempfte-textfarben.md) | fertig (2026-09-13) |
 | US-079 | PrimeNG-Button-Varianten (outlined, text, deaktiviert) auf die Design-Tokens mappen | Frontend-Shell | US-077, US-078 | [US-079-button-varianten-design-tokens.md](US-079-button-varianten-design-tokens.md) | offen |
 
 **Hinweis zu US-077 (Priorität):** Diese Story ist die höchstpriorisierte des gesamten Restbacklogs. `.p-dialog` rendert auf `#ffffff`, während der Inhalt die Dark-Theme-Textfarben behält — der Dialogtitel erreicht damit 1,15:1. Betroffen ist unter anderem der erzwungene Passwort-Änderungs-Dialog aus US-008, den jeder neu angelegte Nutzer als ersten Screen sieht und der sich laut Design bewusst nicht überspringen lässt.
