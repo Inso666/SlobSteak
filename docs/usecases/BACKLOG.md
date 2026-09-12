@@ -194,6 +194,78 @@ Aus einem QA-Design-Abgleich-Gesamtaudit (30.08.2026, Phasen 0–12 gegen sämtl
 
 **Hinweis zu US-074/US-076 (Issue #99):** Issue #99 wurde bewusst auf zwei Stories aufgeteilt, da die Rollen-Fortschritts-Ringe und das „unbewertet“-Banner ein neues, aggregiertes Backend-Read-Modell sowie eine EF-Core-Migration (`Project.UpdatedAt`) erfordern, während der übrige Scope (Sidebar/Toolbar/Karten-Grundlayout) rein additiv bzw. frontend-seitig lösbar ist. Siehe „Anmerkungen des Product Owners“ in beiden Story-Dateien.
 
+### Phase 14 — Design-System-Fundament & Lesbarkeit (GitHub Issues #116, #119–#121, PO-Review vom 04.09.2026)
+
+Aus dem finalen QA-Design-Abgleich vom 04.09.2026 (sämtliche Artboards von `docs/design/S2-Projektuebersicht-Wireframe.html` gegen die laufende Anwendung, Prüfschwerpunkt Kontraste und Lesbarkeit) abgeleitete Stories. Diese drei Stories betreffen ausschließlich zentrale Design-Tokens und das PrimeNG-Preset und sind allen Screen-Stories der Phasen 15/16 vorangestellt: Sie beheben die Ursachen, deren Symptome dort sonst je Screen einzeln nachgebessert würden. Die Kette ist bewusst sequenziell — alle drei ändern `frontend/src/app/core/theme/slobsteak-preset.ts` bzw. `frontend/src/styles.css`.
+
+| ID | Titel | Bounded Context | Abhängigkeiten | Datei | Status |
+|---|---|---|---|---|---|
+| US-077 | Overlay-Komponenten (Dialoge, Auswahl-Panels, Passwort-Overlay) im dunklen Theme statt auf weißer Fläche | Frontend-Shell | US-047, US-048, US-056 | [US-077-overlay-komponenten-dark-theme.md](US-077-overlay-komponenten-dark-theme.md) | offen |
+| US-078 | Gedämpfte Textfarbe und Rollen-Badges auf WCAG-AA-Kontrast anheben | Frontend-Shell | US-047, US-077 | [US-078-lesbare-gedaempfte-textfarben.md](US-078-lesbare-gedaempfte-textfarben.md) | offen |
+| US-079 | PrimeNG-Button-Varianten (outlined, text, deaktiviert) auf die Design-Tokens mappen | Frontend-Shell | US-077, US-078 | [US-079-button-varianten-design-tokens.md](US-079-button-varianten-design-tokens.md) | offen |
+
+**Hinweis zu US-077 (Priorität):** Diese Story ist die höchstpriorisierte des gesamten Restbacklogs. `.p-dialog` rendert auf `#ffffff`, während der Inhalt die Dark-Theme-Textfarben behält — der Dialogtitel erreicht damit 1,15:1. Betroffen ist unter anderem der erzwungene Passwort-Änderungs-Dialog aus US-008, den jeder neu angelegte Nutzer als ersten Screen sieht und der sich laut Design bewusst nicht überspringen lässt.
+
+**Hinweis zu US-078 (Abweichung von der Design-Vorlage):** Die beanstandeten Farbwerte stehen identisch in `docs/design/` — der Befund ist also kein Rückstand der App gegenüber dem Entwurf, sondern ein Fehler der Vorlage, den die App übernommen hat. Ein bloßes „an das Design angleichen" behebt ihn nicht. Die Story hebt deshalb den Token-Wert an, aktualisiert `docs/specs/SPEC-00-Design-System.md` als verbindliche Quelle und hält die bewusste Abweichung vom Wireframe in einem ADR fest (CLAUDE.md Abschnitt 6).
+
+### Phase 15 — App-Shell-Layout & Dokumentstruktur (GitHub Issues #118, #124, #125, #130, PO-Review vom 04.09.2026)
+
+Ebenfalls aus dem QA-Design-Abgleich vom 04.09.2026. Diese Stories betreffen die Rahmengeometrie und Struktur, die auf allen Screens gleichzeitig wirkt — sie stehen vor den screen-spezifischen Stories der Phase 16, damit dort nicht gegen ein noch fehlendes Layout-Fundament gearbeitet wird. Sequenziell verkettet, da alle drei an der App-Shell und den geteilten Klassen in `styles.css` arbeiten.
+
+| ID | Titel | Bounded Context | Abhängigkeiten | Datei | Status |
+|---|---|---|---|---|---|
+| US-080 | Inhaltsbereich mit Innenabstand und Datenlisten im Surface-Panel mit integrierter Fußzeile | Frontend-Shell | US-055, US-072, US-075, US-078 | [US-080-inhaltsbereich-abstand-listen-panel.md](US-080-inhaltsbereich-abstand-listen-panel.md) | offen |
+| US-081 | Genau eine Hauptüberschrift je Screen (Projektname statt zusätzlicher Bereichsüberschrift) | Frontend-Shell / ProjectManagement | US-075, US-080 | [US-081-eine-h1-je-screen.md](US-081-eine-h1-je-screen.md) | offen |
+| US-082 | Sidebar: Wording „Admin-Bereich", zweibuchstabige Avatar-Initialen und Projektrolle in der Nutzerkarte | Frontend-Shell | US-074, US-075, US-081 | [US-082-sidebar-wording-avatar-projektrolle.md](US-082-sidebar-wording-avatar-projektrolle.md) | offen |
+
+**Hinweis zur Gruppierung von US-080:** Die Issues #118 (fehlender Innenabstand) und #124 (fehlendes Surface-Panel) sind zu einer Story zusammengefasst. Beide beschreiben die Container-Geometrie derselben fünf Screens und lassen sich nur gemeinsam sinnvoll verifizieren — die Fußzeile einer Liste kann erst korrekt im Panel sitzen, wenn der Inhaltsbereich überhaupt einen Seitenrand hat. Getrennt umgesetzt würden beide Stories dieselben Feature-CSS-Dateien plus die App-Shell anfassen.
+
+### Phase 16 — Screen-Abgleich gegen `docs/design` (GitHub Issues #115, #122, #123, #126–#129, #131, #132, PO-Review vom 04.09.2026)
+
+Die screen-spezifischen Befunde des QA-Design-Abgleichs vom 04.09.2026. Jede Story betrifft genau einen Screen bzw. ein zusammenhängendes Bedienmuster; die Reihenfolge folgt den geteilten Dateien und den Abhängigkeiten zu den Phasen 14/15. US-084 ist die einzige screen-übergreifende Story dieser Phase (Auswahlfelder) und steht deshalb früh.
+
+| ID | Titel | Bounded Context | Abhängigkeiten | Datei | Status |
+|---|---|---|---|---|---|
+| US-083 | Projektübersicht: Drei-Spalten-Raster, hervorgehobene Stakeholder-Kennzahl und Karten als echte Links | ProjectManagement | US-074, US-076, US-080 | [US-083-projektkarten-raster-kennzahl.md](US-083-projektkarten-raster-kennzahl.md) | offen |
+| US-084 | Gestaltete Auswahlfelder app-weit statt nativer `<select>`, Toolbar-Anordnung der Projektübersicht | Frontend-Shell / ProjectManagement | US-077, US-083 | [US-084-gestaltete-auswahlfelder-toolbar.md](US-084-gestaltete-auswahlfelder-toolbar.md) | offen |
+| US-085 | Stakeholder-Liste: Kommunikationsart-Filter, Umschalter für Gelöschte und rollenfarbige Bewertungszelle | StakeholderManagement | US-080, US-084 | [US-085-stakeholder-liste-filter-bewertungszelle.md](US-085-stakeholder-liste-filter-bewertungszelle.md) | offen |
+| US-086 | Stakeholder-Detail: Kopfbereich mit Titel und Typ-Chip, rollenfarbige Assessment-Tabs und Slider, kompakte Kommunikationszuordnungen | StakeholderManagement / StakeholderAssessment | US-071, US-080, US-084 | [US-086-stakeholder-detail-kopf-assessment.md](US-086-stakeholder-detail-kopf-assessment.md) | offen |
+| US-087 | Map: Punkt-Beschriftung, Legende, Verbindungs-Detailpanel und nutzbare Kartenfläche | StakeholderMap | US-034, US-036, US-063, US-064, US-080, US-084 | [US-087-map-beschriftung-legende-detailpanel.md](US-087-map-beschriftung-legende-detailpanel.md) | offen |
+| US-088 | Admin-Bereich: Unterstrich-Tabs, aussagekräftige Status-Spalte, Passwort-Reset als Textlink und erklärender Hinweistext | IdentityAccess / ProjectManagement | US-056, US-072, US-080, US-084 | [US-088-admin-tabs-status-hinweistext.md](US-088-admin-tabs-status-hinweistext.md) | offen |
+| US-089 | Login: zentrierte Karte, durchgehende Anmelde-Schaltfläche, Design-Typografie und deutschsprachiges Passwort-Feedback | IdentityAccess | US-054, US-077, US-079 | [US-089-login-layout-deutsches-passwort-feedback.md](US-089-login-layout-deutsches-passwort-feedback.md) | offen |
+
+**Hinweis zur Gruppierung von US-087:** Issue #115 (vom Projektverantwortlichen: „No way of knowing which circle is which stakeholder") und Issue #127 (QA: fehlende Legende und Vergleichs-Detailpanel) sind zu einer Story zusammengefasst. Beide beschreiben denselben Informationsmangel derselben Komponente und werden in denselben Dateien behoben; Issue #127 liefert für den Vergleichsmodus genau die Antwort auf die in #115 gestellte Frage.
+
+**Hinweis zur Gruppierung von US-089:** Issue #131 (Layout/Typografie) und Issue #132 (englischsprachiges Passwort-Feedback) betreffen denselben Screen und dieselben zwei Komponenten und sind deshalb eine Story.
+
+**Hinweis zu US-088 (Issue #129, bewusst nicht übernommener Teil):** Die Empfehlung, „Nutzer anlegen" als dauerhaft sichtbares Panel statt als Dialog zu zeigen, wird zum zweiten Mal abgelehnt — dieselbe Entscheidung wurde bereits bei US-072 (Issue #100) getroffen und ruht auf US-056 bzw. `SPEC-07-Admin.md`. Der zugrunde liegende Lesbarkeitsmangel des Dialogs wird an seiner Ursache in US-077 behoben, nicht durch Umbau des Bedienmusters.
+
+**Hinweis zu US-084 (screen-übergreifende Bündelung):** Native `<select>`-Elemente kommen auf sechs Screens vor. Sie werden bewusst in einer Story umgestellt statt in den jeweiligen Screen-Stories, weil es an allen Fundstellen dieselbe Änderung ist und sie am selben Overlay-Token aus US-077 hängt — verteilt entstünden sechs leicht unterschiedliche Nachbauten desselben Controls.
+
+### Phase 17 — Funktionale Erweiterung außerhalb des PRD-Scopes (GitHub Issue #117)
+
+| ID | Titel | Bounded Context | Abhängigkeiten | Datei | Status |
+|---|---|---|---|---|---|
+| US-090 | Stakeholder-Stammdaten importieren und exportieren (CSV/JSON) | StakeholderManagement | US-020, US-021, US-025, US-080, US-085 | [US-090-stakeholder-import-export.md](US-090-stakeholder-import-export.md) | offen |
+
+**Hinweis zu US-090:** Einzige Story der Phasen 14–17, die neue Fachlichkeit einführt statt eine Abweichung zu beheben. Das PRD kennt bislang nur den CSV-Export der Verteilerliste (F4.1/US-042); ein Stakeholder-Import ist nicht im MVP-Scope. Die Story ist deshalb bewusst ans Ende gestellt, blockiert keine andere Story und kann verschoben oder gestrichen werden. Vor Umsetzungsbeginn sind zwei fachliche Festlegungen durch den Projektverantwortlichen zu bestätigen (Duplikat-Verhalten, Dateigrößenbegrenzung); XML wird gegenüber dem Issue-Wunsch bewusst weggelassen und die Auslassung in der Story-Datei begründet.
+
+### Bereits abgedeckte offene Issues (#98–#104)
+
+Die zum Zeitpunkt des PO-Reviews am 04.09.2026 noch offenen Issues #98–#104 wurden vollständig durch die Stories der Phase 13 umgesetzt und benötigen **keine** neue Story. Sie sind lediglich im Issue-Tracker nicht geschlossen worden:
+
+| Issue | Umgesetzt durch | Status der Story |
+|---|---|---|
+| #98 Marken-Logo fehlt app-weit | [US-073](US-073-marken-icon-steak-svg.md) | fertig (01.09.2026) |
+| #99 Projektübersicht hinter Main.dc.html zurück | [US-074](US-074-projektuebersicht-sidebar-toolbar-cards.md) + [US-076](US-076-projektkarten-bewertungsfortschritt.md) | fertig (01.09.2026) |
+| #100 Listen als Karten-Raster statt Tabellen | [US-072](US-072-stakeholder-admin-listen-tabellen.md) | fertig (01.09.2026) |
+| #101 Projekt-Kontext-Navigation als horizontale Tabs | [US-075](US-075-projekt-kontext-sidebar-unterpunkte.md) | fertig (01.09.2026) |
+| #102 Stakeholder-Detail ohne inline editierbare Zwei-Spalten-Ansicht | [US-071](US-071-stakeholder-detail-zwei-spalten-layout.md) | fertig (30.08.2026) |
+| #103 Assessment-Tab rendert leer (markForCheck) | [US-069](US-069-assessment-tabs-markforcheck.md) | fertig (30.08.2026) |
+| #104 Datums-/Zeitangaben im US-Format | [US-070](US-070-zeitstempel-deutsches-format.md) | fertig (30.08.2026) |
+
+Die Restbefunde, die der Abgleich vom 04.09.2026 an denselben Screens zusätzlich gefunden hat (etwa Kartenraster und Kennzahl-Hierarchie auf der Projektübersicht), sind als eigene Issues #122/#123 erfasst und über US-083/US-084 eingeplant — sie sind Ergänzungen, keine Rückabwicklung der Phase-13-Ergebnisse.
+
 ## Hinweise zur Nutzung durch den Dev-Agenten
 
 Jede Story wird in genau einer isolierten Iteration umgesetzt. Vor Beginn einer Story müssen alle in „Abhängigkeiten“ genannten Stories bereits abgeschlossen und deren Akzeptanzkriterien grün sein. Die Reihenfolge innerhalb einer Phase ist ebenfalls verbindlich, da spätere Stories einer Phase häufig auf den unmittelbar vorangehenden aufbauen (z. B. US-023 Soft-Delete vor US-024 Restore). Domain-Invarianten aus Abschnitt 4.3 des PRD (`stakeholder_assessments` max. 1 je Rolle, `project_memberships` max. 1 je Nutzer, Rollen-Schreibrechte, `deleted_at`-Filterung, Sichtbarkeitsregel für Rolle User) sind kontextübergreifend gültig und werden in mehreren Stories wiederholt referenziert — sie dürfen in keiner Story verletzt werden, auch wenn eine einzelne Story sie nicht explizit als Akzeptanzkriterium führt.
