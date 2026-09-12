@@ -4,6 +4,29 @@ Alle nennenswerten Änderungen an diesem Projekt werden hier je User Story dokum
 
 ## [Unreleased]
 
+### US-079 — PrimeNG-Button-Varianten (outlined, text, deaktiviert) auf die Design-Tokens mappen
+
+- Root Cause (Issue #120, QA-Design-Abgleich 04.09.2026): `slobsteak-preset.ts` mappte
+  `semantic.primary` (Wireframe-Muster „helle Fläche, dunkle Schrift"), aber keine der sekundären
+  Button-Varianten (`outlined`, `text`, `secondary`). Diese fielen auf ungemappte Aura-Restwerte aus
+  der neutralen Slate-Palette zurück (gemessen `#455165` auf `#161d2b` = 2,11:1, `#64748b` auf
+  `#10151f` = 3,84:1 — beide unter dem geforderten 4,5:1-Mindestkontrast für Fließtext).
+- `components.button` im Preset ergänzt: `outlined.primary`/`outlined.secondary` und
+  `text.secondary` auf Schrift `color.text` (`#EDEFF4`) und Rahmen `color.border` (`#262F42`)
+  gemappt; `root.secondary` (Filled-Variante) zusätzlich auf transparente Fläche mit Hover-/
+  Aktiv-Rahmen `#5D6883` (derselbe, seit US-078/ADR-0012 gültige Nicht-Text-Rahmenfarbenwert wie
+  `formField.hoverBorderColor`). `text.primary` (Standard-Text-Button ohne `severity`) blieb
+  unverändert — referenziert bereits `semantic.primary.color` und war nie betroffen.
+- Deaktivierter Zustand: kein eigener Disabled-Farb-Token im PrimeNG-Button-Schema vorhanden —
+  PrimeNG dimmt `:disabled` global über `disabled.opacity` (Aura-Default `0,6`). `color.text`
+  (`#EDEFF4`) erreicht bei 60 % Opazität rechnerisch weiterhin 6,31:1 auf `#10151F` bzw. 6,06:1 auf
+  `#161D2B` — deutlich über 4,5:1, ohne einen separaten Token oder Custom-CSS einzuführen.
+- Story-Test `frontend/src/app/core/theme/us-079-button-varianten-design-tokens.spec.ts`
+  (Karma/ChromeHeadless) prüft die Token-Zuweisung sowie die berechneten Kontrastverhältnisse für
+  `primary`, `outlined`, `text` und `secondary` in den Zuständen normal/hover/fokussiert/deaktiviert
+  direkt am gerenderten `<button pButton>`. Vollständiger `ng test`-Lauf (521/521) und `ng lint`
+  bleiben grün — insbesondere die Button-Tests aus US-043.
+
 ### US-078 — Gedämpfte Textfarbe und Rollen-Badges auf WCAG-AA-Kontrast anheben
 
 - Root Cause (Issue #119, Issue #121, QA-Design-Abgleich 04.09.2026): `--app-color-text-faint`
