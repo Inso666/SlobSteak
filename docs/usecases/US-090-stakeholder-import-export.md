@@ -32,9 +32,9 @@ Als **Projektleiter** möchte ich vorhandene Stakeholder aus einer Datei in ein 
 - [ ] Vor dem Schreiben zeigt eine Vorschau, wie viele Datensätze angelegt würden, wie viele wegen Fehlern übersprungen werden und welche Fehler das sind (Zeilennummer plus lesbare Meldung).
 - [ ] Der Import wird erst nach ausdrücklicher Bestätigung geschrieben und läuft als Ganzes durch oder gar nicht (eine Transaktion) — kein halb importierter Bestand.
 - [ ] Datensätze verletzen dieselben Invarianten wie beim manuellen Anlegen (US-020/US-021): Pflichtfeld Name, gültiger Typ (`Person`/`Organization`), gültiges E-Mail-Format falls gesetzt. Verletzungen führen zu einer benannten Fehlermeldung, nicht zu einem stillen Überspringen.
-- [ ] Der Import legt ausschließlich neue Stakeholder an; er aktualisiert oder löscht keine bestehenden. Ein Datensatz, dessen Name im Projekt bereits existiert, wird als Warnung in der Vorschau gemeldet und beim Import als Duplikat angelegt oder übersprungen — das Verhalten wird in der Story-Datei festgelegt und begründet.
+- [ ] Der Import legt ausschließlich neue Stakeholder an; er aktualisiert oder löscht keine bestehenden. Ein Datensatz, dessen Name im Projekt bereits existiert, wird als Warnung in der Vorschau gemeldet und beim Import **übersprungen** (nicht angelegt) — siehe Abschnitt 5 für die Begründung.
 - [ ] Import ist ausschließlich für Rollen mit Schreibrecht auf Stakeholder-Stammdaten verfügbar (dieselbe Regel wie „Stakeholder anlegen", US-021/US-007); Rolle `User` sieht die Aktion nicht.
-- [ ] Die hochgeladene Datei wird nicht dauerhaft gespeichert; sie wird nur für die Dauer der Verarbeitung gehalten. Eine Größenbegrenzung ist gesetzt und liefert bei Überschreitung eine lesbare Fehlermeldung.
+- [ ] Die hochgeladene Datei wird nicht dauerhaft gespeichert; sie wird nur für die Dauer der Verarbeitung gehalten. Eine Größenbegrenzung von **5 MB** ist gesetzt und liefert bei Überschreitung eine lesbare Fehlermeldung.
 
 **Übergreifend**
 
@@ -59,4 +59,9 @@ Als **Projektleiter** möchte ich vorhandene Stakeholder aus einer Datei in ein 
 
 ### 5. Anmerkungen des Product Owners
 
-Diese Story ist die einzige der aus den offenen Issues abgeleiteten Stories, die neue Fachlichkeit einführt statt eine Abweichung zu beheben. Sie ist deshalb bewusst als eigene Phase ans Ende gestellt: Sie ist unabhängig von allen Design-Stories und kann verschoben oder gestrichen werden, ohne eine andere Story zu blockieren. Vor Umsetzungsbeginn sollte der Projektverantwortliche das Duplikat-Verhalten (überspringen oder anlegen) und die Größenbegrenzung bestätigen — beides sind fachliche Festlegungen, die das PRD nicht abdeckt.
+Diese Story ist die einzige der aus den offenen Issues abgeleiteten Stories, die neue Fachlichkeit einführt statt eine Abweichung zu beheben. Sie ist deshalb bewusst als eigene Phase ans Ende gestellt: Sie ist unabhängig von allen Design-Stories und kann verschoben oder gestrichen werden, ohne eine andere Story zu blockieren.
+
+**Fachliche Festlegungen (bestätigt durch den Projektverantwortlichen am 13.09.2026):**
+
+- **Duplikat-Verhalten: Überspringen.** Ein Datensatz, dessen Name im Projekt bereits existiert, wird beim Import nicht angelegt, sondern nur als Warnung in der Vorschau gemeldet. Begründung: passt zum bewusst konservativen Charakter des Imports („legt ausschließlich neue Stakeholder an, aktualisiert/löscht nichts Bestehendes") und verhindert versehentliche Doppel-Stakeholder bei wiederholten oder sich überschneidenden Imports — ein Nutzer, der einen Datensatz wirklich doppelt anlegen will, kann das weiterhin manuell tun.
+- **Größenbegrenzung: 5 MB** je Upload. Begründung: deutlicher Puffer über dem für reine Stammdaten (ohne Assessments/Kommunikationszuordnungen) realistisch zu erwartenden Volumen, ohne unnötig groß gewählt zu sein.
