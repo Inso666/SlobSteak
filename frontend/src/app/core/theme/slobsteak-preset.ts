@@ -182,5 +182,71 @@ export const SlobSteakPreset = definePreset(Aura, {
         color: '#EDEFF4',
       },
     },
+    // US-079 (Issue #120): `outlined`/`text`/`secondary`-Button-Varianten übernahmen bislang
+    // ungemappte Aura-Restwerte aus der neutralen Slate-Palette (`{surface.400-600}`) statt SPEC-00
+    // §1.3 `.btn-secondary` (transparent, `color.border`-Rahmen, `color.text`-Schrift): gemessen
+    // `#455165`/`#64748b` auf `#161d2b`/`#10151f` (2,11:1 bzw. 3,84:1 Kontrast — beide unter 4,5:1).
+    // Betroffen waren konkret `outlined.secondary` ("E-Mails kopieren" im Verteiler, "Abbrechen" in
+    // mehreren Formularen) und `text.secondary`. `text.primary` (Standard-Text-Button ohne
+    // `severity`, z. B. "Abbrechen"/"Schließen" in Dialogen) war NIE betroffen: `button.text.primary
+    // .color` referenziert in Aura bereits `{primary.color}` = `semantic.primary.color` (`#EDEFF4`)
+    // oben — der in der Story gemessene Dialog-Bug war die weiße Dialogfläche dahinter (US-077),
+    // nicht diese Textfarbe. `outlined.primary` (Standard-outlined ohne `severity`) und die reine
+    // Filled-Variante `root.secondary` sind aktuell in keinem Screen im Einsatz, werden hier aber aus
+    // Konsistenzgründen ebenfalls gemappt (SPEC-00 §4: kein ungemapptes Button-Farbschema im zentralen
+    // Preset, unabhängig davon, ob ein Screen die Kombination heute schon verwendet).
+    //
+    // Deaktivierter Zustand (Akzeptanzkriterium 2): PrimeNG dimmt `:disabled` global über den
+    // Semantik-Token `disabled.opacity` (Aura-Default `0.6`, `.p-component:disabled { opacity: ... }`
+    // in `@primeuix/styles/base`) — das Button-Schema kennt keinen eigenen Disabled-Farb-Token. Statt
+    // diesen app-weit (auch von anderen Komponenten genutzten) Mechanismus zu überschreiben, wird
+    // bewusst derselbe `color.text`-Wert (`#EDEFF4`) auch für den deaktivierten Zustand verwendet:
+    // `#EDEFF4` bei 60 % Opazität ergibt rechnerisch 6,31:1 auf `#10151F` und 6,06:1 auf `#161D2B`
+    // (siehe `us-079-button-varianten-design-tokens.spec.ts`) — beide deutlich über der geforderten
+    // 4,5:1-Schwelle, weil die Ausgangsfarbe selbst schon extrem hell ist. Kein separater
+    // Disabled-Token, keine zusätzliche Custom-CSS nötig.
+    //
+    // Hover-Rahmen (Akzeptanzkriterium 1, "entsprechend dem in US-078 festgelegten Wert" =
+    // `#5D6883`, siehe `formField.hoverBorderColor` oben — seit US-078/ADR-0012 unverändert als
+    // Nicht-Text-Rahmenfarbe gültig, da WCAG-Kontrastanforderungen ausschließlich für Text gelten):
+    // nur `root.secondary` (Filled-Variante) besitzt im PrimeNG-Button-Schema (`ButtonDesignTokens`,
+    // `@primeuix/themes/types/button`) überhaupt ein `hoverBorderColor`-Feld. `outlined`/`text` kennen
+    // strukturell keinen separaten Hover-Rahmen-Token — PrimeNGs Basis-CSS hält bei diesen beiden
+    // Varianten den Rahmen zwischen Normal- und Hover-Zustand konstant und ändert beim Hover
+    // ausschließlich die Hintergrundfläche. Der Hover-Rahmen-Wert wird deshalb ausschließlich dort
+    // gesetzt, wo das Schema ihn vorsieht (`root.secondary`); für `outlined`/`text` bleibt der bereits
+    // token-basierte Hover-Hintergrund (Aura-Default) unverändert die einzige Hover-Rückmeldung, wie
+    // schon vor dieser Story — eine Custom-CSS-Erweiterung nur für diesen kosmetischen Nebeneffekt
+    // hätte den Änderungsumfang der Story ohne gemessenen Bug-Befund vergrößert.
+    button: {
+      root: {
+        secondary: {
+          background: 'transparent',
+          hoverBackground: '#1D2536',
+          activeBackground: '#1D2536',
+          borderColor: '#262F42',
+          hoverBorderColor: '#5D6883',
+          activeBorderColor: '#5D6883',
+          color: '#EDEFF4',
+          hoverColor: '#EDEFF4',
+          activeColor: '#EDEFF4',
+        },
+      },
+      outlined: {
+        primary: {
+          borderColor: '#262F42',
+          color: '#EDEFF4',
+        },
+        secondary: {
+          borderColor: '#262F42',
+          color: '#EDEFF4',
+        },
+      },
+      text: {
+        secondary: {
+          color: '#EDEFF4',
+        },
+      },
+    },
   },
 });
