@@ -99,9 +99,12 @@ describe('US-068: „Keine E-Mail hinterlegt“-Hinweis: nur Icon in Attention-F
   });
 
   // Akzeptanzkriterium 2: Der begleitende Text „keine E-Mail hinterlegt“ wird in gedämpftem
-  // Grauton (`var(--app-color-text-faint)`) und kursiv dargestellt, nicht mehr in
-  // `var(--app-attention)`.
-  it('renders the accompanying text in --app-color-text-faint and italic, no longer in --app-attention', () => {
+  // Grauton und kursiv dargestellt, nicht mehr in `var(--app-attention)`.
+  // US-078 (Issue #119): `--app-color-text-faint` wurde ersatzlos in `--app-color-text-muted`
+  // überführt (siehe `frontend/src/styles.css`, `docs/adr/0012-kontrast-vor-wireframe-treue.md`) —
+  // dieser Test prüft daher jetzt gegen `--app-color-text-muted`. Die eigentliche Akzeptanz
+  // („gedämpfter Grauton statt Attention-Farbe") bleibt unverändert erfüllt.
+  it('renders the accompanying text in --app-color-text-muted and italic, no longer in --app-attention', () => {
     configure({ rows: [row({})], totalStakeholderCount: 1 });
     const fixture = createComponent();
 
@@ -109,7 +112,7 @@ describe('US-068: „Keine E-Mail hinterlegt“-Hinweis: nur Icon in Attention-F
       (span) => span.textContent?.trim() === 'keine E-Mail hinterlegt',
     )!;
     const rootStyle = getComputedStyle(document.documentElement);
-    const expectedColor = rootStyle.getPropertyValue('--app-color-text-faint').trim();
+    const expectedColor = rootStyle.getPropertyValue('--app-color-text-muted').trim();
 
     const reference = document.createElement('span');
     reference.style.color = expectedColor;

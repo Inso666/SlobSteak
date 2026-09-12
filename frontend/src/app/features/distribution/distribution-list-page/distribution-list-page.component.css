@@ -118,7 +118,7 @@
 }
 
 .dl-mail-cell--missing span {
-  color: var(--app-color-text-faint);
+  color: var(--app-color-text-muted);
   font-style: italic;
 }
 
@@ -163,7 +163,7 @@
 }
 
 .dl-excluded-note {
-  color: var(--app-color-text-faint);
+  color: var(--app-color-text-muted);
 }
 
 .dl-foot-actions {

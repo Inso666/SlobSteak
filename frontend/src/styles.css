@@ -21,7 +21,15 @@
   --app-color-border: #262f42;
   --app-color-text: #edeff4;
   --app-color-text-muted: #8d97ac;
-  --app-color-text-faint: #5d6883;
+  /* US-078 (Issue #119/#121): `--app-color-text-faint` (vormals `#5d6883`) wurde ersatzlos in
+     `--app-color-text-muted` überführt statt auf einen neuen, nur knapp AA-konformen Zwischenwert
+     angehoben — siehe `docs/adr/0012-kontrast-vor-wireframe-treue.md`. Grund: der einzige Wert, der
+     auf BEIDEN im Produkt vorkommenden Flächen (`color.background` UND `color.surface`) 4,5:1
+     erreicht und zugleich sichtbar schwächer als `color.text-muted` bleibt, hätte praktisch keinen
+     wahrnehmbaren Abstand mehr zu `color.text-muted` gehabt (Kontrast-Differenz < 0,3) — die
+     dreistufige Texthierarchie aus SPEC-00 §1.2 wäre nur noch auf dem Papier, nicht mehr optisch
+     bestanden. Alle vormaligen `text-faint`-Verwendungsstellen (Meta-Infos, Zeitstempel,
+     Platzhalter-/Disabled-Formularfelder in `slobsteak-preset.ts`) nutzen jetzt `text-muted`. */
   --app-attention: #f2a93b;
   --app-attention-bg: rgba(242, 169, 59, 0.14);
   --app-attention-border: rgba(242, 169, 59, 0.35);
@@ -31,6 +39,14 @@
   --app-color-error-bg: rgba(248, 113, 113, 0.14);
   --app-role-pl: #8b7cf6;
   --app-role-pl-bg: rgba(139, 124, 246, 0.16);
+  /* US-078 (Issue #119): dedizierter, aufgehellter Textfarbwert ausschließlich für die
+     `.role-badge--pl`-Kombination (Text auf `--app-role-pl-bg`-Fläche) — die rohe Rollenfarbe
+     `--app-role-pl` verfehlt dort 4,5:1 (gemessen 4,05:1 auf Projektkarten-, 4,44:1 auf
+     Tabellenzell-Untergrund). Betrifft laut Kontrastmessung ausschließlich PL; Coreteam/Architect
+     erreichen mit ihrer rohen Rollenfarbe bereits >4,5:1 auf derselben Badge-Fläche und bleiben
+     unverändert. `--app-role-pl` selbst (Map-Punkt, Fortschrittsring, Slider) bleibt unangetastet
+     (Story-Akzeptanzkriterium 3). Siehe `docs/adr/0012-kontrast-vor-wireframe-treue.md`. */
+  --app-role-pl-badge: #a89df8;
   --app-role-ct: #2dd4bf;
   --app-role-ct-bg: rgba(45, 212, 191, 0.16);
   --app-role-ar: #38bdf8;
@@ -39,8 +55,20 @@
   /* Opazitäten (SPEC-00 §1.2, US-064): `--app-map-point-locked-opacity` vereinheitlicht alle
      "gesperrt/nicht ziehbar"-Zustände der Stakeholder-Map (Vergleichspunkt UND eigener Punkt bei
      Rollen-/Perspektiven-Mismatch, siehe SPEC-04 §3.1) auf einen einzigen, benannten Wert statt
-     der zuvor uneinheitlichen Zahlen-Literale `0.72`/`0.55` (Issue #71). */
-  --app-map-point-locked-opacity: 0.72;
+     der zuvor uneinheitlichen Zahlen-Literale `0.72`/`0.55` (Issue #71).
+     US-078 (Issue #121): Wert von `0.72` auf `0.92` angehoben. Die von US-074 eingeführte
+     Wiederverwendung dieses Tokens für `.project-card.archived` (reines CSS-`opacity` auf das
+     gesamte Karten-Element) faltet Text- UND Flächenfarbe gemeinsam gegen den dahinterliegenden
+     Seitenhintergrund — das dämpft nicht nur die Optik, sondern zwangsläufig auch den Kontrast
+     zwischen beiden. Bei `0.72` fällt selbst `color.text-muted` unter 4,5:1. `0.92` ist der kleinste
+     an dieser Stelle geprüfte Wert, bei dem alle Text-/Badge-Kombinationen archivierter Projektkarten
+     (Meta-Zeile, „ARCHIVIERT"-Status-Tag, alle drei Rollen-Badges) weiterhin ≥4,5:1 erreichen; siehe
+     `docs/adr/0012-kontrast-vor-wireframe-treue.md`. Der Story-Test aus US-064
+     (`us-064-map-opacity-token-vereinheitlichen.spec.ts`) wurde auf den neuen Wert angepasst — die
+     dortige Akzeptanzbedingung „ein einziger benannter Token statt verstreuter Zahlen-Literale"
+     bleibt davon unberührt, nur die Zahl selbst ändert sich. Die Stakeholder-Map (Vergleichspunkt/
+     Legenden-Swatch, keine Textinhalte) ist von der Anhebung optisch kaum wahrnehmbar betroffen. */
+  --app-map-point-locked-opacity: 0.92;
 
   /* Radien (SPEC-00 §1.2) */
   --app-radius-sm: 6px;
@@ -137,7 +165,9 @@ h3 {
 }
 
 .role-badge--pl {
-  color: var(--app-role-pl);
+  /* US-078: `--app-role-pl-badge` statt der rohen `--app-role-pl`-Datenfarbe — siehe Token-
+     Kommentar oben. Fläche bleibt bewusst `--app-role-pl-bg` (identisch mit Coreteam/Architect). */
+  color: var(--app-role-pl-badge);
   background: var(--app-role-pl-bg);
 }
 
@@ -250,7 +280,8 @@ textarea:not(.p-textarea) {
 
 select:not(.p-select):hover,
 textarea:not(.p-textarea):hover {
-  border-color: var(--app-color-text-faint);
+  /* US-078: `--app-color-text-faint` entfällt, siehe Token-Kommentar oben — `text-muted`. */
+  border-color: var(--app-color-text-muted);
 }
 
 select:not(.p-select):focus-visible,

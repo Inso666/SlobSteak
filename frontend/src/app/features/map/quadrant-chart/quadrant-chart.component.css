@@ -167,7 +167,7 @@
 }
 
 .connection-line {
-  stroke: var(--app-color-text-faint);
+  stroke: var(--app-color-text-muted);
   stroke-width: 1;
   stroke-dasharray: 4 3;
   vector-effect: non-scaling-stroke;
@@ -231,7 +231,7 @@
 .legend__swatch--line {
   width: var(--app-space-md);
   height: 0;
-  border-top: 2px dashed var(--app-color-text-faint);
+  border-top: 2px dashed var(--app-color-text-muted);
 }
 
 .legend__swatch--pl {
@@ -249,7 +249,7 @@
 .legend__note {
   margin: 0;
   font-size: var(--app-font-size-meta);
-  color: var(--app-color-text-faint);
+  color: var(--app-color-text-muted);
 }
 
 .x-ticks {

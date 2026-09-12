@@ -88,7 +88,7 @@
 .app-navigation__project-label {
   display: block;
   padding: 0 var(--app-space-sm);
-  color: var(--app-color-text-faint);
+  color: var(--app-color-text-muted);
   font-size: var(--app-font-size-meta);
   font-weight: 600;
   text-transform: uppercase;

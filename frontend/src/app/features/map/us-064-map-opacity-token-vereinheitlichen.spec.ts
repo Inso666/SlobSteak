@@ -63,7 +63,12 @@ describe('US-064: Einheitlicher, tokenisierter Opacity-Wert für gesperrte Map-P
     const lockedOwnOpacity = opacityOf(lockedOwnButton);
 
     expect(compareOpacity).toBe(lockedOwnOpacity);
-    expect(compareOpacity).toBe('0.72');
+    // US-078 (Issue #121): der Token-WERT wurde von `0.72` auf `0.92` angehoben (WCAG-AA-Kontrast
+    // archivierter Projektkarten, siehe `frontend/src/styles.css` Token-Kommentar sowie
+    // `docs/adr/0012-kontrast-vor-wireframe-treue.md`). Die hier geprüfte Akzeptanz aus US-064 —
+    // ein einziger benannter Token statt verstreuter Zahlen-Literale, beide Sperr-Gründe identisch —
+    // bleibt unverändert erfüllt; nur die konkrete Zahl ändert sich mit.
+    expect(compareOpacity).toBe('0.92');
   });
 
   // Akzeptanzkriterium 2: der vereinheitlichte Wert ist als benanntes CSS-Custom-Property/Token
@@ -74,7 +79,8 @@ describe('US-064: Einheitlicher, tokenisierter Opacity-Wert für gesperrte Map-P
     const tokenValue = getComputedStyle(document.documentElement)
       .getPropertyValue('--app-map-point-locked-opacity')
       .trim();
-    expect(tokenValue).toBe('0.72');
+    // US-078: Wert angehoben auf `0.92`, siehe Kommentar bei der ersten Assertion oben.
+    expect(tokenValue).toBe('0.92');
 
     const fixture = createPoint(false, 'map-point--pl');
     const button: HTMLButtonElement = fixture.nativeElement.querySelector('.map-point');
