@@ -4,6 +4,32 @@ Alle nennenswerten Änderungen an diesem Projekt werden hier je User Story dokum
 
 ## [Unreleased]
 
+### US-077 — Overlay-Komponenten (Dialoge, Auswahl-Panels, Passwort-Overlay) im dunklen Theme statt auf weißer Fläche
+
+- Root Cause (Issue #116): `providePrimeNG` wird app-weit mit `options.darkModeSelector: false`
+  verdrahtet (kein Light-Mode-Toggle im Scope). PrimeNG v22 behandelt diese Option intern so, dass
+  bei jedem Token, dessen Aura-Default über die CSS-Funktion `light-dark(light, dark)` zwei Varianten
+  definiert, ausschließlich die **Light**-Variante fest in die generierte `:root`-Regel geschrieben
+  wird — unabhängig vom erzwungenen `color-scheme: dark`. `semantic.overlay` (treibt `p-dialog`,
+  `p-password`-Overlay, `p-select`-/`p-multiselect`-Panels) war vor dieser Story komplett ungemappt
+  und landete dadurch auf der eingefrorenen Aura-Light-Variante (`#ffffff`) — u. a. sichtbar im
+  erzwungenen Erst-Login-Passwort-Dialog (WCAG-Kontrast 1,15:1 statt der geforderten 4,5:1).
+- `frontend/src/app/core/theme/slobsteak-preset.ts`: zentrale Overlay-Semantik ergänzt
+  (`semantic.overlay.modal/popover/select`, jeweils Fläche `#161D2B`, Rahmen `#262F42`, Schrift
+  `#EDEFF4`, Radius `8px`) sowie die von derselben `light-dark()`-Falle betroffenen Hover-Zustände
+  (`semantic.list.option.focusBackground`, `semantic.navigation.item.focusBackground`/
+  `activeBackground`, je `#1D2536`) und `components.tooltip.root.background`/`color` (Aura verweist
+  hier auf feste Primitiv-Farben statt auf einen Overlay-Token). Eine einzige Fundstelle, keine
+  Overrides je Screen (SPEC-00 §4).
+- Empirisch mit dem realen `@primeuix/themes`-Compiler (`Theme.getCommonStyleSheet()`/
+  `Theme.getStyleSheet('tooltip')`) verifiziert: kein betroffener Token enthält nach dem Fix noch
+  `light-dark()` im generierten CSS-Output.
+- Story-Test `frontend/src/app/core/theme/us-077-overlay-komponenten-dark-theme.spec.ts` (Karma/
+  ChromeHeadless, echte Browser-CSS-Auflösung) belegt sowohl die Preset-Werte als auch einen
+  tatsächlich gerenderten `p-dialog` mit `background-color: rgb(22, 29, 43)` statt
+  `rgb(255, 255, 255)`, sowie berechnete WCAG-Kontrastverhältnisse (≥ 4,5:1) für Primär-, gedämpften
+  und Fehlertext auf der Overlay-Fläche.
+
 ### US-076 — Rollen-Bewertungsfortschritt (Progress-Ringe) und „unbewertet“-Hinweis auf Projektkarten
 
 - Folge-Story zu US-074 (Issue #99, Teil 2): `Project` erhält ein neues `UpdatedAt`-Feld
