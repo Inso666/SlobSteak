@@ -12,8 +12,18 @@ import { MapService, MapPoint, PerspectiveRole } from '../../map/map.service';
 import { CreateStakeholderFormComponent } from '../create-stakeholder-form/create-stakeholder-form.component';
 import { LOAD_ERROR_MESSAGE } from '../../../core/messages/http-error-messages';
 import { ProcessingButtonComponent } from '../../../shared/processing-button/processing-button.component';
+import { FilterSelectComponent, FilterSelectOption } from '../../../shared/filter-select/filter-select.component';
 import { formatRelativeTime } from '../../../shared/utils/relative-time';
 import { APP_NAV_PROJECT_SUB_ITEM_LABELS } from '../../../core/navigation/app-navigation/nav-items';
+
+/** US-084 (Issue #123) Akzeptanzkriterium 1/3: Optionsliste des gestalteten Typ-Filter-`p-select`
+ * — "Alle" bleibt ein echter, jederzeit erneut wählbarer Listeneintrag (identisch zum vormaligen
+ * nativen `<option value="">Alle</option>`), kein reiner Platzhalterzustand. */
+const TYPE_FILTER_OPTIONS: readonly FilterSelectOption<string>[] = [
+  { value: '', label: 'Alle' },
+  { value: 'Person', label: 'Person' },
+  { value: 'Organization', label: 'Organisation' },
+];
 
 /** Projektrollen, die eine eigene Perspektive im Assessment tragen und damit die Spalten
  * „Kommunikation“/„Meine Bewertung“ sehen dürfen (US-072 Akzeptanzkriterium 1/6, identische
@@ -62,6 +72,7 @@ const PERSPECTIVE_ROLES: readonly string[] = ['PL', 'Coreteam', 'Architect'];
     DatePipe,
     CreateStakeholderFormComponent,
     ProcessingButtonComponent,
+    FilterSelectComponent,
     ButtonDirective,
     Dialog,
     InputText,
@@ -105,6 +116,9 @@ export class StakeholderListComponent implements OnInit {
     search: [''],
     type: [''],
   });
+
+  /** US-084 Akzeptanzkriterium 1/3: Optionsliste des gestalteten Typ-Filters. */
+  protected readonly typeFilterOptions = TYPE_FILTER_OPTIONS;
 
   ngOnInit(): void {
     this.projectId = this.route.parent?.snapshot.paramMap.get('id') ?? '';

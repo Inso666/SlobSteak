@@ -16,14 +16,16 @@
         <input pInputText id="search" formControlName="search" placeholder="Name oder Organisation" />
       </div>
 
-      <div class="field">
-        <label for="type">Typ</label>
-        <select id="type" formControlName="type">
-          <option value="">Alle</option>
-          <option value="Person">Person</option>
-          <option value="Organization">Organisation</option>
-        </select>
-      </div>
+      <!-- US-084 (Issue #123) Akzeptanzkriterium 1/3: gestaltetes `app-filter-select` (p-select mit
+           Filternamen-Präfix "Typ: …" im Chip) statt nativem `<select>` — die zugehörige
+           `<label for>`-Zuordnung bleibt für Screenreader erhalten (sr-only, siehe Komponente). -->
+      <app-filter-select
+        prefix="Typ"
+        label="Nach Typ filtern"
+        inputId="type"
+        [options]="typeFilterOptions"
+        [control]="filterForm.controls.type"
+      />
     </form>
 
     <div class="sh-toolbar__spacer"></div>
