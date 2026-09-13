@@ -17,11 +17,10 @@
   margin-bottom: var(--app-space-md);
 }
 
-.au-table-wrapper {
-  overflow-x: auto;
-  border: 1px solid var(--app-color-border);
-  border-radius: var(--app-radius-md);
-}
+/* US-080 (Issue #118/#124): Hintergrund/Rahmen/Radius/Clipping kommen jetzt von der geteilten
+   `.list-panel`-Klasse (`frontend/src/styles.css`, zusätzliche Klasse im Template); der
+   horizontale Scroll-Container liegt in einem eigenen inneren `.list-panel__scroll`-Element.
+   `.au-table-wrapper` bleibt als reiner Marker-Klassenname im Template erhalten. */
 
 .au-table {
   width: 100%;
