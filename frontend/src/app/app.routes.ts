@@ -5,6 +5,7 @@ import { UsersAdminComponent } from './features/admin/users-admin/users-admin.co
 import { ProjectsAdminComponent } from './features/admin/projects-admin/projects-admin.component';
 import { CommunicationTypesAdminComponent } from './features/admin/communication-types-admin/communication-types-admin.component';
 import { authGuard } from './features/auth/auth.guard';
+import { redirectIfAuthenticatedGuard } from './features/auth/redirect-if-authenticated.guard';
 import { LoginPageComponent } from './features/auth/login-page/login-page.component';
 import { ProjectOverviewComponent } from './features/projects/project-overview/project-overview.component';
 import { roleGuard } from './core/guards/role.guard';
@@ -52,9 +53,18 @@ const ALL_PROJECT_ROLES = ['PL', 'Coreteam', 'Architect', 'User'] as const;
  * bisherigen `DistributionPlaceholderComponent`-Platzhalter aus US-019 ab) — analog zu `map` per
  * `loadComponent` lazy geladen, unverändert weiterhin durch `roleGuard(['PL','Coreteam'])`
  * geschützt.
+ *
+ * US-089 (Issue #131, Nebenbefund): `login` trägt seit dieser Story zusätzlich
+ * `redirectIfAuthenticatedGuard` — das Gegenstück zu `authGuard`, das bereits angemeldete
+ * Nutzer:innen sofort nach `/projects` weiterleitet, statt einen leeren Inhaltsbereich innerhalb
+ * der (Login-seitig gar nicht vorhandenen) App-Shell zu rendern. `''` unten durchläuft denselben
+ * Guard, da es per `redirectTo` auf `login` zeigt.
  */
 export const routes: Routes = [
-  { path: 'login', component: LoginPageComponent },
+  // US-089 (Issue #131, Nebenbefund): bereits angemeldete Nutzer:innen werden von hier sofort nach
+  // `/projects` weitergeleitet (siehe `redirectIfAuthenticatedGuard`), statt einen leeren
+  // Inhaltsbereich zu erhalten. `''` unten durchläuft via `redirectTo: 'login'` denselben Guard.
+  { path: 'login', component: LoginPageComponent, canActivate: [redirectIfAuthenticatedGuard] },
   { path: 'projects', component: ProjectOverviewComponent, canActivate: [authGuard] },
   {
     path: 'projects/:id',
