@@ -120,6 +120,14 @@ h3 {
   font-weight: 600;
 }
 
+/* US-081 (Issue #125): der Browser-UA-Standard für `h1` (ohne diese Regel ~28px im 14px-Body-
+   Kontext) weicht von SPEC-00 §1.2 ab, das `--app-font-size-display` (26px) explizit als
+   Seitentitel-Größe definiert. Zentral hier statt pro Screen gesetzt, da `h1` app-weit exakt einen
+   Seitentitel pro Screen darstellt (siehe `project-workspace-layout.component.html`). */
+h1 {
+  font-size: var(--app-font-size-display);
+}
+
 /* SPEC-00 §2 „Fokuszustand": produktweit einheitlicher Fokus-Ring in der Akzentfarbe, auf allen
    interaktiven Elementen sichtbar und nicht durch Screen-lokales Styling entfernbar. */
 :focus-visible {

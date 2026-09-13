@@ -1,8 +1,11 @@
 import { ChangeDetectorRef, Component, OnDestroy, OnInit, inject } from '@angular/core';
-import { ActivatedRoute, Router, RouterOutlet } from '@angular/router';
+import { ActivatedRoute, NavigationEnd, Router, RouterOutlet } from '@angular/router';
+import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
+import { filter } from 'rxjs';
 import { ProjectOverviewItem, ProjectsService } from '../../projects/projects.service';
 import { LOAD_ERROR_MESSAGE } from '../../../core/messages/http-error-messages';
 import { CurrentProjectContextService } from '../../../core/services/current-project-context.service';
+import { APP_NAV_PROJECT_SUB_ITEM_LABELS } from '../../../core/navigation/app-navigation/nav-items';
 
 /**
  * Projekt-Workspace-Shell (US-019, Screen S3): Header mit Projektname und Rollen-Badge
@@ -13,6 +16,17 @@ import { CurrentProjectContextService } from '../../../core/services/current-pro
  * ist dadurch in {@link CurrentProjectContextService}s Konsumenten (Sidebar) gewandert — zusätzlich
  * zur dortigen UI-Ausblendung sichert `roleGuard` die jeweilige Route weiterhin auch bei direktem
  * Aufruf ab (Akzeptanzkriterium 5).
+ *
+ * US-081 (Issue #125): Dieser Header-`<h1>` ist seither die EINZIGE Hauptüberschrift jeder
+ * Projekt-Unterseite (Stakeholder-Liste/-Detail, Map, Verteiler) — die vormals zusätzlich
+ * gerenderte zweite `<h1>` je Kind-Route ("Stakeholder"/"Map"/"Verteiler") ist entfallen
+ * (Akzeptanzkriterium 1/2). Damit trotzdem weiterhin erkennbar bleibt, welcher Bereich aktiv ist,
+ * ohne die Sidebar konsultieren zu müssen (Akzeptanzkriterium 5), trägt der `<h1>` zusätzlich ein
+ * `aria-label`, das den Projektnamen um den aktiven Bereich ergänzt (siehe {@link headerAriaLabel}).
+ * Der Bereichsname wird dafür aus der aktuellen Router-URL abgeleitet (analog zu
+ * `AppNavigationComponent.computeIsProjectRoute`) statt über eine neue Route-`data`-Eigenschaft,
+ * um keinen zweiten Ort für dieselbe Information einzuführen — die Wortwahl selbst kommt
+ * unverändert aus der bereits zentralen {@link APP_NAV_PROJECT_SUB_ITEM_LABELS}.
  */
 @Component({
   selector: 'app-project-workspace-layout',
@@ -30,6 +44,22 @@ export class ProjectWorkspaceLayoutComponent implements OnInit, OnDestroy {
 
   protected project: ProjectOverviewItem | null = null;
   protected loadError: string | null = null;
+  /** US-081 Akzeptanzkriterium 5: aktueller Bereichsname für {@link headerAriaLabel}, aus der
+   * Router-URL abgeleitet (siehe {@link computeAreaLabel}) und bei jeder Kind-Navigation innerhalb
+   * desselben Projekt-Workspace neu berechnet (diese Komponente wird beim Wechsel zwischen
+   * Stakeholder-Liste/Map/Verteiler NICHT neu instanziiert, nur ihre Kind-Route). */
+  protected areaLabel = this.computeAreaLabel();
+
+  constructor() {
+    this.router.events
+      .pipe(
+        filter((event): event is NavigationEnd => event instanceof NavigationEnd),
+        takeUntilDestroyed(),
+      )
+      .subscribe(() => {
+        this.areaLabel = this.computeAreaLabel();
+      });
+  }
 
   /** US-044 Akzeptanzkriterium 4: konsistente Fehlermeldung statt einer dauerhaft leeren Shell bei
    * fehlgeschlagenem Laden.
@@ -103,5 +133,31 @@ export class ProjectWorkspaceLayoutComponent implements OnInit, OnDestroy {
       default:
         return null;
     }
+  }
+
+  /** US-081 Akzeptanzkriterium 5: Accessible Name des einzigen verbleibenden `<h1>` — enthält den
+   * sichtbaren Projektnamen vollständig (WCAG 2.5.3 „Label in Name") und ergänzt ihn um den aktiven
+   * Bereich, damit ein Screenreader-Nutzer den Bereich auch ohne vorherige Sidebar-Navigation
+   * identifizieren kann. Leerer String, solange `project` noch nicht geladen ist (Header rendert
+   * dann ohnehin nicht, siehe Template `@if (project)`). */
+  protected get headerAriaLabel(): string {
+    return this.project ? `${this.project.name} – ${this.areaLabel}` : '';
+  }
+
+  /** US-081: leitet den aktiven Bereich aus der Router-URL ab (analog zu
+   * `AppNavigationComponent.computeIsProjectRoute`) statt über eine neue Route-`data`-Eigenschaft.
+   * `/map` und `/distribution` sind eindeutig; jede andere Kind-Route unterhalb des Projekt-
+   * Workspace (insbesondere `stakeholders` UND `stakeholders/:stakeholderId`) gilt als
+   * Stakeholder-Bereich — die Detailseite ist fachlich weiterhin Teil der Stakeholder-Liste
+   * (Rücksprung über „Zurück zur Liste"), nicht ein vierter, eigener Bereich. */
+  private computeAreaLabel(): string {
+    const url = this.router.url;
+    if (/\/distribution(?:[/?#]|$)/.test(url)) {
+      return APP_NAV_PROJECT_SUB_ITEM_LABELS.distribution;
+    }
+    if (/\/map(?:[/?#]|$)/.test(url)) {
+      return APP_NAV_PROJECT_SUB_ITEM_LABELS.map;
+    }
+    return APP_NAV_PROJECT_SUB_ITEM_LABELS.stakeholders;
   }
 }

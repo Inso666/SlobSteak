@@ -31,6 +31,7 @@ import {
   DISTRIBUTION_STAKEHOLDER_TYPE_OPTIONS,
   resolveDistributionOptionLabel,
 } from '../distribution-messages';
+import { APP_NAV_PROJECT_SUB_ITEM_LABELS } from '../../../core/navigation/app-navigation/nav-items';
 
 /**
  * Verteiler-Tab der Projekt-Workspace-Shell (US-042, Screen S3, SPEC-05) — ersetzt den
@@ -87,6 +88,11 @@ export class DistributionListPageComponent implements OnInit {
   protected readonly missingEmailTooltip = DISTRIBUTION_MISSING_EMAIL_TOOLTIP;
   protected readonly emptyTitle = DISTRIBUTION_EMPTY_TITLE;
   protected readonly emptyText = DISTRIBUTION_EMPTY_TEXT;
+  /** US-081 (Issue #125): Bereichsname für die `aria-labelledby`-Landmarkenbenennung dieser
+   * `<section>` (nicht-überschriftliches, visuell verstecktes Element — die einzige `<h1>` der
+   * Projekt-Unterseite ist der Projektname in `project-workspace-layout.component.html`), zentral
+   * gepflegt statt hier erneut hartkodiert. */
+  protected readonly areaLabel = APP_NAV_PROJECT_SUB_ITEM_LABELS.distribution;
   /** Platzhalterzeilen für den Lade-Zustand (SPEC-05 §1.2 `loadingbody`-Template-Äquivalent). */
   protected readonly skeletonRows = [0, 1, 2, 3, 4];
 

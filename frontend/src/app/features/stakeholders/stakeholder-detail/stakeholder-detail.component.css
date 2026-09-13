@@ -43,8 +43,12 @@
   gap: var(--app-space-sm);
 }
 
+/* US-081 (Issue #125): jetzt ein `<h2>` (statt `<h1>`, siehe HTML-Kommentar) — die globale
+   `h1{font-size:...}`-Regel (`styles.css`) greift hier nicht mehr, daher hier explizit dieselbe
+   Seitentitel-Größe wie zuvor und wie beim editierbaren Pendant `.page-title-input`. */
 .page-title {
   margin: 0;
+  font-size: var(--app-font-size-display);
 }
 
 .page-title-input {

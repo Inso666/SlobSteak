@@ -22,7 +22,11 @@
               <option value="Organization">Organisation</option>
             </select>
           } @else {
-            <h1 class="page-title">{{ stakeholder.name }}</h1>
+            <!-- US-081 (Issue #125): vormals `<h1>` — die einzige `<h1>` je Projekt-Unterseite ist
+                 der Projektname in `project-workspace-layout.component.html` (Akzeptanzkriterium
+                 1/2); der Stakeholder-Name bleibt als `<h2>` visuell unverändert (`.page-title`
+                 behält `--app-font-size-display`, siehe CSS). -->
+            <h2 class="page-title">{{ stakeholder.name }}</h2>
             <span class="type-tag" data-testid="type-badge">{{ typeLabel }}</span>
           }
         </div>

@@ -13,6 +13,7 @@ import { CreateStakeholderFormComponent } from '../create-stakeholder-form/creat
 import { LOAD_ERROR_MESSAGE } from '../../../core/messages/http-error-messages';
 import { ProcessingButtonComponent } from '../../../shared/processing-button/processing-button.component';
 import { formatRelativeTime } from '../../../shared/utils/relative-time';
+import { APP_NAV_PROJECT_SUB_ITEM_LABELS } from '../../../core/navigation/app-navigation/nav-items';
 
 /** Projektrollen, die eine eigene Perspektive im Assessment tragen und damit die Spalten
  * „Kommunikation“/„Meine Bewertung“ sehen dürfen (US-072 Akzeptanzkriterium 1/6, identische
@@ -76,6 +77,12 @@ export class StakeholderListComponent implements OnInit {
   private readonly route = inject(ActivatedRoute);
   private readonly router = inject(Router);
   private readonly changeDetectorRef = inject(ChangeDetectorRef);
+
+  /** US-081 (Issue #125): Bereichsname für die `aria-labelledby`-Landmarkenbenennung dieser
+   * `<section>` (nicht-überschriftliches, visuell verstecktes Element — die einzige `<h1>` der
+   * Projekt-Unterseite ist der Projektname in `project-workspace-layout.component.html`), zentral
+   * gepflegt statt hier erneut hartkodiert. */
+  protected readonly areaLabel = APP_NAV_PROJECT_SUB_ITEM_LABELS.stakeholders;
 
   protected projectId = '';
   protected currentUserRole: string | null = null;

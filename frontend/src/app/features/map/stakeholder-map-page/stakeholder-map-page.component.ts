@@ -14,6 +14,7 @@ import { AssessmentsService } from '../../assessments/assessments.service';
 import { AssessmentConflictDialogComponent } from '../../assessments/assessment-conflict-dialog/assessment-conflict-dialog.component';
 import { MAP_DRAG_SAVE_ERROR_MESSAGE, MAP_EMPTY_MESSAGE } from '../map-messages';
 import { LOAD_ERROR_MESSAGE } from '../../../core/messages/http-error-messages';
+import { APP_NAV_PROJECT_SUB_ITEM_LABELS } from '../../../core/navigation/app-navigation/nav-items';
 
 /** Konfliktzustand nach `409 ASSESSMENT_MODIFIED` beim Speichern einer Drag-Position (US-036
  * Akzeptanzkriterium 4) — hält die ursprünglich gezogenen Werte fest, damit „Trotzdem speichern"
@@ -101,6 +102,11 @@ export class StakeholderMapPageComponent implements OnInit {
   protected readonly emptyMessage = MAP_EMPTY_MESSAGE;
   protected readonly loadErrorMessage = LOAD_ERROR_MESSAGE;
   protected readonly dragSaveErrorMessage = MAP_DRAG_SAVE_ERROR_MESSAGE;
+  /** US-081 (Issue #125): Bereichsname für die `aria-labelledby`-Landmarkenbenennung dieser
+   * `<section>` (nicht-überschriftliches, visuell verstecktes Element — die einzige `<h1>` der
+   * Projekt-Unterseite ist der Projektname in `project-workspace-layout.component.html`), zentral
+   * gepflegt statt hier erneut hartkodiert. */
+  protected readonly areaLabel = APP_NAV_PROJECT_SUB_ITEM_LABELS.map;
 
   protected projectId = '';
   protected points: MapPoint[] = [];

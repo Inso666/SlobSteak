@@ -1,8 +1,13 @@
 /* US-072 (Issue #100): Tabellen-Umbau statt Karten-Raster, analog zum bereits etablierten
    `.dl-table`-Muster aus `distribution-list-page.component.css` (US-042). Ausschließlich zentrale
-   Tokens (`frontend/src/styles.css`), keine hartcodierten Hex-/px-Werte. */
+   Tokens (`frontend/src/styles.css`), keine hartcodierten Hex-/px-Werte.
+   US-081 (Issue #125): das eigene `padding: var(--app-space-md) 0` ist entfallen — es addierte sich
+   zum `margin-bottom` des Projekttitel-Headers (`project-workspace-layout.component.css`) und war
+   Teil des im Design nicht vorgesehenen Leerraums zwischen Titel und Inhalt. `.stakeholder-map-page`/
+   `.distribution-list-page` hatten dieses lokale Padding nie und erreichen dadurch bereits den in
+   `Verteiler.dc.html` vorgesehenen 20px-Abstand (`--app-space-lg` des Headers) — dieselbe Struktur
+   gilt jetzt für alle drei Screens. */
 .stakeholder-list {
-  padding: var(--app-space-md) 0;
   display: flex;
   flex-direction: column;
   gap: var(--app-space-md);
