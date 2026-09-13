@@ -1,5 +1,9 @@
 <section class="distribution-list-page" aria-labelledby="dl-page-title">
-  <h1 id="dl-page-title">Verteiler</h1>
+  <!-- US-081 (Issue #125): die frühere `<h1>` ("Verteiler") ist entfallen — die einzige `<h1>` je
+       Projekt-Unterseite ist der Projektname in `project-workspace-layout.component.html`. Der
+       Bereichsname bleibt als nicht-überschriftliches, visuell verstecktes Element für die
+       `aria-labelledby`-Landmarkenbenennung dieses `<section>` erhalten (Akzeptanzkriterium 2). -->
+  <span class="sr-only" id="dl-page-title">{{ areaLabel }}</span>
 
   <form [formGroup]="filterForm" class="dl-toolbar" aria-label="Verteiler filtern">
     <div class="field">

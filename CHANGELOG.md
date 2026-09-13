@@ -4,6 +4,39 @@ Alle nennenswerten Änderungen an diesem Projekt werden hier je User Story dokum
 
 ## [Unreleased]
 
+### US-081 — Genau eine Hauptüberschrift je Screen (Projektname statt zusätzlicher Bereichsüberschrift)
+
+- Root Cause (Issue #125, QA-Design-Abgleich 04.09.2026): jede Projekt-Unterseite
+  (Stakeholder-Liste, Map, Verteiler) rendert zwei gleichrangige `<h1>` ohne Hierarchie — den
+  Projektnamen (`ProjectWorkspaceLayoutComponent`) UND eine zweite, redundante Bereichsüberschrift
+  ("Stakeholder"/"Map"/"Verteiler"), die die Sidebar (US-075) bereits als aktiven Unterpunkt
+  markiert. Die Stakeholder-Detailseite hatte denselben Fehler mit dem Stakeholder-Namen als
+  zweitem `<h1>`. Zusätzlich rendert die App-`<h1>` mit dem UA-Standard (~28px) statt der in
+  SPEC-00 §1.2 vorgesehenen 26px (`--app-font-size-display`).
+- `frontend/src/styles.css`: neue globale `h1{font-size: var(--app-font-size-display)}`-Regel.
+- `frontend/src/app/features/workspace/project-workspace-layout/`: `<h1>` (Projektname) ist jetzt
+  die einzige Hauptüberschrift jeder Projekt-Unterseite; trägt zusätzlich ein `aria-label`, das den
+  Projektnamen um den aus der Router-URL abgeleiteten aktiven Bereich ergänzt (Barrierefreiheit
+  ohne Sidebar-Kontext).
+- `frontend/src/app/features/stakeholders/stakeholder-list/`,
+  `frontend/src/app/features/map/stakeholder-map-page/`,
+  `frontend/src/app/features/distribution/distribution-list-page/`: die frühere zweite `<h1>`
+  entfällt; der Bereichsname bleibt als `.sr-only`-Element für die bestehende
+  `aria-labelledby`-Landmarkenbenennung erhalten (zentrales Wording aus
+  `APP_NAV_PROJECT_SUB_ITEM_LABELS`, US-075). `.stakeholder-list` verliert zusätzlich ihr
+  redundantes lokales `padding-top`, das sich zum `margin-bottom` des Projekttitel-Headers addierte
+  und Teil des im Design nicht vorgesehenen ~50px-Leerraums war — der Abstand zwischen Titel und
+  erstem Inhaltselement liegt jetzt einheitlich bei `--app-space-lg` (20px) auf allen drei Screens.
+- `frontend/src/app/features/stakeholders/stakeholder-detail/`: der Stakeholder-Name ist jetzt ein
+  `<h2>` statt eines zweiten `<h1>` (visuell unverändert, siehe Anmerkungen des Agenten in der
+  Story-Datei zur dokumentierten Abweichung von `SPEC-06-Stakeholder-Detail.md` §1.1).
+- Story-Test
+  `frontend/src/app/features/workspace/project-workspace-layout/us-081-eine-h1-je-screen.spec.ts`
+  prüft je Akzeptanzkriterium: genau ein `<h1>` je Screen mit Projektname, keine `<h1>`-Kandidaten
+  mehr in den vier Kind-Komponenten, `.sr-only`-Ersatzlabel bzw. `<h2>`, 20px-Abstand,
+  26px-Schriftgröße, `aria-label` je Bereich, sowie die Routentabelle. Vollständiger `ng test`-Lauf
+  (536/536) und `ng lint` bleiben grün.
+
 ### US-080 — Inhaltsbereich mit Innenabstand und Datenlisten im Surface-Panel mit integrierter Fußzeile
 
 - Root Cause (Issue #118 + #124, QA-Design-Abgleich 04.09.2026, in einer Story zusammengefasst): der

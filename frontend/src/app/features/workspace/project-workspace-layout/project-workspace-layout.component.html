@@ -5,7 +5,10 @@
 
   @if (project) {
     <header class="workspace-header">
-      <h1>{{ project.name }}</h1>
+      <!-- US-081 (Issue #125): einzige `<h1>` je Projekt-Unterseite. `aria-label` ergänzt den
+           sichtbaren Projektnamen um den aktiven Bereich (Stakeholder/Map/Verteiler), da die
+           vormalige zweite `<h1>` je Kind-Route entfallen ist. -->
+      <h1 [attr.aria-label]="headerAriaLabel">{{ project.name }}</h1>
       <!-- SPEC-00 §4: Rolle „User" führt in keinem Screen einen eigenen Rollen-Badge. -->
       @if (roleBadgeClass) {
         <span class="role-badge" [class]="roleBadgeClass">{{ project.role }}</span>

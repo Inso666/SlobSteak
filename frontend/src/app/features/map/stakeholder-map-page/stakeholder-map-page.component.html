@@ -1,5 +1,9 @@
-<section class="stakeholder-map-page">
-  <h1>Map</h1>
+<section class="stakeholder-map-page" aria-labelledby="map-page-title">
+  <!-- US-081 (Issue #125): die frühere `<h1>` ("Map") ist entfallen — die einzige `<h1>` je
+       Projekt-Unterseite ist der Projektname in `project-workspace-layout.component.html`. Der
+       Bereichsname bleibt als nicht-überschriftliches, visuell verstecktes Element für die
+       `aria-labelledby`-Landmarkenbenennung dieses `<section>` erhalten (Akzeptanzkriterium 2). -->
+  <span class="sr-only" id="map-page-title">{{ areaLabel }}</span>
 
   @if (viewState === 'error') {
     <p class="load-error" role="alert">
