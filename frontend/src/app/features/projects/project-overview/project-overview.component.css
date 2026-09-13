@@ -32,12 +32,26 @@
   min-width: 14rem;
 }
 
+/* US-083 Akzeptanzkriterium 1: fest drei Spalten (statt `auto-fill`, das bei großem Viewport zu
+   vielen schmalen Spalten führte, siehe Befund 1 der Story-Datei) — analog `docs/design/Main.dc.html`
+   `.grid{grid-template-columns:repeat(3, minmax(0,1fr));}`. Unterhalb 1024px (SPEC-02 §1.4
+   „Grid 3→1-spaltig") eine Spalte mit voller Kartenbreite, siehe Media Query unten. */
 .project-cards {
   display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(14rem, 1fr));
+  grid-template-columns: repeat(3, minmax(0, 1fr));
   gap: var(--app-space-lg);
 }
 
+@media (max-width: 1023px) {
+  .project-cards {
+    grid-template-columns: 1fr;
+  }
+}
+
+/* US-083 Akzeptanzkriterium 4/6: die Karte ist ein `<a [routerLink]>` (siehe Template) statt eines
+   `<button (click)>` — `text-decoration`/`color` müssen daher explizit gesetzt werden, damit die
+   Karte nicht die UA-Linkfarbe/-Unterstreichung erbt; alle Kindelemente setzen ihre Farbe ohnehin
+   selbst (`h2`, `.stat-num`, `.meta`, `.role-badge`, `.status-tag`). */
 .project-card {
   display: flex;
   flex-direction: column;
@@ -47,9 +61,11 @@
   padding: var(--app-space-lg);
   background: var(--app-color-surface);
   border: 1px solid var(--app-color-border);
-  border-radius: var(--app-radius-md);
+  border-radius: var(--app-radius-lg);
   cursor: pointer;
   font-family: var(--app-font-family-body);
+  color: var(--app-color-text);
+  text-decoration: none;
 }
 
 .project-card:hover {
@@ -90,11 +106,27 @@
 }
 
 /* US-074 Akzeptanzkriterium „Karten": Stakeholder-Zahl in Mono-Schrift hervorgehoben
-   (SPEC-00 §1.1: IBM Plex Mono ausschließlich für Zahlen/Kennzahlen). */
+   (SPEC-00 §1.1: IBM Plex Mono ausschließlich für Zahlen/Kennzahlen). US-083 Akzeptanzkriterium 2:
+   Schriftgröße `--app-font-size-data` (28px) statt der von `.stat-row` geerbten Body-Größe (14px,
+   Befund 2 der Story-Datei) — die Kennzahl war dadurch exakt so groß wie ihr eigenes Label. */
 .stat-num {
   font-family: var(--app-font-family-mono);
+  font-size: var(--app-font-size-data);
   font-weight: 600;
   color: var(--app-color-text);
+}
+
+/* US-083 Akzeptanzkriterium 3: Label „Meine Rolle" vor dem Rollen-Badge (SPEC-02 §1.2 `.role-row`)
+   — ohne dieses Label ist ein alleinstehendes Kürzel wie „PL" auf der Karte nicht selbsterklärend. */
+.role-row {
+  display: flex;
+  align-items: center;
+  gap: var(--app-space-xs);
+}
+
+.role-label {
+  font-size: var(--app-font-size-body);
+  color: var(--app-color-text-muted);
 }
 
 /* US-076 Akzeptanzkriterium 4: Reihe der drei Fortschritts-Ringe, abgesetzt durch Trennlinien

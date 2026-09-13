@@ -1,5 +1,5 @@
 import { ChangeDetectorRef, Component, OnInit, inject } from '@angular/core';
-import { Router } from '@angular/router';
+import { Router, RouterLink } from '@angular/router';
 import { FormControl, FormGroup, ReactiveFormsModule } from '@angular/forms';
 import { ButtonDirective } from 'primeng/button';
 import { InputText } from 'primeng/inputtext';
@@ -53,6 +53,7 @@ interface RoleProgressEntry {
     ButtonDirective,
     InputText,
     ReactiveFormsModule,
+    RouterLink,
     ViewStateComponent,
     RoleProgressRingComponent,
     AttentionBadgeComponent,
@@ -135,8 +136,23 @@ export class ProjectOverviewComponent implements OnInit {
     this.activeTab = tab;
   }
 
+  /** Bis US-083 der Klick-Handler der Projektkarte (damals `<button (click)>`). Die Karte ist
+   * seit US-083 ein `<a [routerLink]>` mit nativer Link-Semantik (Mittelklick/Strg-Klick öffnen in
+   * neuem Tab) — die Navigation läuft daher direkt über `routerLink` im Template. Die Methode
+   * bleibt als eigenständige, weiterhin getestete Navigationslogik erhalten (siehe
+   * `project-overview.component.spec.ts`), auch wenn das Template sie nicht mehr aufruft. */
   protected onOpenProject(projectId: string): void {
     void this.router.navigate(['/projects', projectId]);
+  }
+
+  /** US-083 Akzeptanzkriterium 5: sprechendes `aria-label` je Projektkarte („Projekt <Name>
+   * öffnen", bei archivierten Projekten „Archiviertes Projekt <Name> öffnen") — gemeinsam für
+   * `ProjectOverviewItem` („Meine Projekte") und `AdminProject` („Alle Projekte"), da beide ein
+   * `name`/`status`-Feld besitzen. */
+  protected projectAriaLabel(project: { name: string; status?: string }): string {
+    return project.status === 'Archived'
+      ? `Archiviertes Projekt ${project.name} öffnen`
+      : `Projekt ${project.name} öffnen`;
   }
 
   protected onCreateProject(): void {
