@@ -4,6 +4,45 @@ Alle nennenswerten Änderungen an diesem Projekt werden hier je User Story dokum
 
 ## [Unreleased]
 
+### US-089 — Login: zentrierte Karte, durchgehende Anmelde-Schaltfläche, Design-Typografie und deutschsprachiges Passwort-Feedback
+
+- Root Cause (Issue #131/#132, QA-Design-Abgleich 04.09.2026, gegen `docs/design/Login.dc.html`):
+  die Login-Karte klebte oben (`margin: var(--app-space-xl) auto` statt Viewport-Zentrierung),
+  hatte statt 380px/14px-Radius/32px-Innenabstand/Schatten die Werte 416px/keinen erhöhten
+  Radius/20px/keinen Schatten; die „Anmelden"-Schaltfläche rendert nur 87px breit statt kartenbreit;
+  Markenschriftzug (16px statt 19px) und Tagline (14px statt 12,5px) wichen von den Design-Größen
+  ab; das Passwort-Stärke-Overlay im erzwungenen Passwort-Dialog zeigte den englischen Text „Enter a
+  password"; `/login` blieb für bereits angemeldete Nutzer:innen erreichbar und rendert dort einen
+  leeren Inhaltsbereich innerhalb der App-Shell.
+- `frontend/src/styles.css`: fünf neue, bewusst benannte Tokens (`--app-login-card-width`,
+  `--app-radius-xl`, `--app-space-2xl`, `--app-shadow-card`, `--app-button-padding-cta`) sowie
+  `--app-font-size-brand`/`--app-font-size-tagline` — SPEC-00 §1.2 kennt für diese Login-spezifischen
+  Design-Maße keine passende Stufe (Story-Akzeptanzkriterium 2 erlaubt ausdrücklich eine solche
+  Ergänzung statt Ad-hoc-Werten im Component-CSS).
+- `frontend/src/app/features/auth/login-page/login-page.component.css`/`.html`: `.login`
+  zentriert jetzt per Flexbox horizontal UND vertikal im Viewport; neue `.login-card`-Klasse setzt
+  Breite sowie die PrimeNG-v18-Design-Tokens `--p-card-border-radius`/`--p-card-shadow`/
+  `--p-card-body-padding` direkt auf dem `<p-card>`-Host (kaskadieren ganz ohne `::ng-deep` zu den
+  intern gerenderten Card-Elementen); Markenschriftzug/Tagline auf die neuen Typografie-Tokens
+  umgestellt. Feld-Label-/Eingabefeld-Größen bewusst NICHT auf die Wireframe-Werte geändert — siehe
+  Story „Anmerkungen des Agenten" (SPEC-00 §2 schreibt hierfür eine screen-übergreifend einheitliche
+  Optik vor, die Login namentlich einschließt).
+- `frontend/src/app/shared/processing-button/processing-button.component.ts`/`.html`/`.css`: neuer,
+  optionaler `[fullWidth]`-Input (Default `false`, keine Auswirkung auf die 20+ übrigen
+  Verwendungsstellen) behebt die 87px-Schaltfläche über eine neue
+  `.app-processing-button--full-width`-Klasse (Breite 100 % plus dieselbe CSS-Custom-Property-Technik
+  für die Button-Design-Tokens); auf der Login-Seite aktiviert.
+- `frontend/src/app/features/auth/password-change-modal/password-change-modal.component.html`:
+  `promptLabel`/`weakLabel`/`mediumLabel`/`strongLabel` des Stärke-Meters auf deutsche Texte gesetzt
+  (`[feedback]="true"` bleibt gemäß der bestehenden SPEC-01-Login.md-§2.3-Entscheidung erhalten,
+  siehe Story „Anmerkungen des Agenten" zur Variantenwahl).
+- `frontend/src/app/features/auth/redirect-if-authenticated.guard.ts` (neu) + `app.routes.ts`:
+  bereits angemeldete Nutzer:innen werden von `/login` (und, via `redirectTo`, von `/`) sofort nach
+  `/projects` weitergeleitet, statt einen leeren Inhaltsbereich zu erhalten.
+- Story-Test: `frontend/src/app/features/auth/login-page/us-089-login-layout-deutsches-passwort-feedback.spec.ts`.
+  Zusätzliche Unit-Tests: `redirect-if-authenticated.guard.spec.ts`,
+  Ergänzungen in `processing-button.component.spec.ts`.
+
 ### US-082 — Sidebar: Wording „Admin-Bereich", zweibuchstabige Avatar-Initialen und Projektrolle in der Nutzerkarte
 
 - Root Cause (Issue #130, QA-Design-Abgleich 04.09.2026): der globale Navigationspunkt hieß „Admin"
