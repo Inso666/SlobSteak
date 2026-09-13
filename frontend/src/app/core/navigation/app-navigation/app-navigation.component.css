@@ -1,16 +1,30 @@
 /* US-055 / SPEC-02 §1.2: vertikale, feste Sidebar statt horizontaler Kopfleiste (US-045).
    Sidebar-Breite ist eine konkrete Struktur-Dimension, kein Farb-/Radius-/Abstands-Wert aus
    SPEC-00 §1.2 — analog zu anderen bereits im Projekt üblichen konkreten Größen (z. B.
-   `.icon-badge` 2.5rem, Dialog-Breite `w-25rem`), daher direkt hier statt als globaler Token. */
+   `.icon-badge` 2.5rem, Dialog-Breite `w-25rem`), daher direkt hier statt als globaler Token.
+   US-082 (QA-Design-Abgleich Issue #130): Breite von vormals `16rem`/256px auf die in der Story
+   explizit genannte Design-Vorgabe `15rem`/240px korrigiert.
+
+   Anmerkung des Agenten (CLAUDE.md Abschnitt 6): Der ebenfalls von der Story geforderte
+   Innenabstand `24px 16px` deckt sich mit KEINER Stufe der Abstands-Skala aus SPEC-00 §1.2/
+   `styles.css` (`--app-space-xs/sm/md/lg/xl` = 4/8/14/20/36px) — nach SPEC-00s eigener Regel
+   („fehlender Token-Eintrag ist ein Hinweis auf eine fehlende Design-Entscheidung, kein frei
+   wählbarer Wert") wäre das ein Fall für eine UX/UI-Rückfrage. Da der Wert hier jedoch wörtlich aus
+   der Design-Vorgabe der Story selbst stammt (Abschnitt 2, Ist-/Soll-Tabelle) und sich ausschließlich
+   auf die äußere Kontur dieses einen Shell-Containers bezieht — dieselbe Kategorie „konkrete,
+   nicht wiederverwendete Struktur-Dimension" wie die Sidebar-Breite direkt darüber, nicht ein an
+   mehreren Stellen wiederverwendeter Abstandswert —, wird er als literaler `rem`-Wert übernommen
+   statt einen neuen, nur für diese eine Stelle gültigen globalen Token zu erfinden. Eine Aufnahme
+   von `24px`/`16px` in die zentrale Skala bleibt ein Punkt für ein künftiges SPEC-00-Token-Audit. */
 .app-navigation {
   display: flex;
   flex-direction: column;
-  width: 16rem;
+  width: 15rem;
   height: 100vh;
   position: sticky;
   top: 0;
   flex-shrink: 0;
-  padding: var(--app-space-lg) var(--app-space-md);
+  padding: 1.5rem 1rem;
   background: var(--app-color-surface);
   border-right: 1px solid var(--app-color-border);
   font-family: var(--app-font-family-body);
@@ -139,13 +153,18 @@
   border-top: 1px solid var(--app-color-border);
 }
 
+/* US-082 (QA-Design-Abgleich Issue #130): 34px statt vormals 32px sowie ein zusätzlicher
+   `color.border`-Rahmen — analog zum neutralen Admin-Rollen-Badge aus SPEC-00 §1.3
+   („color.surface-hover-Fläche + color.border-Rahmen"). 34px ist wie die Sidebar-Breite oben eine
+   konkrete, nicht wiederverwendete Struktur-Dimension der Story-Design-Vorgabe, kein Skalenwert. */
 .app-navigation__avatar {
   display: flex;
   align-items: center;
   justify-content: center;
-  width: 2rem;
-  height: 2rem;
+  width: 2.125rem;
+  height: 2.125rem;
   flex-shrink: 0;
+  border: 1px solid var(--app-color-border);
   border-radius: var(--app-radius-full);
   background: var(--app-color-surface-hover);
   color: var(--app-color-text);
@@ -154,10 +173,29 @@
   font-weight: 600;
 }
 
+/* US-082: Text-Spalte der Nutzerkarte (Name + Rollenzeile) neben dem Avatar. */
+.app-navigation__user-text {
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+}
+
 .app-navigation__user-name {
   overflow: hidden;
   color: var(--app-color-text);
   font-size: var(--app-font-size-body);
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+/* US-082 Akzeptanzkriterium 3/4: zweite Zeile der Nutzerkarte (Projektrolle bzw. instanzweite
+   Rolle) — bewusst unkoloriert (kein `.role-badge`-Farbmodifier), da SPEC-00 §4 für Rolle „User"
+   ausdrücklich keinen Rollen-Badge vorsieht; dieselbe neutrale Darstellung gilt hier einheitlich
+   für alle Rollen, damit keine Rolle optisch hervorgehoben wird, wo keine vorgesehen ist. */
+.app-navigation__user-role {
+  overflow: hidden;
+  color: var(--app-color-text-muted);
+  font-size: var(--app-font-size-meta);
   text-overflow: ellipsis;
   white-space: nowrap;
 }

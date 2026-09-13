@@ -89,7 +89,7 @@ describe('US-046: Admin-Bereich über globale Navigation erreichbar machen', () 
 
   afterEach(() => tokenStorage.clearToken());
 
-  it('Akzeptanzkriterium 1: globale Navigation zeigt „Admin" ausschließlich für isSystemAdmin = true', () => {
+  it('Akzeptanzkriterium 1: globale Navigation zeigt „Admin-Bereich" ausschließlich für isSystemAdmin = true', () => {
     tokenStorage.setToken(fakeToken({ isSystemAdmin: true }));
     const fixture = TestBed.createComponent(AppNavigationComponent);
     fixture.detectChanges();
@@ -98,7 +98,8 @@ describe('US-046: Admin-Bereich über globale Navigation erreichbar machen', () 
       'a[href="/admin/users"]',
     ) as HTMLAnchorElement | null;
     expect(adminLink).not.toBeNull();
-    expect(adminLink?.textContent?.trim()).toBe('Admin');
+    // US-082 Akzeptanzkriterium 1: Wording von „Admin" auf „Admin-Bereich" korrigiert.
+    expect(adminLink?.textContent?.trim()).toBe('Admin-Bereich');
   });
 
   it('Akzeptanzkriterium 1 (Gegenprobe): kein „Admin"-Eintrag für einen Nutzer ohne isSystemAdmin', () => {
@@ -115,7 +116,8 @@ describe('US-046: Admin-Bereich über globale Navigation erreichbar machen', () 
     fixture.detectChanges();
 
     const links = Array.from(fixture.nativeElement.querySelectorAll('a')) as HTMLAnchorElement[];
-    expect(links.some((link) => link.textContent?.trim() === 'Admin')).toBeFalse();
+    // US-082 Akzeptanzkriterium 1: Wording von „Admin" auf „Admin-Bereich" korrigiert.
+    expect(links.some((link) => link.textContent?.trim() === 'Admin-Bereich')).toBeFalse();
   });
 
   it('Akzeptanzkriterium 3: Klick auf „Admin" navigiert zu /admin/users', async () => {

@@ -29,14 +29,17 @@ export const APP_NAV_LINKS: readonly AppNavLink[] = [
 ];
 
 /**
- * „Admin“-Eintrag der globalen Navigation (US-046, PRD Abschnitt 6.3: „Admin (nur
+ * „Admin-Bereich“-Eintrag der globalen Navigation (US-046, PRD Abschnitt 6.3: „Admin (nur
  * `is_system_admin`)“). Getrennt von {@link APP_NAV_LINKS} modelliert, weil `AppNavigationComponent`
  * ihn nur rendert, wenn zusätzlich zum Session-Token auch `TokenStorageService.getClaims()
  * ?.isSystemAdmin` zutrifft (Akzeptanzkriterium 1/2) — Angulars `@if` entfernt den Eintrag dabei
  * vollständig aus dem DOM statt ihn nur per CSS zu verstecken. `/admin/users` ist der in
  * Akzeptanzkriterium 3 geforderte Standard-Einstieg in den Admin-Bereich.
+ *
+ * US-082 Akzeptanzkriterium 1: Label lautet „Admin-Bereich“ statt des zuvor abgekürzten „Admin“
+ * (QA-Design-Abgleich Issue #130, Ist-/Soll-Vergleich gegen die referenzierten `docs/design`-Artboards).
  */
-export const APP_NAV_ADMIN_LINK: AppNavLink = { label: 'Admin', route: '/admin/users', icon: 'pi-shield' };
+export const APP_NAV_ADMIN_LINK: AppNavLink = { label: 'Admin-Bereich', route: '/admin/users', icon: 'pi-shield' };
 
 /** Text der „Abmelden“-Aktion — kein Navigationslink, sondern ein Button mit Seiteneffekt (Akzeptanzkriterium 4). */
 export const APP_NAV_LOGOUT_LABEL = 'Abmelden';
