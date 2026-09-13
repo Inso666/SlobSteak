@@ -43,6 +43,33 @@ Alle nennenswerten Änderungen an diesem Projekt werden hier je User Story dokum
   Zusätzliche Unit-Tests: `redirect-if-authenticated.guard.spec.ts`,
   Ergänzungen in `processing-button.component.spec.ts`.
 
+### US-083 — Projektübersicht: Drei-Spalten-Raster, hervorgehobene Stakeholder-Kennzahl und Karten als echte Links
+
+- Root Cause (Issue #122, QA-Design-Abgleich 04.09.2026): das Kartenraster nutzte
+  `grid-template-columns: repeat(auto-fill, minmax(14rem,1fr))` statt fest drei Spalten und zeigte
+  bei 2560px Viewportbreite 9 schmale 238px-Spalten statt drei — bei dieser Breite bricht der
+  Kartentitel um, wodurch Rollen-Badge/Kennzahl/Ringreihe zwischen den Karten vertikal
+  verspringen; `.stat-num` setzte keine eigene `font-size` und erbte damit `--app-font-size-body`
+  (14px) statt der vorgesehenen `--app-font-size-data` (28px), sodass die Stakeholder-Zahl exakt so
+  groß wie ihr eigenes Label war; das Label „Meine Rolle" vor dem Rollen-Badge fehlte; der
+  Kartenradius war `--app-radius-md` (8px) statt `--app-radius-lg` (10px); die Karte war ein
+  `<button (click)>` statt eines echten Links, wodurch Mittelklick/Strg-Klick nicht in einem neuen
+  Tab öffneten.
+- `frontend/src/app/features/projects/project-overview/project-overview.component.css`: `.project-cards`
+  fest auf `repeat(3, minmax(0,1fr))`, mit neuer `@media (max-width: 1023px)`-Regel für eine Spalte
+  unterhalb 1024px (SPEC-02 §1.4-Breakpoint); `.stat-num` erhält `font-size: var(--app-font-size-data)`;
+  neue `.role-row`/`.role-label`-Klassen für das Label „Meine Rolle"; Kartenradius auf
+  `--app-radius-lg`; `.project-card` erhält explizites `color`/`text-decoration:none` (Link-Reset).
+- `frontend/src/app/features/projects/project-overview/project-overview.component.html`/`.ts`: beide
+  Kartenblöcke („Meine Projekte" und „Alle Projekte") sind jetzt `<a [routerLink]>` mit
+  `[attr.aria-label]="projectAriaLabel(project)"` statt `<button (click)="onOpenProject(...)">`;
+  neue Methode `projectAriaLabel()` liefert „Projekt <Name> öffnen" bzw. bei archivierten Projekten
+  „Archiviertes Projekt <Name> öffnen"; Rollen-Badge ist jetzt in eine `.role-row` mit vorangestelltem
+  Label „Meine Rolle" eingebettet. `onOpenProject()` bleibt als eigenständige, weiterhin getestete
+  Methode erhalten (siehe Story-Datei „Anmerkungen des Agenten").
+- Story-Test: `frontend/src/app/features/projects/project-overview/us-083-projektkarten-raster-kennzahl.spec.ts`
+  (Rasterspalten/Breakpoint per CSSOM statt `getComputedStyle`, siehe Begründung im Testkommentar).
+
 ### US-082 — Sidebar: Wording „Admin-Bereich", zweibuchstabige Avatar-Initialen und Projektrolle in der Nutzerkarte
 
 - Root Cause (Issue #130, QA-Design-Abgleich 04.09.2026): der globale Navigationspunkt hieß „Admin"

@@ -226,7 +226,7 @@ Die screen-spezifischen Befunde des QA-Design-Abgleichs vom 04.09.2026. Jede Sto
 
 | ID | Titel | Bounded Context | Abhängigkeiten | Datei | Status |
 |---|---|---|---|---|---|
-| US-083 | Projektübersicht: Drei-Spalten-Raster, hervorgehobene Stakeholder-Kennzahl und Karten als echte Links | ProjectManagement | US-074, US-076, US-080 | [US-083-projektkarten-raster-kennzahl.md](US-083-projektkarten-raster-kennzahl.md) | offen |
+| US-083 | Projektübersicht: Drei-Spalten-Raster, hervorgehobene Stakeholder-Kennzahl und Karten als echte Links | ProjectManagement | US-074, US-076, US-080 | [US-083-projektkarten-raster-kennzahl.md](US-083-projektkarten-raster-kennzahl.md) | fertig (2026-09-13) |
 | US-084 | Gestaltete Auswahlfelder app-weit statt nativer `<select>`, Toolbar-Anordnung der Projektübersicht | Frontend-Shell / ProjectManagement | US-077, US-083 | [US-084-gestaltete-auswahlfelder-toolbar.md](US-084-gestaltete-auswahlfelder-toolbar.md) | offen |
 | US-085 | Stakeholder-Liste: Kommunikationsart-Filter, Umschalter für Gelöschte und rollenfarbige Bewertungszelle | StakeholderManagement | US-080, US-084 | [US-085-stakeholder-liste-filter-bewertungszelle.md](US-085-stakeholder-liste-filter-bewertungszelle.md) | offen |
 | US-086 | Stakeholder-Detail: Kopfbereich mit Titel und Typ-Chip, rollenfarbige Assessment-Tabs und Slider, kompakte Kommunikationszuordnungen | StakeholderManagement / StakeholderAssessment | US-071, US-080, US-084 | [US-086-stakeholder-detail-kopf-assessment.md](US-086-stakeholder-detail-kopf-assessment.md) | offen |
