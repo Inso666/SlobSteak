@@ -1,5 +1,12 @@
 <section class="project-overview">
-  <h1>Projektübersicht</h1>
+  <!-- US-084 (Issue #123) Befund 2: "Neues Projekt" steht laut Design (`Main.dc.html` `.topbar`)
+       in der Titelzeile rechts neben der Überschrift statt im dritten Toolbar-Slot. -->
+  <div class="topbar">
+    <h1>Projektübersicht</h1>
+    @if (isSystemAdmin) {
+      <button type="button" pButton icon="pi pi-plus" (click)="onCreateProject()">Neues Projekt</button>
+    }
+  </div>
 
   @if (loadError) {
     <p class="load-error" role="alert">{{ loadError }}</p>
@@ -7,7 +14,8 @@
 
   <!-- US-074 Akzeptanzkriterium „Toolbar": Tabs mit Live-Zähler für ALLE Rollen (nicht mehr nur
        Systemadmins) — „Alle Projekte" bleibt weiterhin ausschließlich für Systemadmins sichtbar
-       (unverändertes Berechtigungsverhalten aus US-018). -->
+       (unverändertes Berechtigungsverhalten aus US-018). US-084 Befund 2: der Zähler steht als
+       eigenes Mono-Element (`.count`) neben dem Tab-Titel statt in Klammern im Label-Text. -->
   <div class="toolbar">
     <div class="tab-pills" role="tablist">
       <button
@@ -18,7 +26,7 @@
         [attr.aria-selected]="activeTab === 'mine'"
         (click)="onSelectTab('mine')"
       >
-        Meine Projekte ({{ myProjects.length }})
+        Meine Projekte <span class="count mono">{{ myProjects.length }}</span>
       </button>
       @if (isSystemAdmin) {
         <button
@@ -29,32 +37,37 @@
           [attr.aria-selected]="activeTab === 'all'"
           (click)="onSelectTab('all')"
         >
-          Alle Projekte ({{ allProjects.length }})
+          Alle Projekte <span class="count mono">{{ allProjects.length }}</span>
         </button>
       }
     </div>
 
     <div class="search-sort">
       <label for="project-search" class="sr-only">Projekte durchsuchen</label>
-      <input
-        pInputText
-        id="project-search"
-        type="text"
-        placeholder="Projekte durchsuchen…"
-        [formControl]="filterForm.controls.search"
-      />
+      <p-iconfield>
+        <p-inputicon class="pi pi-search" />
+        <input
+          pInputText
+          id="project-search"
+          type="text"
+          placeholder="Projekte durchsuchen…"
+          [formControl]="filterForm.controls.search"
+        />
+      </p-iconfield>
 
+      <!-- US-084 Akzeptanzkriterium 1: gestaltetes `p-select` statt nativem `<select>` (US-077-
+           Overlay-Tokens). Kein Präfix im Chip vorgesehen (SPEC-02 §1.2 zeigt hier nur den
+           sichtbaren Wert, kein "Sortierung: …"-Muster wie bei den Filter-Chips anderer Screens). -->
       <label for="project-sort" class="sr-only">Sortierung</label>
-      <select id="project-sort" [formControl]="filterForm.controls.sortBy" aria-label="Sortierung">
-        <option value="name">Name (A–Z)</option>
-        <option value="newest">Neu zuerst</option>
-        <option value="lastUpdated">Zuletzt aktualisiert</option>
-      </select>
+      <p-select
+        inputId="project-sort"
+        [options]="sortOptions"
+        optionLabel="label"
+        optionValue="value"
+        [formControl]="filterForm.controls.sortBy"
+        ariaLabel="Sortierung"
+      />
     </div>
-
-    @if (isSystemAdmin) {
-      <button type="button" pButton (click)="onCreateProject()">Neues Projekt</button>
-    }
   </div>
 
   @if (activeTab === 'mine' || !isSystemAdmin) {

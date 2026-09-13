@@ -1,3 +1,4 @@
+import { ChangeDetectorRef } from '@angular/core';
 import { TestBed } from '@angular/core/testing';
 import { provideRouter } from '@angular/router';
 import { of } from 'rxjs';
@@ -153,11 +154,21 @@ describe('US-076: Projektkarten — Rollen-Bewertungsfortschritt (Progress-Ringe
     const fixture = TestBed.createComponent(ProjectOverviewComponent);
     fixture.detectChanges();
 
-    const select: HTMLSelectElement = fixture.nativeElement.querySelector('#project-sort');
-    const optionLabels = Array.from(select.options).map((option) => option.textContent?.trim());
+    // US-084 (Issue #123): das Dropdown ist seit dieser Story ein gestaltetes `p-select` statt
+    // eines nativen `<select>` — dessen Optionsliste rendert erst im geöffneten Overlay, daher
+    // wird hier die gebundene Datenquelle (`sortOptions`) statt DOM-`<option>`-Elementen geprüft.
+    const optionLabels = (fixture.componentInstance['sortOptions'] as { label: string }[]).map(
+      (option) => option.label,
+    );
     expect(optionLabels).toContain('Zuletzt aktualisiert');
 
+    // US-084: `markForCheck()` ist seit der Umstellung auf `p-select` nötig, da dieses zoneless
+    // Frontend eine Zustandsänderung, die außerhalb eines Angular-Templates/-Events ausgelöst wird
+    // (hier: `FormControl.setValue()` direkt aus dem Test statt einer echten `p-select`-Interaktion),
+    // nicht automatisch für die nächste Change-Detection-Runde markiert (siehe
+    // `us-074-projektuebersicht-sidebar-toolbar-cards.spec.ts` für dieselbe Anmerkung).
     fixture.componentInstance['filterForm'].controls.sortBy.setValue('lastUpdated');
+    fixture.debugElement.injector.get(ChangeDetectorRef).markForCheck();
     fixture.detectChanges();
 
     // Neuestes UpdatedAt zuerst: PL-Projekt (vor 2 Std.) vor User-Projekt (vor 1 Tag) vor

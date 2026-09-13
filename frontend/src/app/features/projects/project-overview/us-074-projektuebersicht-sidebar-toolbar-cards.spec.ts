@@ -1,5 +1,5 @@
 import { BreakpointObserver } from '@angular/cdk/layout';
-import { Component } from '@angular/core';
+import { ChangeDetectorRef, Component } from '@angular/core';
 import { TestBed } from '@angular/core/testing';
 import { provideRouter } from '@angular/router';
 import { of } from 'rxjs';
@@ -160,7 +160,12 @@ describe('US-074: Projektübersicht — Sidebar-Icons/Nutzerkarte, Toolbar (Tabs
         nonAdminFixture.nativeElement.querySelectorAll('.tab-pill'),
       );
       expect(nonAdminTabs.length).toBe(1);
-      expect(nonAdminTabs[0].textContent?.trim()).toBe(`Meine Projekte (${myProjects.length})`);
+      // US-084 Befund 2: der Zähler steht seit dieser Story als eigenes Mono-Element
+      // (`<span class="count">`) neben dem Tab-Titel statt in Klammern im Label-Text — der
+      // Live-Zähler selbst (Akzeptanzkriterium dieser Story) ist davon unberührt.
+      expect(nonAdminTabs[0].textContent?.replace(/\s+/g, ' ').trim()).toBe(
+        `Meine Projekte ${myProjects.length}`,
+      );
 
       configure(true);
       const adminFixture = TestBed.createComponent(ProjectOverviewComponent);
@@ -170,8 +175,12 @@ describe('US-074: Projektübersicht — Sidebar-Icons/Nutzerkarte, Toolbar (Tabs
         adminFixture.nativeElement.querySelectorAll('.tab-pill'),
       );
       expect(adminTabs.length).toBe(2);
-      expect(adminTabs[0].textContent?.trim()).toBe(`Meine Projekte (${myProjects.length})`);
-      expect(adminTabs[1].textContent?.trim()).toBe(`Alle Projekte (${allProjects.length})`);
+      expect(adminTabs[0].textContent?.replace(/\s+/g, ' ').trim()).toBe(
+        `Meine Projekte ${myProjects.length}`,
+      );
+      expect(adminTabs[1].textContent?.replace(/\s+/g, ' ').trim()).toBe(
+        `Alle Projekte ${allProjects.length}`,
+      );
     });
 
     it('Akzeptanzkriterium 4: ein Suchfeld „Projekte durchsuchen…" filtert die sichtbare Kartenliste client-seitig nach Projektname', () => {
@@ -200,15 +209,35 @@ describe('US-074: Projektübersicht — Sidebar-Icons/Nutzerkarte, Toolbar (Tabs
       configure(false);
       const fixture = TestBed.createComponent(ProjectOverviewComponent);
       fixture.detectChanges();
+      // US-084: dieses zoneless Frontend markiert eine Komponente nach einer Zustandsänderung, die
+      // außerhalb eines Angular-Templates/-Events ausgelöst wird, nicht automatisch für die nächste
+      // Change-Detection-Runde (identische Ursache wie bei den zahlreichen
+      // `changeDetectorRef.markForCheck()`-Aufrufen in `ngOnInit`, siehe dortige Anmerkung). Ein
+      // direkter `FormControl.setValue()`-Aufruf aus dem Test (statt einer echten Nutzer-Interaktion
+      // mit `p-select`) ist exakt so ein Fall — der Test markiert die Komponente daher hier
+      // explizit selbst, bevor `detectChanges()` erneut aufgerufen wird.
+      const changeDetectorRef = fixture.debugElement.injector.get(ChangeDetectorRef);
 
       // US-076 ergänzt eine dritte Option („Zuletzt aktualisiert") additiv — diese Story prüft
       // ausschließlich, dass ihre eigenen zwei Optionen weiterhin (in dieser Reihenfolge)
-      // vorhanden sind, nicht die Gesamtzahl.
-      const select: HTMLSelectElement = fixture.nativeElement.querySelector('#project-sort');
-      const optionLabels = Array.from(select.options).map((option) => option.textContent?.trim());
+      // vorhanden sind, nicht die Gesamtzahl. US-084 (Issue #123): das Dropdown ist seit dieser
+      // Story ein gestaltetes `p-select` statt eines nativen `<select>` — dessen Optionsliste
+      // rendert erst im geöffneten Overlay, daher wird hier die gebundene Datenquelle
+      // (`sortOptions`) statt DOM-`<option>`-Elementen geprüft (siehe auch
+      // `filter-select.component.spec.ts` für dasselbe Testmuster).
+      const optionLabels = (
+        fixture.componentInstance['sortOptions'] as { label: string }[]
+      ).map((option) => option.label);
       expect(optionLabels.slice(0, 2)).toEqual(['Name (A–Z)', 'Neu zuerst']);
 
-      // Default „Name (A–Z)": Anton-Projekt vor Berta-Projekt.
+      // US-084 Befund 2: Default ist seit dieser Story „Zuletzt aktualisiert" statt „Name (A–Z)"
+      // (siehe Anmerkung bei `filterForm` in `project-overview.component.ts", analog zum bereits
+      // etablierten Muster einer bewussten, dokumentierten Wertänderung aus US-078/US-064). Diese
+      // Story (US-074) prüft daher „Name (A–Z)" ab hier über ein explizites `setValue()` statt
+      // über den (nun geänderten) Default.
+      fixture.componentInstance['filterForm'].controls.sortBy.setValue('name');
+      changeDetectorRef.markForCheck();
+      fixture.detectChanges();
       let titles: HTMLElement[] = Array.from(
         fixture.nativeElement.querySelectorAll('.project-card h2'),
       );
@@ -218,6 +247,7 @@ describe('US-074: Projektübersicht — Sidebar-Icons/Nutzerkarte, Toolbar (Tabs
       // konsistent mit dem bereits etablierten Testmuster für Auswahlfelder in
       // `stakeholder-list.component.spec.ts`.
       fixture.componentInstance['filterForm'].controls.sortBy.setValue('newest');
+      changeDetectorRef.markForCheck();
       fixture.detectChanges();
 
       // „Neu zuerst": Berta-Projekt (2026-06-01) ist jünger als Anton-Projekt (2026-01-01).

@@ -267,8 +267,12 @@ describe('US-083: Projektübersicht — Drei-Spalten-Raster, Stakeholder-Kennzah
       'solid',
     );
 
-    // Fokussierbare Reihenfolge bleibt wie vor dieser Story (kein Regressions-Umbau der Toolbar):
-    // Tabs → Suche/Sortierung → „Neues Projekt" → Karten.
+    // US-084 (Issue #123) Befund 2: „Neues Projekt" wandert aus dem dritten Toolbar-Slot in die
+    // Titelzeile rechts neben die Überschrift (`Main.dc.html` `.topbar`) — die fokussierbare
+    // Reihenfolge dieser Story (Tabs → Suche/Sortierung → „Neues Projekt" → Karten) ändert sich
+    // dadurch bewusst zu „Neues Projekt" → Tabs → Suche/Sortierung → Karten, da der Button jetzt
+    // vor statt nach dem Toolbar im DOM steht. Dieser Test wurde entsprechend angepasst (analog zum
+    // bereits etablierten Muster einer späteren, dokumentierten Wertänderung aus US-078/US-064).
     const tabPills: HTMLElement = fixture.nativeElement.querySelector('.tab-pills');
     const searchSort: HTMLElement = fixture.nativeElement.querySelector('.search-sort');
     const createButton: HTMLElement = Array.from<HTMLButtonElement>(
@@ -278,8 +282,8 @@ describe('US-083: Projektübersicht — Drei-Spalten-Raster, Stakeholder-Kennzah
 
     const before = (a: Node, b: Node) =>
       a.compareDocumentPosition(b) & Node.DOCUMENT_POSITION_FOLLOWING;
+    expect(before(createButton, tabPills)).toBeTruthy();
     expect(before(tabPills, searchSort)).toBeTruthy();
-    expect(before(searchSort, createButton)).toBeTruthy();
-    expect(before(createButton, firstCard)).toBeTruthy();
+    expect(before(searchSort, firstCard)).toBeTruthy();
   });
 });
