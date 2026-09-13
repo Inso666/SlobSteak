@@ -8,7 +8,8 @@
   </div>
 
   <app-view-state [state]="usersState" emptyMessage="Keine Nutzer angelegt." [skeletonCount]="3">
-    <div class="au-table-wrapper">
+    <div class="au-table-wrapper list-panel">
+      <div class="list-panel__scroll">
       <table class="au-table">
         <caption class="sr-only">Admin-Nutzerverwaltung</caption>
         <thead>
@@ -46,6 +47,7 @@
           }
         </tbody>
       </table>
+      </div>
     </div>
   </app-view-state>
 

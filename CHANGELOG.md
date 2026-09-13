@@ -4,6 +4,38 @@ Alle nennenswerten Änderungen an diesem Projekt werden hier je User Story dokum
 
 ## [Unreleased]
 
+### US-080 — Inhaltsbereich mit Innenabstand und Datenlisten im Surface-Panel mit integrierter Fußzeile
+
+- Root Cause (Issue #118 + #124, QA-Design-Abgleich 04.09.2026, in einer Story zusammengefasst): der
+  App-Shell-Inhaltsbereich (`.app-shell__content`) hatte `padding: 0` — Bedienelemente wie
+  „Stakeholder anlegen", „CSV exportieren", „Neues Projekt" saßen bündig auf der Viewport-Kante.
+  Zusätzlich standen die Datenlisten (Stakeholder-Liste, Verteiler, drei Admin-Listen) transparent
+  direkt auf dem Seitenhintergrund (`.sh-table-wrapper`/`.dl-table-wrapper`/`.ap-table-wrapper`/
+  `.au-table-wrapper` ohne `background`), ihre Zusammenfassungs-/Aktionszeile lag teils außerhalb
+  des umrandeten Containers statt als Fußzeile darin.
+- `frontend/src/app/app.css`: `.app-shell__content` erhält an genau einer Stelle
+  `padding: var(--app-space-lg) var(--app-space-xl)` (horizontal 36px wie vom Design vorgegeben,
+  vertikal 20px — siehe Anmerkungen des Agenten in der Story-Datei zur Wahl von `--app-space-lg`
+  statt `--app-space-xl`, da fast jeder Screen bereits einen lokalen vertikalen
+  `--app-space-md`-Zusatzabstand setzt).
+- `frontend/src/styles.css`: neue geteilte Klassen `.list-panel` (Fläche `color.surface`, Rahmen
+  `color.border`, `border-radius: var(--app-radius-lg)`, `overflow: hidden`),
+  `.list-panel__scroll` (innerer horizontaler Scroll-Container für breite Tabellen, damit
+  `overflow: hidden` auf dem Panel die gerundeten Ecken clippt, ohne den Tabellen-Scroll zu
+  verhindern) und `.list-panel__foot` (Fußzeile mit `border-top`) — einmal definiert statt je
+  Feature dupliziert. Radius bewusst `--app-radius-lg` (10px, SPEC-00 bereits „Panels") statt des
+  in der Story wörtlich zitierten Wireframe-Werts `12px`, für den kein eigenes Token existiert
+  (CLAUDE.md Abschnitt 6 — Spec gewinnt bei Widerspruch).
+- Stakeholder-Liste, Verteiler und die drei Admin-Listen (Kommunikationsarten, Projekte, Nutzer)
+  nutzen `.list-panel`; Stakeholder-Liste- und Verteiler-Fußzeile sitzen jetzt als
+  `.list-panel__foot` innerhalb des Panels statt außerhalb. Die gefilterte-Anzahl-Anzeige der
+  Stakeholder-Liste-Fußzeile („N Stakeholder insgesamt · M angezeigt (gefiltert)") war bereits
+  vorhanden und bleibt unverändert korrekt.
+- Story-Test `frontend/src/app/us-080-inhaltsbereich-abstand-listen-panel.spec.ts`
+  (Karma/ChromeHeadless) prüft Innenabstand-Werte, die vier `.list-panel`-Eigenschaften, die
+  `border-top`-Fußzeile sowie die Panel-Klasse auf allen fünf betroffenen Listen-Containern.
+  Vollständiger `ng test`-Lauf (530/530) und `ng lint` bleiben grün.
+
 ### US-079 — PrimeNG-Button-Varianten (outlined, text, deaktiviert) auf die Design-Tokens mappen
 
 - Root Cause (Issue #120, QA-Design-Abgleich 04.09.2026): `slobsteak-preset.ts` mappte

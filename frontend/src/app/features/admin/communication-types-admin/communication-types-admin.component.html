@@ -3,7 +3,7 @@
     <p class="load-error" role="alert">{{ loadError }}</p>
   }
 
-  <div class="catalog-panel">
+  <div class="catalog-panel list-panel">
     <app-view-state [state]="typesState" emptyMessage="Es sind noch keine Kommunikationsarten angelegt." [skeletonCount]="3">
       <div role="list">
         @for (communicationType of communicationTypes; track communicationType.id) {

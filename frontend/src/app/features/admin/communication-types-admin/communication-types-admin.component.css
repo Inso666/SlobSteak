@@ -6,13 +6,13 @@
   padding: var(--app-space-md) 0;
 }
 
+/* US-080 (Issue #118/#124): Hintergrund/Rahmen/Radius/`display:flex`-Spaltenlayout kommen jetzt
+   von der geteilten `.list-panel`-Klasse (`frontend/src/styles.css`, zusätzliche Klasse im
+   Template) — hier bleibt nur der screen-spezifische Innenabstand, den die tabellenlosen,
+   flex-basierten Katalog-Zeilen (anders als die `<table>`-Listen der übrigen vier Screens)
+   benötigen, sowie `overflow: hidden` bleibt bewusst NICHT lokal dupliziert. */
 .catalog-panel {
-  display: flex;
-  flex-direction: column;
   padding: 0 var(--app-space-lg);
-  background: var(--app-color-surface);
-  border: 1px solid var(--app-color-border);
-  border-radius: var(--app-radius-lg);
 }
 
 .catalog-row {

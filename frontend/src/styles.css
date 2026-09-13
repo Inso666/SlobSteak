@@ -263,6 +263,51 @@ h3 {
   letter-spacing: 0.06em;
 }
 
+/* US-080 (Issue #118/#124): geteilte Panel-Fläche für Datenlisten (Stakeholder-Liste, Verteiler,
+   die drei Admin-Listen) — Hintergrund/Rahmen/Radius/Clipping einmal definiert statt je Feature
+   dupliziert (Akzeptanzkriterium 3). `.list-panel__scroll` kapselt den horizontalen
+   Scroll-Container für breite Tabellen INNERHALB des Panels: `overflow: hidden` auf dem Panel
+   selbst (für die gerundeten Ecken) würde sonst jeden horizontalen Tabellen-Scroll unterbinden —
+   Kein Screen darf dadurch auf Seitenebene horizontal scrollen (Story „Wichtige Invarianten").
+   `.list-panel__foot` bildet die Zusammenfassungs-/Aktionszeile als Fußzeile MIT `border-top`
+   innerhalb des Panels ab (Akzeptanzkriterium 4), statt wie zuvor außerhalb des Containers zu
+   stehen.
+
+   Radius-Anmerkung (CLAUDE.md Abschnitt 6): SPEC-00 §1.2 weist den Wireframe-Wert `10px` bereits
+   als `radius.lg` (`--app-radius-lg`) exakt für die Verwendung „Panels" aus. Die
+   Akzeptanzkriterien dieser Story zitieren daneben wörtlich `border-radius: 12px` aus dem rohen
+   Wireframe-Fragment (`Verteiler.dc.html`); ein eigenständiges 12px-Token existiert in SPEC-00
+   nicht, und ein neues Token allein für diesen Wert zu erfinden widerspräche
+   `.claude/agents/frontend.md` Abschnitt 1 ("kein frei wählbarer Wert"). Bei einem Widerspruch
+   zwischen Story-Text und bestehender Spec gewinnt laut CLAUDE.md Abschnitt 6 die Spec — zumal
+   `--app-radius-lg` bereits produktiv für exakt diesen Zweck im Einsatz ist (`.catalog-panel`,
+   US-065). Diese Story übernimmt daher `--app-radius-lg` unverändert, siehe Anmerkungen des
+   Agenten in der Story-Datei. */
+.list-panel {
+  display: flex;
+  flex-direction: column;
+  background: var(--app-color-surface);
+  border: 1px solid var(--app-color-border);
+  border-radius: var(--app-radius-lg);
+  overflow: hidden;
+}
+
+.list-panel__scroll {
+  overflow-x: auto;
+}
+
+.list-panel__foot {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--app-space-md);
+  flex-wrap: wrap;
+  padding: var(--app-space-sm) var(--app-space-md);
+  border-top: 1px solid var(--app-color-border);
+  font-size: var(--app-font-size-body);
+  color: var(--app-color-text-muted);
+}
+
 /* US-047 / SPEC-00 §2: native `<select>`/`<textarea>`-Elemente, die (noch) nicht auf `p-select`
    migriert sind (siehe Anmerkungen des Dev-Agenten), erhalten dieselbe Feld-Optik wie
    `pInputText`/`p-password` — Feldhintergrund `color.surface`, Rahmen `color.border`,

@@ -8,7 +8,8 @@
   </div>
 
   <app-view-state [state]="projectsState" emptyMessage="Es existieren noch keine Projekte." [skeletonCount]="3">
-    <div class="ap-table-wrapper">
+    <div class="ap-table-wrapper list-panel">
+      <div class="list-panel__scroll">
       <table class="ap-table">
         <caption class="sr-only">Admin-Projektliste</caption>
         <thead>
@@ -41,6 +42,7 @@
           }
         </tbody>
       </table>
+      </div>
     </div>
   </app-view-state>
 

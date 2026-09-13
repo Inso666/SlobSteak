@@ -61,7 +61,8 @@
       </button>
     </p>
   } @else {
-    <div class="dl-table-wrapper">
+    <div class="dl-table-wrapper list-panel">
+      <div class="list-panel__scroll">
       <table class="dl-table">
         <caption class="sr-only">
           Verteilerliste — gefiltert nach Kommunikationsart, Frequenz, Kanal und Typ
@@ -123,44 +124,47 @@
           }
         </tbody>
       </table>
-    </div>
-
-    @if (rows.length > 0) {
-      <!-- US-066 Akzeptanzkriterium 5: im Leerzustand (keine Treffer) bleibt die Fußzeile
-           vollständig ausgeblendet statt "0 von M Stakeholdern ..." mit deaktivierten Aktionen zu
-           zeigen (siehe Anmerkungen des Agenten in der Story-Datei). -->
-      <div class="dl-foot-row">
-        <span class="dl-foot-info">
-          {{ distinctFilteredStakeholderCount }} von {{ totalStakeholderCount }} Stakeholdern
-          entsprechen dem Filter · {{ withEmailCount }} mit E-Mail-Adresse
-          @if (excludedCount > 0) {
-            <span class="dl-excluded-note">({{ excludedCount }} ausgeschlossen)</span>
-          }
-        </span>
-        <div class="dl-foot-actions">
-          <button
-            type="button"
-            pButton
-            [outlined]="true"
-            severity="secondary"
-            [disabled]="withEmailCount === 0 || isLoading"
-            (click)="onCopyEmails()"
-          >
-            <i class="pi pi-copy" aria-hidden="true"></i>
-            E-Mails kopieren
-          </button>
-          <button
-            type="button"
-            pButton
-            [disabled]="rows.length === 0 || isLoading"
-            (click)="onExportCsv()"
-          >
-            <i class="pi pi-download" aria-hidden="true"></i>
-            CSV exportieren
-          </button>
-        </div>
       </div>
-    }
+
+      @if (rows.length > 0) {
+        <!-- US-066 Akzeptanzkriterium 5: im Leerzustand (keine Treffer) bleibt die Fußzeile
+             vollständig ausgeblendet statt "0 von M Stakeholdern ..." mit deaktivierten Aktionen zu
+             zeigen (siehe Anmerkungen des Agenten in der Story-Datei). US-080 (Issue #118/#124):
+             die Fußzeile sitzt jetzt als `.list-panel__foot` INNERHALB desselben Panels wie die
+             Tabelle, statt wie zuvor außerhalb des Containers über die volle Seitenbreite. -->
+        <div class="dl-foot-row list-panel__foot">
+          <span class="dl-foot-info">
+            {{ distinctFilteredStakeholderCount }} von {{ totalStakeholderCount }} Stakeholdern
+            entsprechen dem Filter · {{ withEmailCount }} mit E-Mail-Adresse
+            @if (excludedCount > 0) {
+              <span class="dl-excluded-note">({{ excludedCount }} ausgeschlossen)</span>
+            }
+          </span>
+          <div class="dl-foot-actions">
+            <button
+              type="button"
+              pButton
+              [outlined]="true"
+              severity="secondary"
+              [disabled]="withEmailCount === 0 || isLoading"
+              (click)="onCopyEmails()"
+            >
+              <i class="pi pi-copy" aria-hidden="true"></i>
+              E-Mails kopieren
+            </button>
+            <button
+              type="button"
+              pButton
+              [disabled]="rows.length === 0 || isLoading"
+              (click)="onExportCsv()"
+            >
+              <i class="pi pi-download" aria-hidden="true"></i>
+              CSV exportieren
+            </button>
+          </div>
+        </div>
+      }
+    </div>
   }
 </section>
 

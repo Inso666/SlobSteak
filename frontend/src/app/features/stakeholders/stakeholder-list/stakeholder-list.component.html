@@ -34,7 +34,8 @@
     <button type="button" pButton icon="pi pi-plus" (click)="openCreateDialog()">Stakeholder anlegen</button>
   </div>
 
-  <div class="sh-table-wrapper">
+  <div class="sh-table-wrapper list-panel">
+    <div class="list-panel__scroll">
     <table class="sh-table">
       <caption class="sr-only">Stakeholder-Liste — gefiltert nach Name/Organisation und Typ</caption>
       <thead>
@@ -93,7 +94,8 @@
         }
       </tbody>
     </table>
-    <p class="sh-row-count">
+    </div>
+    <p class="sh-row-count list-panel__foot">
       {{ totalStakeholderCount }} Stakeholder insgesamt
       @if (isFiltered) {
         · {{ stakeholders.length }} angezeigt (gefiltert)
