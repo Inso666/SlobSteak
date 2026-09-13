@@ -65,11 +65,11 @@
     >
       <div class="project-cards">
         @for (project of filteredMyProjects; track project.id) {
-          <button
-            type="button"
+          <a
             class="project-card"
             [class.archived]="project.status === 'Archived'"
-            (click)="onOpenProject(project.id)"
+            [routerLink]="['/projects', project.id]"
+            [attr.aria-label]="projectAriaLabel(project)"
           >
             <div class="project-card__head">
               <h2>{{ project.name }}</h2>
@@ -78,7 +78,10 @@
               }
             </div>
             @if (roleBadgeClass(project.role); as badgeClass) {
-              <span class="role-badge" [class]="badgeClass">{{ project.role }}</span>
+              <div class="role-row">
+                <span class="role-label">Meine Rolle</span>
+                <span class="role-badge" [class]="badgeClass">{{ project.role }}</span>
+              </div>
             }
             <p class="stat-row">
               <span class="stat-num">{{ project.stakeholderCount }}</span>
@@ -106,7 +109,7 @@
             <div class="card-footer">
               <span class="meta">Aktualisiert {{ relativeUpdatedAt(project) }}</span>
             </div>
-          </button>
+          </a>
         }
       </div>
     </app-view-state>
@@ -120,11 +123,11 @@
     >
       <div class="project-cards">
         @for (project of filteredAllProjects; track project.id) {
-          <button
-            type="button"
+          <a
             class="project-card"
             [class.archived]="project.status === 'Archived'"
-            (click)="onOpenProject(project.id)"
+            [routerLink]="['/projects', project.id]"
+            [attr.aria-label]="projectAriaLabel(project)"
           >
             <div class="project-card__head">
               <h2>{{ project.name }}</h2>
@@ -133,7 +136,7 @@
               </span>
             </div>
             <p class="stat-row">Mitglieder: {{ project.memberCount }}</p>
-          </button>
+          </a>
         }
       </div>
     </app-view-state>
