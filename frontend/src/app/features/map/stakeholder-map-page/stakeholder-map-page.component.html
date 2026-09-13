@@ -26,27 +26,31 @@
   }
 
   <form [formGroup]="filterForm" class="toolbar">
-    <div class="field">
-      <label for="ownPerspective">Meine Sicht:</label>
-      <select id="ownPerspective" formControlName="ownPerspective">
-        @for (option of perspectiveOptions; track option) {
-          <option [value]="option">{{ option }}</option>
-        }
-      </select>
-    </div>
+    <!-- US-084 (Issue #123) Akzeptanzkriterium 1/3: gestaltetes `app-filter-select` statt nativem
+         `<select>`. "Meine Sicht" hat immer einen echten Wert (keine "Alle"-Option nötig/vorgesehen)
+         — das Präfix "Meine Sicht: PL" erscheint dennoch über dasselbe `selectedItem`-Muster. -->
+    <app-filter-select
+      prefix="Meine Sicht"
+      label="Meine Sicht"
+      inputId="ownPerspective"
+      [options]="perspectiveSelectOptions"
+      [control]="filterForm.controls.ownPerspective"
+    />
 
     <app-comparison-mode-toggle formControlName="compareMode" />
 
     @if (filterForm.controls.compareMode.value) {
-      <div class="field">
-        <label for="comparePerspective">Vergleichen mit:</label>
-        <select id="comparePerspective" formControlName="comparePerspective">
-          <option [ngValue]="null" disabled hidden>Bitte wählen</option>
-          @for (option of comparePerspectiveOptions; track option) {
-            <option [value]="option">{{ option }}</option>
-          }
-        </select>
-      </div>
+      <!-- "Vergleichen mit" bleibt ein Pflichtfeld ohne sinnvollen Leerwert: "Bitte wählen" ist ein
+           reiner Platzhalterzustand (über `placeholderLabel`), nicht erneut über die Pfeiltasten
+           wählbar — identisch zum vormaligen `<option disabled hidden>`-Verhalten. -->
+      <app-filter-select
+        prefix="Vergleichen mit"
+        label="Vergleichsperspektive"
+        inputId="comparePerspective"
+        [options]="comparePerspectiveSelectOptions"
+        [control]="filterForm.controls.comparePerspective"
+        placeholderLabel="Bitte wählen"
+      />
     }
 
     <div class="spacer"></div>
