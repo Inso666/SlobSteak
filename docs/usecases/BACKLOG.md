@@ -214,7 +214,7 @@ Ebenfalls aus dem QA-Design-Abgleich vom 04.09.2026. Diese Stories betreffen die
 
 | ID | Titel | Bounded Context | Abhängigkeiten | Datei | Status |
 |---|---|---|---|---|---|
-| US-080 | Inhaltsbereich mit Innenabstand und Datenlisten im Surface-Panel mit integrierter Fußzeile | Frontend-Shell | US-055, US-072, US-075, US-078 | [US-080-inhaltsbereich-abstand-listen-panel.md](US-080-inhaltsbereich-abstand-listen-panel.md) | offen |
+| US-080 | Inhaltsbereich mit Innenabstand und Datenlisten im Surface-Panel mit integrierter Fußzeile | Frontend-Shell | US-055, US-072, US-075, US-078 | [US-080-inhaltsbereich-abstand-listen-panel.md](US-080-inhaltsbereich-abstand-listen-panel.md) | fertig (2026-09-13) |
 | US-081 | Genau eine Hauptüberschrift je Screen (Projektname statt zusätzlicher Bereichsüberschrift) | Frontend-Shell / ProjectManagement | US-075, US-080 | [US-081-eine-h1-je-screen.md](US-081-eine-h1-je-screen.md) | offen |
 | US-082 | Sidebar: Wording „Admin-Bereich", zweibuchstabige Avatar-Initialen und Projektrolle in der Nutzerkarte | Frontend-Shell | US-074, US-075, US-081 | [US-082-sidebar-wording-avatar-projektrolle.md](US-082-sidebar-wording-avatar-projektrolle.md) | offen |
 
