@@ -50,6 +50,12 @@ const LOGIN_ROUTE = '/login';
  * bewusst **kein** eigener `ProjectsService.getProject(...)`-Aufruf statt (Story „Wichtige
  * Invarianten": kein neuer Backend-Request nur für die Sidebar) — diese Komponente liest
  * ausschließlich den geteilten Zustand.
+ *
+ * US-082 (QA-Design-Abgleich Issue #130): behebt drei Abweichungen der Nutzerkarte/Navigation vom
+ * Design — „Admin-Bereich"-Wording (siehe `nav-items.ts`), zweibuchstabige Avatar-Initialen auch bei
+ * einteiligem Namen (siehe {@link userInitials}) und eine echte zweite Zeile in der Nutzerkarte mit
+ * der Projektrolle im Projektkontext bzw. der instanzweiten Rolle außerhalb (siehe
+ * {@link userRoleContextLine}) statt bisher gar keiner zweiten Zeile.
  */
 @Component({
   selector: 'app-navigation',
@@ -90,6 +96,26 @@ export class AppNavigationComponent {
    * Release ausgestellte Session) — die Nutzerkarte bleibt dann bewusst leer statt eine
    * bedeutungslose Initiale/einen leeren Namen anzuzeigen. */
   protected readonly currentUserName = signal(this.computeUserName());
+  /** US-082 Akzeptanzkriterium 3/4: zweite Zeile der Nutzerkarte — im Projektkontext die eigene
+   * Projektrolle im Muster „<Rolle> in diesem Projekt" (Rollen-Rohwert wie an anderer Stelle bereits
+   * unkommentiert angezeigt, z. B. `.role-badge`-Text in `project-overview.component.html`/
+   * `project-workspace-layout.component.html` — kein neues Wording für dieselbe Information),
+   * außerhalb eines Projekts die instanzweite Rolle „System-Admin" für Systemadmins bzw. `null`
+   * (keine zweite Zeile) für alle anderen. Bewusst ein `computed()` statt eines manuell auf
+   * `NavigationEnd` aktualisierten Felds, da es ausschließlich von den bereits reaktiven Signalen
+   * {@link projectNavContext} und {@link isAdmin} abhängt und dadurch automatisch sowohl beim
+   * Routenwechsel als auch beim asynchronen Eintreffen von `CurrentProjectContextService.project()`
+   * aktuell bleibt (siehe Begründung bei {@link projectNavContext}). Für Rolle `User` (PRD 2.2: keine
+   * perspektiv-tragende Rolle) wird dieselbe Zeile gerendert wie für jede andere Rolle — SPEC-00 §4
+   * verbietet hier ausdrücklich nur einen farbcodierten Rollen-Badge, nicht die Textzeile selbst
+   * (Akzeptanzkriterium 4). */
+  protected readonly userRoleContextLine = computed<string | null>(() => {
+    const project = this.projectNavContext();
+    if (project) {
+      return `${project.role} in diesem Projekt`;
+    }
+    return this.isAdmin() ? 'System-Admin' : null;
+  });
 
   /** US-055 Akzeptanzkriterium 3 / SPEC-02 §1.4 „Variante A": `BreakpointObserver` statt
    * PrimeFlex-Default-Breakpoints, exakte Custom-Query {@link MOBILE_NAV_QUERY}. */
@@ -140,18 +166,29 @@ export class AppNavigationComponent {
     void this.router.navigate([LOGIN_ROUTE]);
   }
 
-  /** US-074 Akzeptanzkriterium „Sidebar": Initialen für den Avatar-Kreis, aus bis zu zwei
-   * Namensteilen (erstem und letztem) — z. B. „Petra Ziegler" → „PZ". Leerer String, solange kein
-   * Name vorliegt (Template blendet die Nutzerkarte in diesem Fall vollständig aus). */
+  /** US-074/US-082 Akzeptanzkriterium 2: zweibuchstabige Initialen für den Avatar-Kreis, aus Vor-
+   * und Nachname des angemeldeten Nutzers — z. B. „Petra Ziegler" → „PZ". Bei einem einteiligen
+   * Namen (kein Leerzeichen, z. B. dem Seed-Admin-Namen „System-Administrator", CLAUDE.md
+   * Abschnitt 6: keine stille Abweichung von der Story-Vorgabe) liefern die ersten beiden
+   * Buchstaben dieses einen Teils die Initialen, statt nur einer einzelnen Initiale (vormaliger
+   * Fehler laut Ist-/Soll-Vergleich in der Story-Datei). Leerer String, solange kein Name vorliegt
+   * (Template blendet die Nutzerkarte in diesem Fall vollständig aus). */
   protected get userInitials(): string {
     const name = this.currentUserName();
     if (!name) {
       return '';
     }
 
-    const parts = name.trim().split(/\s+/);
+    const parts = name.trim().split(/\s+/).filter((part) => part.length > 0);
+    if (parts.length === 0) {
+      return '';
+    }
+    if (parts.length === 1) {
+      return parts[0].slice(0, 2).toUpperCase();
+    }
+
     const first = parts[0]?.charAt(0) ?? '';
-    const last = parts.length > 1 ? (parts[parts.length - 1]?.charAt(0) ?? '') : '';
+    const last = parts[parts.length - 1]?.charAt(0) ?? '';
     return (first + last).toUpperCase();
   }
 

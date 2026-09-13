@@ -4,6 +4,31 @@ Alle nennenswerten Änderungen an diesem Projekt werden hier je User Story dokum
 
 ## [Unreleased]
 
+### US-082 — Sidebar: Wording „Admin-Bereich", zweibuchstabige Avatar-Initialen und Projektrolle in der Nutzerkarte
+
+- Root Cause (Issue #130, QA-Design-Abgleich 04.09.2026): der globale Navigationspunkt hieß „Admin"
+  statt „Admin-Bereich"; der Avatar zeigte bei einteiligen Namen (z. B. dem Seed-Admin
+  „System-Administrator") nur eine statt zwei Initialen und war 32px statt der vorgesehenen 34px
+  ohne Rahmen; die Nutzerkarte hatte keine zweite Zeile, die im Projektkontext die eigene
+  Projektrolle bzw. außerhalb die instanzweite Rolle zeigt; Sidebar-Breite/-Innenabstand wichen mit
+  256px/`20px 14px` von den Design-Werten 240px/`24px 16px` ab.
+- `frontend/src/app/core/navigation/app-navigation/nav-items.ts`: Label des Admin-Navigationspunkts
+  von „Admin" auf „Admin-Bereich" korrigiert.
+- `frontend/src/app/core/navigation/app-navigation/app-navigation.component.ts`: `userInitials`
+  liefert bei einem einteiligen Namen jetzt die ersten beiden Buchstaben dieses Namens statt nur
+  einer einzelnen Initiale; neues `computed()`-Signal `userRoleContextLine` liefert die zweite Zeile
+  der Nutzerkarte (`"<Rolle> in diesem Projekt"` im Projektkontext, `"System-Admin"` außerhalb für
+  Systemadmins, sonst `null`) — reaktiv über die bereits vorhandenen Signale
+  `projectNavContext`/`isAdmin`, kein neuer Backend-Request.
+- `frontend/src/app/core/navigation/app-navigation/app-navigation.component.html`/`.css`: neue,
+  unkolorierte zweite Zeile (`.app-navigation__user-role`) unter dem Nutzernamen; Avatar jetzt
+  34×34px mit `--app-color-border`-Rahmen auf `--app-color-surface-hover` (analog zum neutralen
+  Admin-Rollen-Badge-Muster aus SPEC-00 §1.3); Sidebar-Breite von `16rem`/256px auf `15rem`/240px
+  sowie Innenabstand von `20px 14px` auf `24px 16px` korrigiert (siehe Story-Datei „Anmerkungen des
+  Agenten" zur dokumentierten Abweichung von der zentralen Abstands-Skala).
+- Story-Test: `frontend/src/app/core/navigation/app-navigation/us-082-sidebar-wording-avatar-projektrolle.spec.ts`.
+  Regressionstest `us-046-admin-navigation.spec.ts` auf das neue Wording angepasst.
+
 ### US-081 — Genau eine Hauptüberschrift je Screen (Projektname statt zusätzlicher Bereichsüberschrift)
 
 - Root Cause (Issue #125, QA-Design-Abgleich 04.09.2026): jede Projekt-Unterseite

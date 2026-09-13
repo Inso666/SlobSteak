@@ -68,15 +68,21 @@
       </ul>
     </nav>
 
-    <!-- US-074 Akzeptanzkriterium „Sidebar": Nutzerkarte (Avatar-Initialen + angemeldeter Name)
-         unterhalb der Navigationslinks, über „Abmelden" — Daten aus der bereits vorhandenen
-         Session (`TokenStorageService.getClaims()?.name`), kein neuer Backend-Request (siehe
+    <!-- US-074/US-082 Akzeptanzkriterium „Sidebar": Nutzerkarte (Avatar-Initialen + angemeldeter
+         Name + Rollenzeile) unterhalb der Navigationslinks, über „Abmelden" — Daten aus der bereits
+         vorhandenen Session (`TokenStorageService.getClaims()?.name`) bzw. dem bereits geladenen
+         Projekt-Kontext (`CurrentProjectContextService`), kein neuer Backend-Request (siehe
          Anmerkungen des Agenten in der Story-Datei zur zugrundeliegenden JWT-Erweiterung). Bleibt
          leer, solange kein Name im Token steckt, statt eine bedeutungslose Initiale zu zeigen. -->
     <div class="app-navigation__user-card">
       @if (currentUserName(); as userName) {
         <span class="app-navigation__avatar" aria-hidden="true">{{ userInitials }}</span>
-        <span class="app-navigation__user-name">{{ userName }}</span>
+        <span class="app-navigation__user-text">
+          <span class="app-navigation__user-name">{{ userName }}</span>
+          @if (userRoleContextLine(); as roleLine) {
+            <span class="app-navigation__user-role">{{ roleLine }}</span>
+          }
+        </span>
       }
     </div>
 
