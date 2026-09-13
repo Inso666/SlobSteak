@@ -45,11 +45,13 @@
   color: var(--app-color-text-muted);
 }
 
-.sh-table-wrapper {
-  overflow-x: auto;
-  border: 1px solid var(--app-color-border);
-  border-radius: var(--app-radius-md);
-}
+/* US-080 (Issue #118/#124): Hintergrund/Rahmen/Radius/Clipping kommen jetzt von der geteilten
+   `.list-panel`-Klasse (`frontend/src/styles.css`, zusätzliche Klasse im Template) — der
+   horizontale Scroll-Container für breite Tabellen liegt dafür in einem eigenen inneren
+   `.list-panel__scroll`-Element, damit `overflow: hidden` auf dem Panel selbst die gerundeten
+   Ecken clippt, ohne den nötigen Tabellen-Scroll zu verhindern. `.sh-table-wrapper` bleibt als
+   reiner, unstylischer Marker-Klassenname im Template erhalten (keine eigene CSS-Regel mehr
+   nötig). */
 
 .sh-table {
   width: 100%;
@@ -160,11 +162,13 @@
   text-align: center;
 }
 
+/* US-080: Fußzeilen-Layout (Flex, Padding, `border-top`, Grundfarbe) kommt jetzt von der
+   geteilten `.list-panel__foot`-Klasse (zusätzliche Klasse im Template) — hier bleibt nur die
+   Abweichung von deren Standard-Body-Schriftgröße auf die kleinere Meta-Schriftgröße, die dieser
+   Zähler-Text schon vor dieser Story hatte. */
 .sh-row-count {
   margin: 0;
-  padding: var(--app-space-sm) var(--app-space-md);
   font-size: var(--app-font-size-meta);
-  color: var(--app-color-text-muted);
 }
 
 /* US-072 Akzeptanzkriterium 4: Papierkorb erscheint zusätzlich unterhalb der aktiven Liste
