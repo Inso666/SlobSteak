@@ -86,6 +86,16 @@
   --app-font-size-data: 1.75rem; /* 28px */
   --app-font-size-meta: 0.6875rem; /* 11px */
 
+  /* US-089 (Issue #131): Markenschriftzug (19px) und Tagline (12,5px) der Login-Seite treffen
+     keine der vier vorhandenen Stufen (16/14/11/26px) — anders als Feld-Label/Eingabefeld (siehe
+     Anmerkungen des Agenten in der Story-Datei) sind Wordmark/Tagline reine, nur auf S1 sichtbare
+     Login-Dekorationselemente ohne SPEC-00-Anspruch auf Screen-übergreifende Einheitlichkeit
+     (die App-Sidebar nutzt für denselben Schriftzug bereits bewusst eine andere, kompaktere
+     Größe — kein produktweiter Wordmark-Größenstandard existiert). Bewusst benannte Ergänzungen,
+     ausschließlich in `login-page.component.css` verwendet. */
+  --app-font-size-brand: 1.1875rem; /* 19px */
+  --app-font-size-tagline: 0.78125rem; /* 12.5px */
+
   /* Abstands-Skala (SPEC-00 §1.2: 8/14-16/20/36px als benannte Stufen, plus generische
      Zwischenwerte für Fälle, die keiner der vier Wireframe-Semantikstufen entsprechen). */
   --app-space-xs: 0.25rem; /* 4px */
@@ -93,6 +103,22 @@
   --app-space-md: 0.875rem; /* 14px */
   --app-space-lg: 1.25rem; /* 20px */
   --app-space-xl: 2.25rem; /* 36px */
+
+  /* US-089 (Issue #131): Login-Karte spiegelt die Design-Maße 1:1 (Story-Akzeptanzkriterium 2).
+     SPEC-00 §1.2 kennt weder eine Breiten- noch eine Schatten-Skala und keine 14px-Radius- bzw.
+     32px-/12px-Abstandsstufe — bewusste, eigenständig benannte Ergänzungen statt Ad-hoc-Werte im
+     Component-CSS (frontend.md Abschnitt 1: „fehlt ein Token, ist das ein Hinweis auf eine
+     fehlende Design-Entscheidung, kein frei wählbarer Wert" — hier ausdrücklich durch die
+     Story selbst als zulässiger Lösungsweg vorgegeben). Ausschließlich für die Login-Karte
+     (`login-page.component.css`) und deren primäre CTA-Schaltfläche
+     (`processing-button.component.css`) im Einsatz — kein produktweiter Ersatz für
+     `--app-radius-lg`/`--app-space-xl` etc., die weiterhin unverändert für alle anderen Screens
+     gelten. */
+  --app-login-card-width: 23.75rem; /* 380px */
+  --app-radius-xl: 0.875rem; /* 14px, Login-Karte/-Dialog */
+  --app-space-2xl: 2rem; /* 32px, Login-Karten-Innenabstand */
+  --app-shadow-card: 0 20px 50px rgba(0, 0, 0, 0.35); /* Login-Karten-Schatten */
+  --app-button-padding-cta: 0.75rem; /* 12px, primäre CTA-Schaltfläche in voller Breite */
 }
 
 * {

@@ -1,9 +1,32 @@
 /* US-047 / SPEC-01 §1.1: Layout ausschließlich über zentrale Tokens + PrimeFlex-Utilities,
-   keine hartcodierten Hex-/px-Werte. */
+   keine hartcodierten Hex-/px-Werte.
+   US-089 (Issue #131 Befund 1): Design zeigt die Karte im Viewport zentriert (`.scene`,
+   `align-items:center; justify-content:center;`) statt oben klebend (gemessen `y = 36px` durch
+   den zuvor hier gesetzten `margin: var(--app-space-xl) auto`, der nur horizontal zentrierte).
+   `.login` (der `<main>`-Wrapper) übernimmt jetzt selbst die volle Viewport-Höhe und zentriert
+   Markenblock + Karte gemeinsam horizontal UND vertikal; `padding` bleibt als Sicherheitsabstand
+   zum Viewport-Rand auf schmalen/kurzen Fenstern erhalten. */
 .login {
-  max-width: 26rem;
-  margin: var(--app-space-xl) auto;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  min-height: 100vh;
   padding: var(--app-space-lg);
+}
+
+/* US-089 (Issue #131 Befund 1): Kartenbreite/-radius/-innenabstand/-schatten exakt nach
+   Design-Maßen (siehe Token-Kommentar in `styles.css`). `--p-card-border-radius`,
+   `--p-card-shadow` und `--p-card-body-padding` sind PrimeNG-v18-Design-Tokens (siehe
+   `@primeuix/styles/card`) — als CSS-Custom-Properties auf dem `<p-card>`-Host gesetzt, kaskadieren
+   sie ganz regulär zu den intern von PrimeNG gerenderten `.p-card-body` u. Ä. weiter, ganz ohne
+   `::ng-deep` (frontend.md Abschnitt 3: kein Deep-Selector in Component-CSS). */
+.login-card {
+  width: var(--app-login-card-width);
+  max-width: 100%;
+  --p-card-border-radius: var(--app-radius-xl);
+  --p-card-shadow: var(--app-shadow-card);
+  --p-card-body-padding: var(--app-space-2xl);
 }
 
 /* US-053/US-054: Markenblock (SPEC-01-Login.md §1.2), analog des dortigen `.flex flex-column
@@ -24,13 +47,17 @@
 
 .brand-wordmark {
   font-family: var(--app-font-family-display);
-  font-size: var(--app-font-size-card-title);
+  /* US-089 (Issue #131 Befund 1): 19px statt der Karten-Titel-Stufe (16px) — eigener Token, siehe
+     Kommentar in `styles.css`. */
+  font-size: var(--app-font-size-brand);
   font-weight: 600;
   color: var(--app-color-text);
 }
 
 .brand-tagline {
-  font-size: var(--app-font-size-body);
+  /* US-089 (Issue #131 Befund 1): 12,5px statt der Body-Stufe (14px) — eigener Token, siehe
+     Kommentar in `styles.css`. */
+  font-size: var(--app-font-size-tagline);
   color: var(--app-color-text-muted);
 }
 

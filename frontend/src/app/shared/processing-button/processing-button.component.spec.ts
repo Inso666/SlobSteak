@@ -53,4 +53,23 @@ describe('ProcessingButtonComponent', () => {
 
     expect(button.type).toBe('submit');
   });
+
+  // US-089 (Issue #131 Befund 1): `fullWidth` bleibt standardmäßig `false`, damit die übrigen,
+  // zeilenbreiten Verwendungsstellen dieser Komponente unverändert bleiben.
+  it('should not add the full-width class by default', () => {
+    const fixture = createComponent();
+    fixture.detectChanges();
+    const button: HTMLButtonElement = fixture.nativeElement.querySelector('button');
+
+    expect(button.classList).not.toContain('app-processing-button--full-width');
+  });
+
+  it('should add the full-width class when fullWidth is set', () => {
+    const fixture = createComponent();
+    fixture.componentRef.setInput('fullWidth', true);
+    fixture.detectChanges();
+    const button: HTMLButtonElement = fixture.nativeElement.querySelector('button');
+
+    expect(button.classList).toContain('app-processing-button--full-width');
+  });
 });

@@ -9,7 +9,9 @@
       <span class="brand-tagline">Stakeholder-Management für Projektteams</span>
     </div>
 
-    <p-card>
+    <!-- US-089 (Issue #131 Befund 1): `login-card` trägt Breite/Radius/Innenabstand/Schatten nach
+         Design-Maßen (siehe `login-page.component.css`). -->
+    <p-card styleClass="login-card">
       @if (bootstrapping) {
         <!-- US-054 Akzeptanzkriterium 3 / SPEC-01 §3.1: Bootstrap-Skeleton statt Formular,
              solange die Seite selbst noch initialisiert (SPEC-00 §3 Skeleton-Baustein). -->
@@ -79,7 +81,9 @@
             </p-message>
           }
 
-          <app-processing-button type="submit" [disabled]="form.invalid" [isSubmitting]="isSubmitting" label="Anmelden" submittingLabel="Wird angemeldet…" />
+          <!-- US-089 (Issue #131 Befund 1): `[fullWidth]="true"` behebt den 87px-breiten Knopf am
+               linken Kartenrand — die Hauptaktion nimmt jetzt die volle Kartenbreite ein. -->
+          <app-processing-button type="submit" [disabled]="form.invalid" [isSubmitting]="isSubmitting" [fullWidth]="true" label="Anmelden" submittingLabel="Wird angemeldet…" />
 
           <!-- US-054 Akzeptanzkriterium 2 / SPEC-01 §1.2: kein Self-Service-Zugang im MVP
                (PRD Abschnitt 1.4) — bewusste fachliche Auslassung eines Registrierungswegs, kein

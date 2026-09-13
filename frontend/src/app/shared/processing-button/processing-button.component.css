@@ -8,6 +8,20 @@
   gap: var(--app-space-sm);
 }
 
+/* US-089 (Issue #131 Befund 1): siehe Komponenten-Doc-Kommentar. `--p-button-padding-x/-y`,
+   `--p-button-font-size` und `--p-button-label-font-weight` sind PrimeNG-v18-Design-Tokens (siehe
+   `@primeuix/styles/button`) — als CSS-Custom-Properties direkt auf demselben `<button>`-Element
+   gesetzt, auf dem `pButton` bereits die `.p-button`-Klasse anwendet, greifen sie ganz regulär über
+   die CSS-Kaskade, ganz ohne `::ng-deep` (frontend.md Abschnitt 3). */
+.app-processing-button--full-width {
+  width: 100%;
+  justify-content: center;
+  --p-button-padding-x: var(--app-button-padding-cta);
+  --p-button-padding-y: var(--app-button-padding-cta);
+  --p-button-font-size: var(--app-font-size-body);
+  --p-button-label-font-weight: 600;
+}
+
 .app-processing-button__spinner {
   width: 0.9rem;
   height: 0.9rem;
