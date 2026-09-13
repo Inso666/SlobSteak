@@ -7,7 +7,19 @@
   min-height: 100vh;
 }
 
+/* US-080 (Issue #118): einziger Ort, an dem der Inhaltsbereich einen Innenabstand zum
+   Viewport-Rand erhält (Akzeptanzkriterium 1) — kein Feature-Screen setzt zusätzlich einen
+   lokalen Seitenrand. Horizontal exakt `--app-space-xl` (Akzeptanzkriterium-Vorgabe). Vertikal
+   bewusst `--app-space-lg` statt `--app-space-xl`: fast jeder Screen (`.stakeholder-list`,
+   `.project-overview`, `.workspace`, `.admin-page`, `.stakeholder-detail` u. a.) legt bereits
+   zusätzlich lokal `padding: var(--app-space-md) 0;` an — dieser lokale Vertikalabstand ist kein
+   verbotener "zusätzlicher Seitenrand" (das AC meint damit den horizontalen Rand, siehe
+   Story-Datei "Anmerkungen des Agenten"), addiert sich aber sichtbar zum Shell-Wert. `lg + md`
+   (20px + 14px = 34px) trifft den in `Main.dc.html`/`Verteiler.dc.html` vorgegebenen
+   Gesamtabstand (28–32px) deutlich genauer als `xl + md` (36px + 14px = 50px), das den Inhalt
+   spürbar zu weit vom oberen Rand rücken würde. */
 .app-shell__content {
   flex: 1;
   min-width: 0;
+  padding: var(--app-space-lg) var(--app-space-xl);
 }
