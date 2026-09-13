@@ -26,6 +26,17 @@ import { ButtonDirective } from 'primeng/button';
  * dieser Stelle keinen Nutzen bringen, aber zusätzliche Komplexität bei der Input-Propagation
  * einführen — konsistent mit den übrigen, in dieser Story nicht auf `OnPush` migrierten
  * Feature-Komponenten.
+ *
+ * US-089 (Issue #131 Befund 1): `[fullWidth]` behebt den Bug, dass eine primäre CTA-Schaltfläche
+ * (z. B. „Anmelden" auf der Login-Karte) nur zeilenbreit statt kartenbreit rendert. Ursache ist
+ * `:host { display: contents; }` (siehe Kommentar dort) — eine `class="w-full"` am Custom-Element
+ * selbst hätte keine Wirkung, da der Host gar keine eigene Layout-Box besitzt, auf die `width`
+ * greifen könnte. `[fullWidth]` setzt `width: 100%` stattdessen direkt auf das innere `<button>`
+ * (siehe `.app-processing-button--full-width`, `processing-button.component.css`) und schärft dort
+ * zugleich Innenabstand/Schriftgröße/Fettung auf die Design-Maße einer solchen primären
+ * Voll-Breite-CTA (12px/14px/600) — bewusst optional (Default `false`), da die übrigen 20+
+ * Verwendungsstellen dieser Komponente (siehe Story-Technische-Hinweise) weiterhin zeilenbreite
+ * Buttons in Toolbars/Formular-Aktionsreihen sind und nicht app-weit umgestellt werden sollen.
  */
 @Component({
   selector: 'app-processing-button',
@@ -38,6 +49,7 @@ export class ProcessingButtonComponent {
   @Input() type: 'submit' | 'button' = 'button';
   @Input() isSubmitting = false;
   @Input() disabled = false;
+  @Input() fullWidth = false;
   @Input({ required: true }) label!: string;
   @Input({ required: true }) submittingLabel!: string;
 }
