@@ -11,19 +11,26 @@
             <form class="edit-form" [formGroup]="editForm" (ngSubmit)="onSaveEdit()">
               <span class="communication-assignment-name">{{ assignment.communicationTypeName }}</span>
 
+              <!-- US-084 (Issue #123) Akzeptanzkriterium 1: gestaltetes `p-select` statt nativem
+                   `<select>` (US-077-Overlay-Tokens). Formularfelder mit eigenem Label — kein
+                   Präfix im Chip (nur Toolbar-Filter tragen das Präfix-Muster). -->
               <label class="sr-only" [attr.for]="'edit-frequency-' + assignment.communicationTypeId">Frequenz</label>
-              <select [id]="'edit-frequency-' + assignment.communicationTypeId" formControlName="frequency">
-                @for (option of frequencyOptions; track option.value) {
-                  <option [value]="option.value">{{ option.label }}</option>
-                }
-              </select>
+              <p-select
+                [inputId]="'edit-frequency-' + assignment.communicationTypeId"
+                [options]="frequencyOptions"
+                optionLabel="label"
+                optionValue="value"
+                formControlName="frequency"
+              />
 
               <label class="sr-only" [attr.for]="'edit-channel-' + assignment.communicationTypeId">Kanal</label>
-              <select [id]="'edit-channel-' + assignment.communicationTypeId" formControlName="channel">
-                @for (option of channelOptions; track option.value) {
-                  <option [value]="option.value">{{ option.label }}</option>
-                }
-              </select>
+              <p-select
+                [inputId]="'edit-channel-' + assignment.communicationTypeId"
+                [options]="channelOptions"
+                optionLabel="label"
+                optionValue="value"
+                formControlName="channel"
+              />
 
               <app-processing-button
                 type="submit"
@@ -69,32 +76,43 @@
 
   @if (canManage) {
     <form class="add-form" [formGroup]="addForm" (ngSubmit)="onAdd()">
+      <!-- US-084 (Issue #123) Akzeptanzkriterium 1: gestaltete `p-select`-Felder statt nativer
+           `<select>`-Elemente (US-077-Overlay-Tokens). "Kommunikationsart" bleibt ein Pflichtfeld
+           ohne sinnvollen Leerwert — "Bitte wählen" bleibt reiner Platzhalter (`placeholder`),
+           nicht erneut über die Pfeiltasten wählbar, identisch zum vormaligen
+           `<option value="" disabled>`-Verhalten. -->
       <div class="field">
         <label for="communication-type">Kommunikationsart</label>
-        <select id="communication-type" formControlName="communicationTypeId">
-          <option value="" disabled>Bitte wählen</option>
-          @for (type of catalog; track type.id) {
-            <option [value]="type.id">{{ type.name }}</option>
-          }
-        </select>
+        <p-select
+          inputId="communication-type"
+          [options]="catalog"
+          optionLabel="name"
+          optionValue="id"
+          placeholder="Bitte wählen"
+          formControlName="communicationTypeId"
+        />
       </div>
 
       <div class="field">
         <label for="communication-frequency">Frequenz</label>
-        <select id="communication-frequency" formControlName="frequency">
-          @for (option of frequencyOptions; track option.value) {
-            <option [value]="option.value">{{ option.label }}</option>
-          }
-        </select>
+        <p-select
+          inputId="communication-frequency"
+          [options]="frequencyOptions"
+          optionLabel="label"
+          optionValue="value"
+          formControlName="frequency"
+        />
       </div>
 
       <div class="field">
         <label for="communication-channel">Kanal</label>
-        <select id="communication-channel" formControlName="channel">
-          @for (option of channelOptions; track option.value) {
-            <option [value]="option.value">{{ option.label }}</option>
-          }
-        </select>
+        <p-select
+          inputId="communication-channel"
+          [options]="channelOptions"
+          optionLabel="label"
+          optionValue="value"
+          formControlName="channel"
+        />
       </div>
 
       @if (addErrorMessage) {

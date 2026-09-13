@@ -3,7 +3,9 @@ import { ActivatedRoute, Router, RouterLink } from '@angular/router';
 import { DatePipe } from '@angular/common';
 import { ReactiveFormsModule } from '@angular/forms';
 import { ButtonDirective } from 'primeng/button';
+import { Select } from 'primeng/select';
 import { Stakeholder, StakeholdersService } from '../stakeholders.service';
+import { FilterSelectOption } from '../../../shared/filter-select/filter-select.component';
 import { ProjectsService } from '../../projects/projects.service';
 import { EditStakeholderFormComponent } from '../edit-stakeholder-form/edit-stakeholder-form.component';
 import { DeleteStakeholderDialogComponent } from '../delete-stakeholder-dialog/delete-stakeholder-dialog.component';
@@ -61,6 +63,7 @@ import { CommunicationAssignmentPanelComponent } from '../communication-assignme
     AssessmentTabsComponent,
     CommunicationAssignmentPanelComponent,
     ButtonDirective,
+    Select,
   ],
   templateUrl: './stakeholder-detail.component.html',
   styleUrl: './stakeholder-detail.component.css',
@@ -71,6 +74,12 @@ export class StakeholderDetailComponent implements OnInit {
   private readonly stakeholdersService = inject(StakeholdersService);
   private readonly projectsService = inject(ProjectsService);
   private readonly changeDetectorRef = inject(ChangeDetectorRef);
+
+  /** US-084 Akzeptanzkriterium 1: Optionsliste des gestalteten Typ-`p-select` im Namens-Header. */
+  protected readonly typeOptions: FilterSelectOption<string>[] = [
+    { value: 'Person', label: 'Person' },
+    { value: 'Organization', label: 'Organisation' },
+  ];
 
   protected projectId = '';
   protected stakeholder: Stakeholder | null = null;

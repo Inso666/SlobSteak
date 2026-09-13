@@ -7,10 +7,16 @@
 
     <div class="field">
       <label for="type">Typ</label>
-      <select id="type" formControlName="type">
-        <option value="Person">Person</option>
-        <option value="Organization">Organisation</option>
-      </select>
+      <!-- US-084 (Issue #123) Akzeptanzkriterium 1: gestaltetes `p-select` statt nativem `<select>`
+           (US-077-Overlay-Tokens). Formularfeld mit eigenem sichtbarem Label — kein Präfix im
+           Chip (das Präfix-Muster gilt laut Story ausschließlich für Toolbar-Filter). -->
+      <p-select
+        inputId="type"
+        [options]="typeOptions"
+        optionLabel="label"
+        optionValue="value"
+        formControlName="type"
+      />
     </div>
 
     <div class="field">

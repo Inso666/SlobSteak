@@ -4,10 +4,18 @@ import { FormBuilder, ReactiveFormsModule, Validators } from '@angular/forms';
 import { HttpErrorResponse } from '@angular/common/http';
 import { InputText } from 'primeng/inputtext';
 import { Message } from 'primeng/message';
+import { Select } from 'primeng/select';
 import { Textarea } from 'primeng/textarea';
 import { Stakeholder, StakeholdersService } from '../stakeholders.service';
 import { ProcessingButtonComponent } from '../../../shared/processing-button/processing-button.component';
 import { AttentionBadgeComponent } from '../../../shared/attention-badge/attention-badge.component';
+import { FilterSelectOption } from '../../../shared/filter-select/filter-select.component';
+
+/** US-084 Akzeptanzkriterium 1: Optionsliste des gestalteten Typ-`p-select`. */
+const TYPE_OPTIONS: readonly FilterSelectOption<string>[] = [
+  { value: 'Person', label: 'Person' },
+  { value: 'Organization', label: 'Organisation' },
+];
 
 /**
  * Formular „Stakeholder anlegen“ (US-021). Erfasst alle in der Story genannten Felder
@@ -21,7 +29,7 @@ import { AttentionBadgeComponent } from '../../../shared/attention-badge/attenti
 @Component({
   selector: 'app-create-stakeholder-form',
   standalone: true,
-  imports: [ReactiveFormsModule, ProcessingButtonComponent, AttentionBadgeComponent, InputText, Message, Textarea],
+  imports: [ReactiveFormsModule, ProcessingButtonComponent, AttentionBadgeComponent, InputText, Message, Select, Textarea],
   templateUrl: './create-stakeholder-form.component.html',
   styleUrl: './create-stakeholder-form.component.css',
 })
@@ -32,6 +40,8 @@ export class CreateStakeholderFormComponent implements OnInit {
   private readonly formBuilder = inject(FormBuilder);
   private readonly stakeholdersService = inject(StakeholdersService);
   private readonly route = inject(ActivatedRoute);
+
+  protected readonly typeOptions = TYPE_OPTIONS;
 
   protected errorMessage: string | null = null;
   protected lastSimilarWarning: string | null = null;

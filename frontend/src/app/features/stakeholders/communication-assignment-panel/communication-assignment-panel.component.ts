@@ -3,6 +3,7 @@ import { HttpErrorResponse } from '@angular/common/http';
 import { FormBuilder, ReactiveFormsModule, Validators } from '@angular/forms';
 import { ButtonDirective } from 'primeng/button';
 import { Message } from 'primeng/message';
+import { Select } from 'primeng/select';
 import { AdminCommunicationType, AdminCommunicationTypesService } from '../../admin/admin-communication-types.service';
 import { CommunicationAssignment, StakeholderCommunicationsService } from '../stakeholder-communications.service';
 import { LOAD_ERROR_MESSAGE } from '../../../core/messages/http-error-messages';
@@ -50,7 +51,7 @@ export const CHANNEL_OPTIONS: readonly { value: string; label: string }[] = [
 @Component({
   selector: 'app-communication-assignment-panel',
   standalone: true,
-  imports: [ReactiveFormsModule, ProcessingButtonComponent, ViewStateComponent, ButtonDirective, Message],
+  imports: [ReactiveFormsModule, ProcessingButtonComponent, ViewStateComponent, ButtonDirective, Message, Select],
   templateUrl: './communication-assignment-panel.component.html',
   styleUrl: './communication-assignment-panel.component.css',
 })

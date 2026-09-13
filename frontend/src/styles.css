@@ -279,10 +279,11 @@ h1 {
    Stakeholder-Typkennzeichnung (Person/Organisation) im Namens-Header der Stakeholder-Detailseite,
    getrennt von der Fließtext-Meta-Zeile (Akzeptanzkriterium 5). Gleiche Struktur wie `.status-tag`,
    aber neutrale Farbe (`color.surface-hover`-Fläche, `color.border`-Rahmen,
-   `color.text-muted`-Text), da der Typ kein Erfolgs-/Fehler-/Warnzustand ist. Wird sowohl als reine
-   Anzeige (`<span>`) als auch — im editierbaren Zustand für Nutzer mit Bearbeitungsrecht — als
-   Trigger eines nativen `<select>` verwendet (Akzeptanzkriterium 3), damit beide Zustände dieselbe
-   visuelle Sprache teilen (ux-ui.md §2 Konsistenz). */
+   `color.text-muted`-Text), da der Typ kein Erfolgs-/Fehler-/Warnzustand ist. Wird als reine Anzeige
+   (`<span>`) verwendet; im editierbaren Zustand für Nutzer mit Bearbeitungsrecht trägt seit US-084
+   (Issue #123) ein `p-select` (`styleClass="type-tag"` + `size="small"`) dieselbe Klasse — die
+   Feldfarben (Hintergrund/Rahmen/Text) kommen dort bereits aus dem zentralen PrimeNG-Preset, diese
+   Regel bleibt daher nur für die reine `<span>`-Anzeige relevant. */
 .type-tag {
   display: inline-flex;
   align-items: center;
@@ -369,16 +370,3 @@ textarea:not(.p-textarea):focus-visible {
   outline-offset: 2px;
 }
 
-/* US-071: Override der generischen `select:not(.p-select)`-Feldoptik (gleiche Spezifität,
-   0,1,1 vs. 0,1,1 — muss deshalb hinter dieser Regel stehen, damit die Pill-Optik der
-   Typ-Badge tatsächlich gewinnt) für den editierbaren Typ-Auswahl-Trigger im Namens-Header
-   (Akzeptanzkriterium 3/5) — bleibt visuell eine kompakte Pille statt eines vollen Eingabefelds. */
-select.type-tag {
-  padding: 0.15rem var(--app-space-sm);
-  background: var(--app-color-surface-hover);
-  border: 1px solid var(--app-color-border);
-  border-radius: var(--app-radius-sm);
-  color: var(--app-color-text-muted);
-  font-size: var(--app-font-size-meta);
-  cursor: pointer;
-}
