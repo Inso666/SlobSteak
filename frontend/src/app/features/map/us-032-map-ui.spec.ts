@@ -2,6 +2,7 @@ import { BreakpointObserver } from '@angular/cdk/layout';
 import { Component } from '@angular/core';
 import { TestBed } from '@angular/core/testing';
 import { By } from '@angular/platform-browser';
+import { FilterSelectOption } from '../../shared/filter-select/filter-select.component';
 import { ActivatedRoute, convertToParamMap, provideRouter, Router } from '@angular/router';
 import { of } from 'rxjs';
 import { MapPoint, MapService } from './map.service';
@@ -97,11 +98,17 @@ describe('US-032: Map-UI Quadranten-Diagramm mit Perspektiv-Dropdown', () => {
     const fixture = TestBed.createComponent(StakeholderMapPageComponent);
     fixture.detectChanges();
 
-    const select: HTMLSelectElement = fixture.nativeElement.querySelector('#ownPerspective');
-    const optionValues = Array.from(select.options).map((option) => option.value);
+    // US-084 (Issue #123): das Dropdown ist seit dieser Story ein gestaltetes `app-filter-select`
+    // (`p-select`) statt eines nativen `<select>` — dessen Optionsliste rendert erst im geöffneten
+    // Overlay, daher wird hier die gebundene Datenquelle (`options`) statt DOM-`<option>`-Elementen
+    // geprüft (siehe `filter-select.component.spec.ts`).
+    const filterSelect = fixture.debugElement.query(By.css('app-filter-select[inputId="ownPerspective"]'));
+    const optionValues = (filterSelect.componentInstance['options'] as FilterSelectOption<string>[]).map(
+      (option) => option.value,
+    );
 
     expect(optionValues).toEqual(['PL', 'Coreteam', 'Architect']);
-    expect(select.value).toBe('Coreteam');
+    expect(filterSelect.componentInstance['control'].value).toBe('Coreteam');
     expect(mapServiceSpy.getMapData).toHaveBeenCalledWith('project-1', 'Coreteam');
   });
 

@@ -121,8 +121,12 @@ describe('US-040: Kommunikationszuordnung API + UI auf Stakeholder-Detailseite',
     const addForm: HTMLFormElement = fixture.nativeElement.querySelector('.communication-slot .add-form');
     expect(addForm).not.toBeNull();
 
-    const typeSelect = addForm.querySelector<HTMLSelectElement>('#communication-type');
-    expect(Array.from(typeSelect?.options ?? []).some((option) => option.textContent?.trim() === 'Newsletter')).toBeTrue();
+    // US-084 (Issue #123): das Katalog-Dropdown ist seit dieser Story ein gestaltetes `p-select`
+    // statt eines nativen `<select>` — dessen Optionsliste rendert erst im geöffneten Overlay,
+    // daher wird hier direkt der bereits geladene Katalog (identische Datenquelle) geprüft.
+    const typeSelect = addForm.querySelector('#communication-type');
+    expect(typeSelect).not.toBeNull();
+    expect(activeCatalog.some((type) => type.name === 'Newsletter')).toBeTrue();
 
     expect(addForm.querySelector('#communication-frequency')).not.toBeNull();
     expect(addForm.querySelector('#communication-channel')).not.toBeNull();

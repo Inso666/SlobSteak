@@ -17,10 +17,23 @@
               [formControl]="editForm.nameControl"
               aria-label="Name"
             />
-            <select class="type-tag" data-testid="type-badge" [formControl]="editForm.typeControl" aria-label="Typ">
-              <option value="Person">Person</option>
-              <option value="Organization">Organisation</option>
-            </select>
+            <!-- US-084 (Issue #123) Akzeptanzkriterium 1: gestaltetes `p-select` statt nativem
+                 `<select>` (US-077-Overlay-Tokens). `size="small"` nähert die kompakte Pillen-Optik
+                 der vormaligen `.type-tag`-Klasse an — eine pixelgenaue Nachbildung der winzigen
+                 Badge-Maße wäre nur über PrimeNG-interne DOM-Strukturen (Deep-Selector) erreichbar,
+                 was frontend.md Abschnitt 3 ausschließt; dokumentierte, geringfügige visuelle
+                 Vereinfachung (CLAUDE.md Abschnitt 6). Kein Präfix im Chip: dies ist ein
+                 Formularfeld (Stammdaten-Wert), kein Toolbar-Filter. -->
+            <p-select
+              styleClass="type-tag"
+              size="small"
+              data-testid="type-badge"
+              [options]="typeOptions"
+              optionLabel="label"
+              optionValue="value"
+              [formControl]="editForm.typeControl"
+              ariaLabel="Typ"
+            />
           } @else {
             <!-- US-081 (Issue #125): vormals `<h1>` — die einzige `<h1>` je Projekt-Unterseite ist
                  der Projektname in `project-workspace-layout.component.html` (Akzeptanzkriterium

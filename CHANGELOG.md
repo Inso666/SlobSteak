@@ -4,6 +4,34 @@ Alle nennenswerten Änderungen an diesem Projekt werden hier je User Story dokum
 
 ## [Unreleased]
 
+### US-084 — Gestaltete Auswahlfelder app-weit statt nativer `<select>`, Toolbar-Anordnung der Projektübersicht
+
+- Root Cause (Issue #123, QA-Design-Abgleich 04.09.2026): native `<select>`-Elemente rendern
+  betriebssystemeigen (unter Windows hell) mitten im dunklen Theme — betraf Projektübersicht
+  (Sortierung), Stakeholder-Liste (Typ), Map („Meine Sicht", „Vergleichen mit"), Verteiler (vier
+  Filter) und Stakeholder-Detail (Typ, Kommunikationsart, Frequenz, Kanal).
+- Neue, geteilte Komponente `frontend/src/app/shared/filter-select/filter-select.component.ts`
+  (`app-filter-select`): kapselt `p-select` (US-077-Overlay-Tokens) mit optionalem Filternamen-
+  Präfix im Chip-Text (z. B. „Typ: Alle", „Meine Sicht: PL") über PrimeNGs `selectedItem`-Template,
+  sr-only `<label for>`-Zuordnung bleibt für Screenreader erhalten. Einmal definiert, verwendet in
+  Stakeholder-Liste (Typ), Verteiler (vier Filter) und Stakeholder-Map (Meine Sicht, Vergleichen
+  mit).
+- Reine Formularfelder ohne Präfix-Chip (Stakeholder-Detail-Namens-Header-Typ, „Stakeholder
+  anlegen"-Formular, Kommunikationszuordnungen-Panel, Projektübersicht-Sortierung) nutzen `p-select`
+  direkt mit ihrem bestehenden sichtbaren `<label>` — kein natives `<select>` mehr app-weit in den
+  von der Story genannten Screens.
+- Projektübersicht-Toolbar (`project-overview.component.html`/`.css`/`.ts`): „Neues Projekt" steht
+  jetzt in der Titelzeile (`.topbar`) rechts neben `<h1>`; Default-Sortierung auf „Zuletzt
+  aktualisiert" (`Project.UpdatedAt` seit US-076 verfügbar); Tab-Zähler als eigenes Mono-Element
+  (`<span class="count">`) statt in Klammern im Label-Text; Suchfeld mit Lupen-Icon (`p-iconfield`).
+- Dabei gefundener und behobener Produktivbug: `CreateStakeholderFormComponent` aktualisierte den
+  „ähnlicher Stakeholder"-Hinweis nach dem `createStakeholder(...)`-HTTP-Aufruf ohne
+  `changeDetectorRef.markForCheck()` — im zonelosen Frontend wäre der Hinweis nach einer echten
+  Server-Antwort ohne weitere Interaktion unsichtbar geblieben (dieselbe, an vielen anderen Stellen
+  bereits behobene Ursache).
+- Story-Test `frontend/src/app/us-084-gestaltete-auswahlfelder-toolbar.spec.ts`, ein Testfall je
+  Akzeptanzkriterium.
+
 ### US-089 — Login: zentrierte Karte, durchgehende Anmelde-Schaltfläche, Design-Typografie und deutschsprachiges Passwort-Feedback
 
 - Root Cause (Issue #131/#132, QA-Design-Abgleich 04.09.2026, gegen `docs/design/Login.dc.html`):

@@ -138,7 +138,8 @@ describe('US-071: Stakeholder-Detailseite als Zwei-Spalten-Layout mit direkt edi
     const fixture = createComponent();
 
     const nameInput = fixture.debugElement.query(By.css('.name-row input.page-title-input'));
-    const typeSelect = fixture.debugElement.query(By.css('.name-row select[data-testid="type-badge"]'));
+    // US-084 (Issue #123): gestaltetes `p-select` statt nativem `<select>`.
+    const typeSelect = fixture.debugElement.query(By.css('.name-row p-select[data-testid="type-badge"]'));
 
     expect(nameInput).not.toBeNull();
     expect((nameInput.nativeElement as HTMLInputElement).value).toBe('Frank Vogel');

@@ -3,6 +3,7 @@ import { HttpErrorResponse } from '@angular/common/http';
 import { FormBuilder, ReactiveFormsModule, Validators } from '@angular/forms';
 import { ButtonDirective } from 'primeng/button';
 import { Message } from 'primeng/message';
+import { Select } from 'primeng/select';
 import { AdminCommunicationType, AdminCommunicationTypesService } from '../../admin/admin-communication-types.service';
 import { CommunicationAssignment, StakeholderCommunicationsService } from '../stakeholder-communications.service';
 import { LOAD_ERROR_MESSAGE } from '../../../core/messages/http-error-messages';
@@ -20,14 +21,18 @@ const MANAGE_ROLES = ['PL', 'Coreteam', 'Architect'];
 /** Deutsche Anzeige-Wortlaute für den Wire-Contract-Enum-Wert (US-040 Akzeptanzkriterium 5, PRD
  * F4.2) — an einer zentralen Stelle gehalten (frontend.md Abschnitt 3), statt in Template und
  * Formularoptionen dupliziert. */
-export const FREQUENCY_OPTIONS: readonly { value: string; label: string }[] = [
+/* US-084 (Issue #123): nicht `readonly T[]` (ReadonlyArray), da `p-select`s `[options]`-Input
+ * (PrimeNG) einen mutablen Array-Typ erwartet — `ng build`s strikte Template-Typprüfung lehnt eine
+ * `ReadonlyArray`-Zuweisung sonst ab, obwohl `const` die Variable selbst weiterhin unveränderlich
+ * hält. */
+export const FREQUENCY_OPTIONS: { value: string; label: string }[] = [
   { value: 'Weekly', label: 'Wöchentlich' },
   { value: 'Monthly', label: 'Monatlich' },
   { value: 'Quarterly', label: 'Quartalsweise' },
   { value: 'AdHoc', label: 'Anlassbezogen' },
 ];
 
-export const CHANNEL_OPTIONS: readonly { value: string; label: string }[] = [
+export const CHANNEL_OPTIONS: { value: string; label: string }[] = [
   { value: 'Email', label: 'E-Mail' },
   { value: 'Meeting', label: 'Meeting' },
   { value: 'Report', label: 'Report' },
@@ -50,7 +55,7 @@ export const CHANNEL_OPTIONS: readonly { value: string; label: string }[] = [
 @Component({
   selector: 'app-communication-assignment-panel',
   standalone: true,
-  imports: [ReactiveFormsModule, ProcessingButtonComponent, ViewStateComponent, ButtonDirective, Message],
+  imports: [ReactiveFormsModule, ProcessingButtonComponent, ViewStateComponent, ButtonDirective, Message, Select],
   templateUrl: './communication-assignment-panel.component.html',
   styleUrl: './communication-assignment-panel.component.css',
 })

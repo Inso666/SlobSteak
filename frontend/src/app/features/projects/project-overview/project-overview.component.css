@@ -5,8 +5,17 @@
   padding: var(--app-space-md) 0;
 }
 
+/* US-084 (Issue #123) Befund 2: „Neues Projekt" steht in der Titelzeile rechts neben der
+   Überschrift (`Main.dc.html` `.topbar`) statt im dritten Toolbar-Slot. */
+.topbar {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--app-space-md);
+}
+
 .project-overview h1 {
-  margin-bottom: var(--app-space-lg);
+  margin: 0 0 var(--app-space-lg);
 }
 
 .toolbar {
@@ -18,9 +27,17 @@
   flex-wrap: wrap;
 }
 
-/* US-074 Akzeptanzkriterium „Toolbar": Suchfeld + Sortier-Dropdown als eigene Gruppe zwischen
-   Tabs und „Neues Projekt" — `select` erhält die geteilte native Feld-Optik aus
-   `select:not(.p-select)` (styles.css), hier nur Layout/Abstand. */
+/* US-084 Befund 2: Tab-Zähler als eigenes Mono-Element neben dem Tab-Titel statt in Klammern im
+   Label-Text (`.count`-Muster analog SPEC-02 §1.2 `<span class="count mono">`). */
+.count {
+  font-family: var(--app-font-family-mono);
+  opacity: 0.85;
+}
+
+/* US-084 Akzeptanzkriterium 1: Suchfeld + Sortier-`p-select` als eigene Gruppe zwischen Tabs und
+   Titelzeile — beide Felder übernehmen ihre Optik jetzt vollständig aus dem zentralen
+   PrimeNG-Preset (`pInputText`/`p-select`, US-077-Overlay-Tokens) statt der vormaligen geteilten
+   `select:not(.p-select)`-Fallback-Optik (styles.css), hier nur Layout/Abstand. */
 .search-sort {
   display: flex;
   align-items: center;

@@ -5,6 +5,7 @@ import { HttpErrorResponse } from '@angular/common/http';
 import { ButtonDirective } from 'primeng/button';
 import { Card } from 'primeng/card';
 import { Skeleton } from 'primeng/skeleton';
+import { FilterSelectComponent, FilterSelectOption } from '../../../shared/filter-select/filter-select.component';
 import { MapComparisonEntry, MapComparisonValue, MapPoint, MapService, PerspectiveRole } from '../map.service';
 import { ProjectsService } from '../../projects/projects.service';
 import { StakeholdersService } from '../../stakeholders/stakeholders.service';
@@ -66,11 +67,9 @@ const PERSPECTIVE_OPTIONS: readonly PerspectiveRole[] = ['PL', 'Coreteam', 'Arch
  * und die `ownPerspective`-Änderung setzt eine dadurch ungültig gewordene `comparePerspective`-
  * Auswahl zurück.
  *
- * **Konsistenz mit `ownPerspective` (dokumentierte Abweichung von SPEC-04 §1, bereits seit
- * US-032):** SPEC-04 sieht `p-select` für beide Dropdowns vor; das bereits fertiggestellte
- * `ownPerspective`-Steuerelement (US-032) nutzt stattdessen ein natives `<select>`. Um innerhalb
- * derselben Toolbar nicht zwei unterschiedliche Auswahl-Paradigmen zu mischen, übernimmt
- * `comparePerspective` dasselbe, bereits etablierte native `<select>`-Muster.
+ * **US-084 (Issue #123):** Beide Dropdowns sind seit dieser Story auf das gestaltete, geteilte
+ * `app-filter-select` (`p-select`, SPEC-04 §1) umgestellt — zuvor nutzte `ownPerspective` (US-032)
+ * ein natives `<select>`, das betriebssystemeigen und damit hell mitten im dunklen Theme rendert.
  */
 @Component({
   selector: 'app-stakeholder-map-page',
@@ -81,6 +80,7 @@ const PERSPECTIVE_OPTIONS: readonly PerspectiveRole[] = ['PL', 'Coreteam', 'Arch
     ButtonDirective,
     Card,
     Skeleton,
+    FilterSelectComponent,
     QuadrantChartComponent,
     ComparisonModeToggleComponent,
     AssessmentConflictDialogComponent,
@@ -137,6 +137,21 @@ export class StakeholderMapPageComponent implements OnInit {
   protected get comparePerspectiveOptions(): PerspectiveRole[] {
     const ownPerspective = this.filterForm.controls.ownPerspective.value;
     return PERSPECTIVE_OPTIONS.filter((option) => option !== ownPerspective);
+  }
+
+  /** US-084 Akzeptanzkriterium 1/3: Optionsliste des gestalteten "Meine Sicht"-`p-select` — jede
+   * Perspektive dient zugleich als Wert und Anzeigelabel (identisch zum vormaligen nativen
+   * `<option [value]="option">{{ option }}</option>`). */
+  protected readonly perspectiveSelectOptions: FilterSelectOption<PerspectiveRole>[] =
+    PERSPECTIVE_OPTIONS.map((role) => ({ value: role, label: role }));
+
+  /** Analog {@link perspectiveSelectOptions} für "Vergleichen mit" — als Getter, da
+   * {@link comparePerspectiveOptions} sich mit der gewählten `ownPerspective` ändert. Der
+   * Options-Typ ist `PerspectiveRole | null`, damit er zum `FormControl<PerspectiveRole | null>`
+   * des Pflichtfelds ohne sinnvollen Leerwert passt — die Liste selbst enthält nie `null` als
+   * Option, siehe {@link FilterSelectComponent}s `placeholderLabel`-Mechanismus dafür. */
+  protected get comparePerspectiveSelectOptions(): FilterSelectOption<PerspectiveRole | null>[] {
+    return this.comparePerspectiveOptions.map((role) => ({ value: role, label: role }));
   }
 
   /** US-063 Akzeptanzkriterium 2: Anzahl der in der aktuell gewählten Perspektive (bzw. im

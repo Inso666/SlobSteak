@@ -10,6 +10,7 @@ import {
   AdminCommunicationType,
   AdminCommunicationTypesService,
 } from '../../admin/admin-communication-types.service';
+import { FilterSelectComponent, FilterSelectOption } from '../../../shared/filter-select/filter-select.component';
 import { DistributionListRow, DistributionListService } from '../distribution-list.service';
 import { buildDistributionListCsv, downloadCsvFile, todayIsoDate } from '../csv-export.util';
 import {
@@ -39,17 +40,19 @@ import { APP_NAV_PROJECT_SUB_ITEM_LABELS } from '../../../core/navigation/app-na
  * `roleGuard(['PL', 'Coreteam'])` geschützt (unverändert seit US-019), diese Komponente selbst
  * geht von einem bereits autorisierten Aufruf aus.
  *
- * Anders als im SPEC-05-Pseudocode (`p-table`, `p-select`) verwendet diese Komponente bewusst
- * native `<table>`/`<select>`-Elemente mit den bereits projektweit etablierten Design-Tokens
- * (siehe `styles.css`-Kommentar „noch nicht auf p-select migriert" sowie die tatsächliche
- * Umsetzung in `StakeholderListComponent`/`StakeholderMapPageComponent`/den Admin-Screens — dort
- * überall dasselbe Muster). Das erfüllt SPEC-00 §2/§3 (Label-Verknüpfung, Fehler-/Leer-/
- * Lade-Zustands-Muster, Fokus-Ring, Tokens) vollständig, ohne `p-table`/`p-select` als in diesem
- * Repository bislang ungenutzte Komponenten neu einzuführen (CLAUDE.md Abschnitt 6 — dokumentierte
- * Implementierungsentscheidung, siehe Anmerkungen des Agenten in der Story-Datei). `p-toast` +
- * `MessageService` sind hier hingegen ein sinnvoller, eng begrenzter Erstgebrauch (SPEC-05 §2.2:
- * transiente Aktions-Rückmeldung „niemals stillschweigend“ für „E-Mails kopieren“), für den es kein
- * gleichwertiges bestehendes Muster im Repository gibt.
+ * Anders als im SPEC-05-Pseudocode (`p-table`) verwendet diese Komponente bewusst eine native
+ * `<table>` mit den bereits projektweit etablierten Design-Tokens (siehe `styles.css`, `.list-panel`
+ * u. Ä. sowie dieselbe Umsetzung in `StakeholderListComponent`/`StakeholderMapPageComponent`/den
+ * Admin-Screens — dort überall dasselbe Muster). Das erfüllt SPEC-00 §2/§3 (Label-Verknüpfung,
+ * Fehler-/Leer-/Lade-Zustands-Muster, Fokus-Ring, Tokens) vollständig, ohne `p-table` als in diesem
+ * Repository bislang ungenutzte Komponente neu einzuführen (CLAUDE.md Abschnitt 6 — dokumentierte
+ * Implementierungsentscheidung, siehe Anmerkungen des Agenten in der Story-Datei). Die vier
+ * Filter-Dropdowns hingegen sind seit US-084 (Issue #123) auf das gestaltete, geteilte
+ * `app-filter-select` (`p-select`) umgestellt — natives `<select>` rendert dort betriebssystemeigen
+ * und damit hell mitten im dunklen Theme (siehe dortige Story). `p-toast` + `MessageService` sind
+ * hier ein sinnvoller, eng begrenzter Erstgebrauch (SPEC-05 §2.2: transiente Aktions-Rückmeldung
+ * „niemals stillschweigend“ für „E-Mails kopieren“), für den es kein gleichwertiges bestehendes
+ * Muster im Repository gibt.
  *
  * Die Tabellenspalte „Organisation“ (Akzeptanzkriterium 1) stammt NICHT aus dem
  * US-041-Response-Contract (der kennt kein `organization`-Feld) — sie wird von
@@ -66,7 +69,7 @@ import { APP_NAV_PROJECT_SUB_ITEM_LABELS } from '../../../core/navigation/app-na
 @Component({
   selector: 'app-distribution-list-page',
   standalone: true,
-  imports: [ReactiveFormsModule, ButtonDirective, Skeleton, Toast],
+  imports: [ReactiveFormsModule, ButtonDirective, Skeleton, Toast, FilterSelectComponent],
   providers: [MessageService],
   templateUrl: './distribution-list-page.component.html',
   styleUrl: './distribution-list-page.component.css',
@@ -112,6 +115,30 @@ export class DistributionListPageComponent implements OnInit {
     channel: this.formBuilder.control<string | null>(null),
     stakeholderType: this.formBuilder.control<string | null>(null),
   });
+
+  /** US-084 Akzeptanzkriterium 1/3: Optionslisten der vier gestalteten Filter-`p-select`, jeweils
+   * mit "Alle" (`filterPlaceholder`) als echtem, weiterhin über die Pfeiltasten erreichbarem
+   * erstem Listeneintrag — identisch zum vormaligen `<option [ngValue]="null">…</option>`. Als
+   * Getter statt statischer Felder, da {@link communicationTypeOptions} erst asynchron nachgeladen
+   * wird (siehe {@link loadCommunicationTypeOptions}). */
+  protected get communicationTypeFilterOptions(): FilterSelectOption<string | null>[] {
+    return [
+      { value: null, label: this.filterPlaceholder },
+      ...this.communicationTypeOptions.map((type) => ({ value: type.id, label: type.name })),
+    ];
+  }
+
+  protected get frequencyFilterOptions(): FilterSelectOption<string | null>[] {
+    return [{ value: null, label: this.filterPlaceholder }, ...this.frequencyOptions];
+  }
+
+  protected get channelFilterOptions(): FilterSelectOption<string | null>[] {
+    return [{ value: null, label: this.filterPlaceholder }, ...this.channelOptions];
+  }
+
+  protected get stakeholderTypeFilterOptions(): FilterSelectOption<string | null>[] {
+    return [{ value: null, label: this.filterPlaceholder }, ...this.stakeholderTypeOptions];
+  }
 
   ngOnInit(): void {
     this.projectId = this.route.parent?.snapshot.paramMap.get('id') ?? '';

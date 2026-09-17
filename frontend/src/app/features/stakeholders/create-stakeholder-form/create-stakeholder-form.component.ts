@@ -1,13 +1,23 @@
-import { Component, EventEmitter, Input, OnInit, Output, inject } from '@angular/core';
+import { ChangeDetectorRef, Component, EventEmitter, Input, OnInit, Output, inject } from '@angular/core';
 import { ActivatedRoute } from '@angular/router';
 import { FormBuilder, ReactiveFormsModule, Validators } from '@angular/forms';
 import { HttpErrorResponse } from '@angular/common/http';
 import { InputText } from 'primeng/inputtext';
 import { Message } from 'primeng/message';
+import { Select } from 'primeng/select';
 import { Textarea } from 'primeng/textarea';
 import { Stakeholder, StakeholdersService } from '../stakeholders.service';
 import { ProcessingButtonComponent } from '../../../shared/processing-button/processing-button.component';
 import { AttentionBadgeComponent } from '../../../shared/attention-badge/attention-badge.component';
+import { FilterSelectOption } from '../../../shared/filter-select/filter-select.component';
+
+/** US-084 Akzeptanzkriterium 1: Optionsliste des gestalteten Typ-`p-select`. Nicht `readonly T[]`
+ * (ReadonlyArray) — `p-select`s `[options]`-Input erwartet einen mutablen Array-Typ, `ng build`s
+ * strikte Template-Typprüfung lehnt eine `ReadonlyArray`-Zuweisung sonst ab. */
+const TYPE_OPTIONS: FilterSelectOption<string>[] = [
+  { value: 'Person', label: 'Person' },
+  { value: 'Organization', label: 'Organisation' },
+];
 
 /**
  * Formular „Stakeholder anlegen“ (US-021). Erfasst alle in der Story genannten Felder
@@ -21,7 +31,7 @@ import { AttentionBadgeComponent } from '../../../shared/attention-badge/attenti
 @Component({
   selector: 'app-create-stakeholder-form',
   standalone: true,
-  imports: [ReactiveFormsModule, ProcessingButtonComponent, AttentionBadgeComponent, InputText, Message, Textarea],
+  imports: [ReactiveFormsModule, ProcessingButtonComponent, AttentionBadgeComponent, InputText, Message, Select, Textarea],
   templateUrl: './create-stakeholder-form.component.html',
   styleUrl: './create-stakeholder-form.component.css',
 })
@@ -32,6 +42,9 @@ export class CreateStakeholderFormComponent implements OnInit {
   private readonly formBuilder = inject(FormBuilder);
   private readonly stakeholdersService = inject(StakeholdersService);
   private readonly route = inject(ActivatedRoute);
+  private readonly changeDetectorRef = inject(ChangeDetectorRef);
+
+  protected readonly typeOptions = TYPE_OPTIONS;
 
   protected errorMessage: string | null = null;
   protected lastSimilarWarning: string | null = null;
@@ -90,6 +103,16 @@ export class CreateStakeholderFormComponent implements OnInit {
           }
           this.form.reset({ name: '', type: 'Person', organization: '', position: '', email: '', phone: '', locationDepartment: '', description: '' });
           this.created.emit(stakeholder);
+          // US-084 (Issue #123): Dieses zoneless Frontend markiert eine Komponente nach einer
+          // Zustandsänderung in einem `subscribe()`-Callback nicht automatisch für die nächste
+          // Change-Detection-Runde (dieselbe, an vielen anderen Stellen bereits behobene Ursache,
+          // siehe z. B. `project-overview.component.ts`). Diese Komponente wurde von der
+          // „systematischen" Bereinigung (US-050 ff.) nicht erfasst; erst mit dem in dieser Story
+          // ergänzten `p-select` (das selbst über einen Signal-Mikrotask aktualisiert) wurde der
+          // fehlende Aufruf durch einen fehlschlagenden Test (`us-047-...spec.ts`) sichtbar — echte
+          // Produktivauswirkung, kein reines Testartefakt, daher hier behoben statt nur im Test
+          // umgangen.
+          this.changeDetectorRef.markForCheck();
         },
         error: (error: HttpErrorResponse) => {
           this.isSubmitting = false;
@@ -99,6 +122,7 @@ export class CreateStakeholderFormComponent implements OnInit {
               : error.error?.error === 'INVALID_EMAIL_FORMAT'
                 ? 'Die E-Mail-Adresse ist ungültig formatiert.'
                 : 'Stakeholder konnte nicht angelegt werden.';
+          this.changeDetectorRef.markForCheck();
         },
       });
   }

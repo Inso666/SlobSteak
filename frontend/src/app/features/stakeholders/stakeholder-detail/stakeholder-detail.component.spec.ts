@@ -120,7 +120,8 @@ describe('StakeholderDetailComponent', () => {
     const fixture = createComponent();
 
     expect(fixture.debugElement.query(By.css('input.page-title-input'))).not.toBeNull();
-    expect(fixture.debugElement.query(By.css('select[data-testid="type-badge"]'))).not.toBeNull();
+    // US-084 (Issue #123): gestaltetes `p-select` statt nativem `<select>`.
+    expect(fixture.debugElement.query(By.css('p-select[data-testid="type-badge"]'))).not.toBeNull();
     expect(fixture.debugElement.query(By.css('input.org-line-input'))).not.toBeNull();
     expect(fixture.debugElement.query(By.css('#f-position'))).not.toBeNull();
     expect(fixture.debugElement.query(By.css('.panel input[formControlName="name"]'))).toBeNull();

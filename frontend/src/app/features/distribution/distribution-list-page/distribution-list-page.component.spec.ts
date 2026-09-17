@@ -1,4 +1,5 @@
 import { TestBed } from '@angular/core/testing';
+import { By } from '@angular/platform-browser';
 import { ActivatedRoute, convertToParamMap, provideRouter } from '@angular/router';
 import { Clipboard } from '@angular/cdk/clipboard';
 import { MessageService } from 'primeng/api';
@@ -94,15 +95,17 @@ describe('DistributionListPageComponent', () => {
     });
     expect(communicationTypesServiceSpy.listActiveCommunicationTypes).toHaveBeenCalled();
 
-    const nativeElement: HTMLElement = fixture.nativeElement;
-    const communicationTypeSelect = nativeElement.querySelector<HTMLSelectElement>(
-      '#dl-filter-kommunikationsart',
-    )!;
-    expect(
-      Array.from(communicationTypeSelect.options).some(
-        (option) => option.textContent?.trim() === 'Newsletter',
-      ),
-    ).toBeTrue();
+    // US-084 (Issue #123): das Filter-Dropdown ist seit dieser Story ein gestaltetes
+    // `app-filter-select` (`p-select`) statt eines nativen `<select>` — dessen Optionsliste
+    // rendert erst im geöffneten Overlay, daher wird hier die gebundene Datenquelle (`options`)
+    // statt DOM-`<option>`-Elementen geprüft (siehe `filter-select.component.spec.ts`).
+    const communicationTypeFilterSelect = fixture.debugElement.query(
+      By.css('app-filter-select[inputId="dl-filter-kommunikationsart"]'),
+    );
+    const options = communicationTypeFilterSelect.componentInstance['options'] as {
+      label: string;
+    }[];
+    expect(options.some((option) => option.label === 'Newsletter')).toBeTrue();
   });
 
   it('renders each row with the resolved German frequency/channel labels and the joined organization', () => {

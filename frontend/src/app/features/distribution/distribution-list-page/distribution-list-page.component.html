@@ -5,46 +5,45 @@
        `aria-labelledby`-Landmarkenbenennung dieses `<section>` erhalten (Akzeptanzkriterium 2). -->
   <span class="sr-only" id="dl-page-title">{{ areaLabel }}</span>
 
+  <!-- US-084 (Issue #123) Akzeptanzkriterium 1/3: alle vier Filter als gestaltetes
+       `app-filter-select` (p-select mit Filternamen-Präfix im Chip, z. B. "Kommunikationsart: Alle")
+       statt nativer `<select>`-Elemente — löst das bisherige, separate sichtbare Label
+       ("Kommunikationsart:" vor dem Feld) ab; die `<label for>`-Zuordnung bleibt für Screenreader
+       sr-only erhalten (siehe `FilterSelectComponent`). "Alle" bleibt für jeden Filter ein echter,
+       jederzeit erneut wählbarer Listeneintrag (identisch zum vormaligen
+       `<option [ngValue]="null">{{ filterPlaceholder }}</option>`). -->
   <form [formGroup]="filterForm" class="dl-toolbar" aria-label="Verteiler filtern">
-    <div class="field">
-      <label for="dl-filter-kommunikationsart">Kommunikationsart:</label>
-      <select id="dl-filter-kommunikationsart" formControlName="communicationTypeId">
-        <option [ngValue]="null">{{ filterPlaceholder }}</option>
-        @for (option of communicationTypeOptions; track option.id) {
-          <option [value]="option.id">{{ option.name }}</option>
-        }
-      </select>
-    </div>
+    <app-filter-select
+      prefix="Kommunikationsart"
+      label="Nach Kommunikationsart filtern"
+      inputId="dl-filter-kommunikationsart"
+      [options]="communicationTypeFilterOptions"
+      [control]="filterForm.controls.communicationTypeId"
+    />
 
-    <div class="field">
-      <label for="dl-filter-frequenz">Frequenz:</label>
-      <select id="dl-filter-frequenz" formControlName="frequency">
-        <option [ngValue]="null">{{ filterPlaceholder }}</option>
-        @for (option of frequencyOptions; track option.value) {
-          <option [value]="option.value">{{ option.label }}</option>
-        }
-      </select>
-    </div>
+    <app-filter-select
+      prefix="Frequenz"
+      label="Nach Frequenz filtern"
+      inputId="dl-filter-frequenz"
+      [options]="frequencyFilterOptions"
+      [control]="filterForm.controls.frequency"
+    />
 
-    <div class="field">
-      <label for="dl-filter-kanal">Kanal:</label>
-      <select id="dl-filter-kanal" formControlName="channel">
-        <option [ngValue]="null">{{ filterPlaceholder }}</option>
-        @for (option of channelOptions; track option.value) {
-          <option [value]="option.value">{{ option.label }}</option>
-        }
-      </select>
-    </div>
+    <app-filter-select
+      prefix="Kanal"
+      label="Nach Kanal filtern"
+      inputId="dl-filter-kanal"
+      [options]="channelFilterOptions"
+      [control]="filterForm.controls.channel"
+    />
 
-    <div class="field">
-      <label for="dl-filter-typ">Typ:</label>
-      <select id="dl-filter-typ" formControlName="stakeholderType">
-        <option [ngValue]="null">{{ filterPlaceholder }}</option>
-        @for (option of stakeholderTypeOptions; track option.value) {
-          <option [value]="option.value">{{ option.label }}</option>
-        }
-      </select>
-    </div>
+    <app-filter-select
+      prefix="Typ"
+      label="Nach Typ filtern"
+      inputId="dl-filter-typ"
+      [options]="stakeholderTypeFilterOptions"
+      [control]="filterForm.controls.stakeholderType"
+    />
 
     <button
       type="button"

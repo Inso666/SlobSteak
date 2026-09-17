@@ -3,6 +3,9 @@ import { Router, RouterLink } from '@angular/router';
 import { FormControl, FormGroup, ReactiveFormsModule } from '@angular/forms';
 import { ButtonDirective } from 'primeng/button';
 import { InputText } from 'primeng/inputtext';
+import { IconField } from 'primeng/iconfield';
+import { InputIcon } from 'primeng/inputicon';
+import { Select } from 'primeng/select';
 import { ProjectOverviewItem, ProjectsService, RoleAssessmentProgress } from '../projects.service';
 import { AdminProject, AdminProjectsService } from '../../admin/admin-projects.service';
 import { TokenStorageService } from '../../auth/token-storage.service';
@@ -52,6 +55,9 @@ interface RoleProgressEntry {
   imports: [
     ButtonDirective,
     InputText,
+    IconField,
+    InputIcon,
+    Select,
     ReactiveFormsModule,
     RouterLink,
     ViewStateComponent,
@@ -84,11 +90,28 @@ export class ProjectOverviewComponent implements OnInit {
   /** US-074 Akzeptanzkriterium „Toolbar": rein client-seitige Filterung/Sortierung der bereits
    * geladenen Listen — kein erneuter Server-Request je Tastenanschlag/Auswahl. Keine
    * `Validators`, da diese Felder (anders als z. B. Formulare mit serverseitiger Validierung,
-   * `.claude/agents/frontend.md` Abschnitt 2) rein lokal filtern, nichts an das Backend senden. */
+   * `.claude/agents/frontend.md` Abschnitt 2) rein lokal filtern, nichts an das Backend senden.
+   *
+   * US-084 (Issue #123) Befund 2: Default ist seit dieser Story „Zuletzt aktualisiert"
+   * (`lastUpdated`) statt „Name (A–Z)" (`name`, SPEC-02 §3.1: „Default-Value = 'Zuletzt
+   * aktualisiert'"). `Project.UpdatedAt` ist seit US-076 verfügbar, siehe Story-Datei. Der
+   * bestehende US-074-Story-Test, der den vormaligen `name`-Default voraussetzte, wurde im
+   * Rahmen dieser Story auf den neuen Default angepasst (siehe dortige Anmerkung, analog zum
+   * bereits etablierten Muster aus US-078/US-064 für eine spätere, bewusste Wertänderung). */
   protected readonly filterForm = new FormGroup({
     search: new FormControl('', { nonNullable: true }),
-    sortBy: new FormControl<ProjectSortOption>('name', { nonNullable: true }),
+    sortBy: new FormControl<ProjectSortOption>('lastUpdated', { nonNullable: true }),
   });
+
+  /** US-084 Akzeptanzkriterium 1/6: Optionsliste des gestalteten Sortier-`p-select` — dieselben
+   * drei Werte/Label wie zuvor im nativen `<select>`, jetzt als Datenquelle statt `<option>`-
+   * Markup (siehe auch Tests, die diese Liste statt DOM-`<option>`-Elementen prüfen, da `p-select`
+   * seine Optionsliste erst im geöffneten Overlay rendert). */
+  protected readonly sortOptions: { value: ProjectSortOption; label: string }[] = [
+    { value: 'name', label: 'Name (A–Z)' },
+    { value: 'newest', label: 'Neu zuerst' },
+    { value: 'lastUpdated', label: 'Zuletzt aktualisiert' },
+  ];
 
   /** US-044 Akzeptanzkriterium 4: konsistente Fehlermeldung statt stumm leerer Ansicht bei
    * fehlgeschlagenem Laden. US-050: zusätzlich ein diskreter `ViewState` je Liste, damit
