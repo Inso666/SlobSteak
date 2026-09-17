@@ -18,8 +18,10 @@ import { APP_NAV_PROJECT_SUB_ITEM_LABELS } from '../../../core/navigation/app-na
 
 /** US-084 (Issue #123) Akzeptanzkriterium 1/3: Optionsliste des gestalteten Typ-Filter-`p-select`
  * — "Alle" bleibt ein echter, jederzeit erneut wählbarer Listeneintrag (identisch zum vormaligen
- * nativen `<option value="">Alle</option>`), kein reiner Platzhalterzustand. */
-const TYPE_FILTER_OPTIONS: readonly FilterSelectOption<string>[] = [
+ * nativen `<option value="">Alle</option>`), kein reiner Platzhalterzustand. Nicht `readonly T[]`
+ * (ReadonlyArray) — `FilterSelectComponent`s `options`-Input erwartet einen mutablen Array-Typ,
+ * `ng build`s strikte Template-Typprüfung lehnt eine `ReadonlyArray`-Zuweisung sonst ab. */
+const TYPE_FILTER_OPTIONS: FilterSelectOption<string>[] = [
   { value: '', label: 'Alle' },
   { value: 'Person', label: 'Person' },
   { value: 'Organization', label: 'Organisation' },
